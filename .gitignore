@@ -9,3 +9,12 @@ ports.db
 # Releases descomprimidas y builds
 games/*/latest/
 games/*/build/
+
+# Herramientas descargadas por tools/install.sh
+tools/bin/
+
+# Build anterior que guarda prepare_build
+games/*/build.old/
+
+# Scripts descargados por games/castlevania-son/build.sh
+games/castlevania-son/extract_game-*.py

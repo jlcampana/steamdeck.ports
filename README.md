@@ -32,11 +32,13 @@ latest/<id>/         archivo de release descargado, tal cual (no va a git)
 games/<id>/
   README.md          notas del port: qué pide, cómo se construye, cómo se juega
   build.sh           genera games/<id>/build a partir de latest/ + la ISO
-  Dockerfile         solo en los juegos que se compilan (Ubuntu 24.04)
   latest/            release descomprimida (no va a git)
   build/             resultado final listo para copiar a la Deck (no va a git)
 tools/
-  install.sh         instala las herramientas que necesitan los scripts
+  install.sh         instala paquetes del sistema y extract-xiso
+  lib.sh             funciones comunes de los build.sh
+  docker/ubuntu-build.Dockerfile   imagen única de compilación (Ubuntu 24.04)
+  bin/               extract-xiso (no va a git)
 isos/                ISOs y paquetes de los juegos (no va a git)
 ```
 
@@ -44,7 +46,7 @@ isos/                ISOs y paquetes de los juegos (no va a git)
 
 1. `tools/install.sh` — instala dependencias del PC (una vez).
 2. `./update.sh` — comprueba las releases y descarga lo nuevo.
-3. `games/<id>/build.sh` — genera `games/<id>/build`.
+3. `games/<id>/build.sh [-f] [iso]` — genera `games/<id>/build`.
 4. Copiar `games/<id>/build` a la Deck (por ejemplo a `~/Games/<id>`) y
    añadir el ejecutable a Steam como *juego no de Steam* (ver cada README).
 
@@ -80,6 +82,64 @@ Dependencias: `curl`, `jq`, `sqlite3`, `unzip`, `tar`, `sha256sum`.
 sqlite3 -header -column ports.db "SELECT * FROM installed"
 ```
 
+## `tools/install.sh`
+
+Comprueba `curl jq sqlite3 unzip tar python3 sha256sum git` y un motor de
+contenedores (`podman` o `docker`), e instala lo que falte con dnf, apt o
+pacman (`--print` solo enseña el comando). Descarga `extract-xiso` (release
+oficial de XboxDev/extract-xiso, verificada por SHA-256) en `tools/bin/`.
+
+## `games/<id>/build.sh`
+
+Todos comparten `tools/lib.sh` y funcionan igual:
+
+```
+games/doa3/build.sh            # ISO por defecto (isos/DOA3.iso)
+games/doa3/build.sh otra.iso   # otra ISO
+games/doa3/build.sh -f         # build limpio
+```
+
+- Copian `games/<id>/latest` en `games/<id>/build` (con `--reflink`, sin
+  gastar espacio en btrfs). Si `build/` ya es de esa versión, se reutiliza; si
+  es de otra (o con `-f`), el anterior se mueve a `build.old/` para no perder
+  partidas ni ajustes. Solo se guarda un `build.old/`.
+- Al terminar escriben `build/.release-tag` con la versión construida.
+- Los que compilan (doaxtreme, doa3, doa2u) construyen la imagen
+  `steamdeck-ports/ubuntu-build:24.04` (una sola imagen para los tres, desde
+  `tools/docker/ubuntu-build.Dockerfile`) y ejecutan
+  `build_game.sh <iso> --extractor tools/bin/extract-xiso` dentro. Usan
+  **podman** (rootless, `--userns=keep-id`) o docker si su daemon está activo.
+  El proyecto se monta en la misma ruta que en el host, así que la ISO tiene
+  que estar dentro del proyecto. Después avisan si algún `.json`/`.txt`/`.toml`
+  del build guarda rutas absolutas del PC.
+
+| Juego | Qué hace `build.sh` | Tiempo aprox. | Tamaño de `build/` |
+|---|---|---|---|
+| castlevania-son | descarga `scripts/extract_game.py` del mismo tag, instala World y Japón en `assets/`, crea `portable.txt` | segundos | ~300 MB |
+| doa1u | extrae `isos/DOA2U.iso` en `assets/` con extract-xiso | ~20 s | ~4,3 GB |
+| doa3 | compila en Ubuntu 24.04 (podman) | ~6 min | 4,4 GB |
+| doaxtreme | compila en Ubuntu 24.04 (podman) | ~6 min | 4,4 GB |
+| doa2u | crea `private/venv` y compila en Ubuntu 24.04 (podman) | ~12 min | 4,9 GB |
+
+Casi todo el tamaño de los DOA es el disco extraído (`private/`).
+
+### `build/steamdeck.sh`: punto de entrada común en la Deck
+
+Todos los juegos Linux (doa3, doa2u, doaxtreme, castlevania-son) tienen
+`build/steamdeck.sh`, así que en la Deck se añaden a Steam igual. En
+castlevania-son solo lanza `nocturnerecomp`. En los DOA hace además esto:
+
+
+Los ejecutables compilados en el contenedor guardan un RUNPATH absoluto a la
+ruta de este PC para encontrar `libSDL3.so.0`, y los scripts del port no
+ajustan `LD_LIBRARY_PATH` (upstream asume compilar y jugar en la misma ruta).
+No se pueden parchear con `patchelf` porque `run_game.py` verifica el SHA-256
+del runner. Por eso cada `build.sh` genera `build/steamdeck.sh`, que añade a
+`LD_LIBRARY_PATH` (con rutas relativas) las carpetas con `.so` del build y
+lanza `launcher.sh`. **En la Deck, el acceso de Steam debe apuntar a
+`steamdeck.sh`.** `run_game.py` solo usa la librería estándar de Python, así
+que funciona con el Python de SteamOS.
+
 ## Cómo se construye cada tipo de port
 
 ### Ports de NoRain211 (doaxtreme, doa3, doa2u)
@@ -93,7 +153,7 @@ que luego se juega con `run_game.sh` / `launcher.sh`.
 
 - SteamOS no tiene compilador, así que se compila en **Ubuntu 24.04**. Los
   repos proponen `distrobox` en la propia Deck (`build_steamdeck.sh`); aquí se
-  hace en el PC con Docker (`games/<id>/Dockerfile`).
+  hace en el PC con podman/docker (`tools/docker/ubuntu-build.Dockerfile`).
 - El runner y el launcher llevan su propio SDL3, así que el resultado funciona
   en SteamOS sin instalar nada. En tiempo de ejecución necesita
   `libshaderc_shared.so.1`, que SteamOS ya incluye.
@@ -153,14 +213,12 @@ cambiar en `nocturnerecomp.toml` (`game_data_root`, `user_data_root`,
 
 - [x] `update.sh` + `ports.tsv` + `ports.db` (probado: descarga y descomprime los 5).
 - [x] Investigación de cada port (este README y `games/<id>/README.md`).
-- [ ] `tools/install.sh`.
-- [ ] `games/<id>/build.sh` y `Dockerfile` de cada juego.
+- [x] `tools/install.sh`.
+- [x] `games/<id>/build.sh`. Los 5 construidos en el PC.
+- [x] Una sola imagen de compilación (`tools/docker/ubuntu-build.Dockerfile`).
+- [x] `steamdeck.sh` como punto de entrada común de los juegos Linux.
+- [ ] Script para distribuir los builds a la Deck.
 - [ ] Probar los builds en la Deck.
-
-Pendiente de comprobar: si el build de los ports de NoRain guarda rutas
-absolutas (se compila en `games/<id>/build` en el PC y se juega desde otra
-ruta en la Deck). Si fuera así, habría que compilar en la misma ruta que
-tendrá en la Deck o hacerlo con distrobox en la propia Deck.
 
 Espacio: cada build de un DOA extrae su ISO (~4 GB). Con btrfs, `cp
 --reflink` evita duplicar datos al copiar ISOs dentro de `build/`.

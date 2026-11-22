@@ -14,7 +14,8 @@ juegos de Xbox/Xbox 360:
   `latest/<id>/`, la descomprime en `games/<id>/latest/` y registra versiones en
   `ports.db` (SQLite).
 - `games/<id>/build.sh`: genera `games/<id>/build/` (port + assets) listo para la
-  Deck. Si hace falta compilar, con un `Dockerfile` dentro de `games/<id>/`.
+  Deck. Si hace falta compilar, en un contenedor Ubuntu 24.04
+  (`tools/docker/ubuntu-build.Dockerfile`, imagen única compartida).
 - `tools/`: herramientas externas y `tools/install.sh` para instalarlas.
 - Juegos sin versión Linux → Proton en la Deck.
 
@@ -68,15 +69,66 @@ gastar espacio.
    `build_game.sh` de NoRain y `extract_game.py` de NocturneRecomp.
 5. Documentación: `README.md`, `games/<id>/README.md`, `.gitignore`, este
    `CLAUDE.md`.
+6. `tools/install.sh` (paquetes + `extract-xiso` en `tools/bin`) y
+   `tools/lib.sh` (funciones comunes de los `build.sh`).
+7. Docker no tiene el daemon activo en este PC (`DOCKER_HOST` apunta a
+   `/run/kiri/docker.sock`, que no existe) → `run_in_container` usa **podman
+   rootless** (`--userns=keep-id`, `--security-opt label=disable` por SELinux).
+8. Builds hechos: castlevania-son (2 s, 301 MB), doa1u (18 s, 4,3 GB),
+   doa3 (OK, 4,4 GB: `private/` 4,0 GB con el disco extraído; `build/` 298 MB).
+9. **Problema de rutas en los ports de NoRain:** los ejecutables compilados
+   (`recomp_program_runner`, `recomp_launcher`) tienen RUNPATH absoluto a
+   `<ruta del PC>/build/recomp-program/_deps/sdl3-build` y ningún script del
+   port ajusta `LD_LIBRARY_PATH` (upstream asume compilar y jugar en la misma
+   ruta, con distrobox). No se pueden parchear con `patchelf` porque
+   `run_game.py` verifica el SHA-256 del runner contra el recibo del build.
+   Solución: `write_steamdeck_launcher` genera `build/steamdeck.sh`, que pone
+   en `LD_LIBRARY_PATH` (con rutas relativas) las carpetas con `.so` y lanza
+   `launcher.sh`. Comprobado con `ldd` sobre una copia en otra ruta.
+   `check_absolute_paths` avisa ahora también de RUNPATH absolutos.
+10. doaxtreme: compilado (~6 min, 4,4 GB; su build avisa "Gameplay has not
+    been validated"). Su runner tiene RUNPATH `$ORIGIN:<ruta absoluta>`.
+11. doa2u: primer intento falló. `docs/building.md` dice que `build_game.py`
+    crea el venv, pero el código hace `pip install capstone` con el Python que
+    lo lanza y Ubuntu 24.04 lo bloquea (PEP 668). `games/doa2u/build.sh` crea
+    `private/venv` antes. Segundo intento OK (~12 min, 4,9 GB).
+12. Bug propio arreglado: en `check_absolute_paths`, un `[[ … ]] && log` al
+    final del bucle devolvía 1 y `set -e` cortaba el build.
+13. Comprobado que `run_game.py` de los tres solo importa stdlib + módulos del
+    propio port → funciona con el Python de SteamOS. El venv de `private/`
+    enlaza a `/usr/bin/python3`.
+14. **Imágenes de contenedor unificadas.** Los tres Dockerfiles eran idénticos
+    y podman ya había deduplicado las tres etiquetas en una imagen
+    (`e803ed19e106`, 2,33 GB). Ahora hay un solo
+    `tools/docker/ubuntu-build.Dockerfile` → `steamdeck-ports/ubuntu-build:24.04`
+    (sale de la caché con el mismo ID). Fuera los Dockerfiles y `.dockerignore`
+    de cada juego y las etiquetas viejas. Regla: toda imagen sale de un
+    Dockerfile versionado; si un juego necesitara más paquetes, su propio
+    Dockerfile en `games/<id>/` haría `FROM` de esta.
+15. **`steamdeck.sh` = punto de entrada común** de todos los juegos Linux en la
+    Deck (petición del usuario: que todos arranquen igual). No se llama
+    `run_game.sh` porque los DOA ya traen uno (el del port, que llama a su
+    `run_game.py`; esos scripts son del port, no nuestros, y no se
+    reescriben). Castlevania: `steamdeck.sh` → `nocturnerecomp` (RUNPATH
+    `$ORIGIN`, no necesita más). Arreglado en `write_steamdeck_launcher`: la
+    carpeta raíz salía con ruta absoluta y `*.so*` cogía archivos de
+    `assets/`; ahora regex `\.so(\.N)*` + `realpath --relative-to`.
+16. Idea para la distribución: instaladores `.desktop` (como Decky Loader o
+    EmuDeck: se arrastran al escritorio de la Deck y doble clic). Podrían copiar
+    el juego a `~/Games/<id>` y añadir `steamdeck.sh` a Steam
+    (`steamos-add-to-steam`, a comprobar en la Deck). DOA1U necesita además
+    forzar Proton.
 
 ### Pendiente
 
-- [ ] `tools/install.sh`.
-- [ ] `build.sh` + `Dockerfile` (Ubuntu 24.04) para doaxtreme, doa3, doa2u.
-- [ ] `build.sh` de doa1u (extraer la ISO de DOA2U a `assets/`, o copiarla).
-- [ ] `build.sh` de castlevania-son (descargar `extract_game.py` del tag,
-      extraer world + japan, crear `portable.txt`).
-- [ ] Comprobar si los builds de NoRain guardan rutas absolutas (se compilan
-      en el PC y se juegan desde otra ruta en la Deck). Si es así, compilar en
-      la ruta destino o con distrobox en la Deck.
+- [x] `tools/install.sh`.
+- [x] `build.sh` de los 5 juegos (+ `Dockerfile` en doaxtreme, doa3, doa2u).
+- [x] Rutas absolutas en los builds de NoRain → resuelto con `steamdeck.sh`.
+- [x] Imagen única de compilación (ver punto 14).
+- [x] `steamdeck.sh` en todos los juegos Linux (ver punto 15).
+- [ ] **Distribución a la Steam Deck (al final).** En la Deck nunca se
+      ejecutan builds: se compila todo en el PC y se copia el juego completo
+      (`games/<id>/build`). Hace falta un script para enviarlo (p. ej. rsync por
+      SSH o empaquetado) y que el build funcione desde otra ruta (de ahí
+      `check_absolute_paths`). Decidir también si se añaden los accesos a Steam.
 - [ ] Probar en la Deck.

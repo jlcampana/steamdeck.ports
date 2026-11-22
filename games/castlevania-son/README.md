@@ -43,4 +43,16 @@ Formas de instalarlos:
 - Rutas configurables en `nocturnerecomp.toml` o con `--nombre=valor`:
   `game_data_root` (assets), `user_data_root`, `cache_root`, `mods_data_root`,
   `mods_dump_root`, `update_data_root`.
-- Añadir `nocturnerecomp` a Steam como juego no de Steam.
+- **En la Deck, usar `steamdeck.sh`** (lo genera `build.sh`), el punto de
+  entrada común de todos los juegos Linux: lanza `nocturnerecomp` desde su
+  carpeta. Añadirlo a Steam como juego no de Steam.
+- `build.sh` crea `portable.txt`, así que partidas y opciones quedan dentro
+  de la carpeta del juego.
+
+## Imagen Ubuntu 24.04 (contenedor de build)
+
+Este juego **no usa contenedor ni Dockerfile**: la release ya viene compilada
+y `build.sh` solo copia archivos y prepara `assets/` en el propio PC. La
+imagen Ubuntu 24.04 solo la usan los ports que se compilan (doaxtreme, doa3,
+doa2u), con un Dockerfile compartido en
+[`tools/docker/ubuntu-build.Dockerfile`](../../tools/docker/ubuntu-build.Dockerfile).

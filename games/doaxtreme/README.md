@@ -25,6 +25,12 @@ Se compila en Ubuntu 24.04 (Docker en el PC):
 
 ## Jugar
 
+- **En la Deck, usar `steamdeck.sh`** (lo genera `build.sh`; es el punto de
+  entrada común de todos los juegos Linux). Pone las librerías del build (SDL3)
+  en `LD_LIBRARY_PATH` y lanza `launcher.sh` → `run_game.sh` → `run_game.py`
+  (estos tres son del port, no nuestros). Sin él, el runner busca SDL3 en la
+  ruta del PC donde se compiló.
+
 - `./launcher.sh`: opciones (resolución, MSAA, niebla, volumen, trajes
   desbloqueados, cámara libre…) y **Play**. Guarda en `private/launcher.json`.
 - `./run_game.sh`: arranca directamente con las opciones guardadas.
@@ -33,3 +39,18 @@ Se compila en Ubuntu 24.04 (Docker en el PC):
 
 Docs del repo: `docs/building.md` (sección *Linux and SteamOS build*),
 `docs/recomp-controls.md`.
+
+## Imagen Ubuntu 24.04 (contenedor de build)
+
+- Dockerfile: [`tools/docker/ubuntu-build.Dockerfile`](../../tools/docker/ubuntu-build.Dockerfile),
+  **compartido** por doaxtreme, doa3 y doa2u (los tres compilan con los mismos
+  paquetes). Parte de `docker.io/library/ubuntu:24.04` e instala los paquetes de
+  compilación de `docs/building.md` del repo (CMake, Ninja, clang, Python 3.12
+  con venv, Vulkan/shaderc y las cabeceras que necesita SDL3, incluido el audio).
+- Imagen: `steamdeck-ports/ubuntu-build:24.04`. La construye `build.sh` (vía
+  `run_in_container` de `tools/lib.sh`) con podman, o con docker si su daemon
+  está activo; si ya existe, sale de la caché al instante.
+- A mano: `podman build -t steamdeck-ports/ubuntu-build:24.04 -f tools/docker/ubuntu-build.Dockerfile tools/docker`
+  (desde la raíz del repo).
+- Si este juego necesitara paquetes extra, se crearía `games/doaxtreme/Dockerfile`
+  con `FROM steamdeck-ports/ubuntu-build:24.04` y solo lo suyo.

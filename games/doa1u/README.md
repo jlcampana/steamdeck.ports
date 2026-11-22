@@ -29,3 +29,11 @@ para el PC (solo una vez). En la Deck ocurrirá en el primer arranque con Proton
   (`textures/replacement`, `textures/dumps`).
 - Dejar el framerate en 60: desbloquearlo acelera el juego.
 - Un `splash.png` junto al exe se muestra al arrancar.
+
+## Imagen Ubuntu 24.04 (contenedor de build)
+
+Este juego **no usa contenedor ni Dockerfile**: la release ya viene compilada
+y `build.sh` solo copia archivos y prepara `assets/` en el propio PC. La
+imagen Ubuntu 24.04 solo la usan los ports que se compilan (doaxtreme, doa3,
+doa2u), con un Dockerfile compartido en
+[`tools/docker/ubuntu-build.Dockerfile`](../../tools/docker/ubuntu-build.Dockerfile).
