@@ -1,0 +1,11 @@
+# Archivos de juego (copias propias, nunca a git)
+isos/
+
+# Descargas y estado local de update.sh
+latest/
+ports.db
+.extract.*
+
+# Releases descomprimidas y builds
+games/*/latest/
+games/*/build/

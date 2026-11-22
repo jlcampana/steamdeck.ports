@@ -1,0 +1,6 @@
+# id	repo	asset_regex (jq test(), elige el archivo de la release)
+doaxtreme	NoRain211/doaxbv-re	-Linux\.zip$
+doa3	NoRain211/doa3-re	-Linux\.tar\.gz$
+doa2u	NoRain211/doa2u-re	-Linux\.zip$
+doa1u	vini1264/DOA1U-XBERecomp	\.zip$
+castlevania-son	birabittoh/NocturneRecomp	-linux-amd64\.tar\.gz$
