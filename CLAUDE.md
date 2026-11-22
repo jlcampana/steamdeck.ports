@@ -29,6 +29,14 @@ juegos de Xbox/Xbox 360:
 - Los assets de Castlevania SON los extrae el usuario a mano en
   `isos/Castlevania SON/`.
 
+## Añadir un juego nuevo
+
+El usuario lo añade a `ports.md` (nombre + enlace a releases) y lanza
+**`/add-game [nombre]`**, o simplemente avisa. Los pasos están en la skill de
+proyecto [`.claude/skills/add-game/SKILL.md`](.claude/skills/add-game/SKILL.md):
+`ports.tsv` → `update.sh` → investigar el port → ISO → `build.sh` con
+`tools/lib.sh` → verificar desde otra ruta → documentar → commit.
+
 ## Datos que no se deducen del código
 
 - **DOA1U usa `isos/DOA2U.iso`**: no hay ISO propia. El disco trae `Doa1.xbe`

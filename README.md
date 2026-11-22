@@ -50,6 +50,13 @@ isos/                ISOs y paquetes de los juegos (no va a git)
 4. Copiar `games/<id>/build` a la Deck (por ejemplo a `~/Games/<id>`) y
    añadir el ejecutable a Steam como *juego no de Steam* (ver cada README).
 
+## Añadir un juego
+
+Añadirlo a `ports.md` y, en Claude Code, ejecutar `/add-game [nombre]`. La skill
+([`.claude/skills/add-game/SKILL.md`](.claude/skills/add-game/SKILL.md)) añade
+la entrada a `ports.tsv`, investiga el port, escribe `games/<id>/build.sh`, lo
+prueba y lo documenta.
+
 ## `update.sh`
 
 ```
