@@ -196,6 +196,12 @@ gastar espacio.
     los scripts (`tools/help.sh`: la cabecera del script es la ayuda; los
     `build.sh` la reciben por `tools/lib.sh`).
 
+13. doa3 v0.8.0 y doaxtreme v0.8.0 compilados (16,5 min en total con el
+    empaquetado; paquetes 3,6 y 3,5 GB) y comprobados con `ldd` desde otra
+    ruta. Lección: **no editar un `build.sh` mientras se ejecuta** (bash lee
+    el script a trozos; el primer intento de doa3 compiló bien pero cortó en
+    la línea 21 con «EOF inesperado»). Los builds 0.7.x están en `build.old/`.
+
 ### Pendiente
 
 - [x] `tools/install.sh`.
@@ -214,6 +220,6 @@ gastar espacio.
 - [ ] Podar los builds de NoRain (fuentes y `_deps` del compilado) sin romper
       la comprobación del runner en `run_game.py`.
 - [x] DOA4 (`/add-game`).
-- [ ] Recompilar y empaquetar doaxtreme v0.8.0 y doa3 v0.8.0 (en marcha).
+- [x] Recompilar y empaquetar doaxtreme v0.8.0 y doa3 v0.8.0.
 - [ ] DOA4: quitar el arreglo del puerto 1000 cuando salga la 0.3.8 (ya se
       salta solo por versión; probar en la Deck).

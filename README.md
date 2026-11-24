@@ -167,8 +167,8 @@ games/doa3/build.sh -f         # build limpio
 | castlevania-son | descarga `scripts/extract_game.py` del mismo tag, instala World y Japón en `assets/`, crea `portable.txt` | segundos | ~300 MB |
 | doa4 | extrae `isos/DOA4.iso` en `game/` y comprueba `SHA256SUMS.txt` | ~45 s | 6,8 GB |
 | doa1u | extrae `isos/DOA2U.iso` en `assets/` con extract-xiso | ~20 s | ~4,3 GB |
-| doa3 | compila en Ubuntu 24.04 (podman) | ~6 min | 4,4 GB |
-| doaxtreme | compila en Ubuntu 24.04 (podman) | ~6 min | 4,4 GB |
+| doa3 | compila en Ubuntu 24.04 (podman) | ~6-9 min | 4,4 GB |
+| doaxtreme | compila en Ubuntu 24.04 (podman) | ~6-7 min | 4,4 GB |
 | doa2u | crea `private/venv` y compila en Ubuntu 24.04 (podman) | ~12 min | 4,9 GB |
 
 Casi todo el tamaño de los DOA es el disco extraído (`private/`).
