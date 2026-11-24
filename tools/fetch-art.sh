@@ -8,7 +8,9 @@
 #   games/<id>/art/candidatas/index.html                  para verlas todas
 #   games/<id>/art/<tipo>.<ext>                           la elegida (va al paquete)
 #
-# Si aún no hay elegida de un tipo, se usa la más votada (01). Para cambiarla:
+# La elegida de cada tipo se guarda en game.conf (ART_COVER=<id en SteamGridDB>…,
+# va a git) y se descarga aunque no esté entre las N primeras. Si un tipo no
+# tiene elegida, se usa la más votada (01) y se anota. Para cambiarla:
 # tools/pick-art.sh <id> <tipo> <NN>. Lo ya descargado no se vuelve a bajar.
 #
 # El juego se toma de STEAMGRIDDB en games/<id>/game.conf
@@ -20,6 +22,9 @@ set -euo pipefail
 ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 # shellcheck source=/dev/null
 [[ -f "$ROOT/local.conf" ]] && source "$ROOT/local.conf"
+
+# shellcheck source=tools/art-lib.sh
+source "$ROOT/tools/art-lib.sh"
 
 log() { printf '\e[1;34m[art]\e[0m %s\n' "$*"; }
 die() { printf '\e[1;31m[art] %s\e[0m\n' "$*" >&2; exit 1; }
@@ -33,7 +38,7 @@ fi
 command -v jq >/dev/null || die "Falta jq"
 
 API="https://www.steamgriddb.com/api/v2"
-KINDS=(cover header hero logo icon)
+KINDS=("${ART_KINDS[@]}")
 declare -A ENDPOINT=([cover]=grids [header]=grids [hero]=heroes [logo]=logos [icon]=icons)
 declare -A QUERY=(
     [cover]="dimensions=600x900&types=static"
@@ -98,16 +103,20 @@ fetch() {
         log "$id: sin STEAMGRIDDB en game.conf; se omite"
         return
     fi
-    local art="$game/art" kind dir n imgid url ext file got first
+    local art="$game/art" kind dir n imgid url ext file got first want var
     for kind in "${KINDS[@]}"; do
         dir="$art/candidatas/$kind"
         mkdir -p "$dir"
-        # Más votadas primero; solo png/jpg (lo que acepta Steam).
+        var="$(art_var "$kind")"
+        want="${!var:-}"   # elegida guardada en game.conf
+        # Más votadas primero; solo png/jpg (lo que acepta Steam). Pasadas las
+        # N primeras, solo se baja la elegida si está más abajo.
         n=0; got=0
         while IFS=$'\t' read -r imgid url; do
             ext="${url##*.}"; ext="${ext,,}"; [[ "$ext" == jpeg ]] && ext=jpg
             [[ "$ext" == png || "$ext" == jpg ]] || continue
             n=$((n + 1))
+            (( n > COUNT )) && [[ "$imgid" != "$want" ]] && continue
             file="$(printf '%02d-%s.%s' "$n" "$imgid" "$ext")"
             if [[ ! -f "$dir/$file" ]]; then
                 rm -f "$dir"/[0-9][0-9]-"$imgid".*   # misma imagen con otro puesto
@@ -115,18 +124,19 @@ fetch() {
                     || { rm -f "$dir/$file.part"; log "$id: no se pudo bajar $url"; continue; }
                 got=$((got + 1))
             fi
-            (( n >= COUNT )) && break
         done < <(api "${ENDPOINT[$kind]}/game/$sgid?${QUERY[$kind]}&nsfw=false" \
                  | jq -r '.data | sort_by(-(.score // 0)) | .[] | "\(.id)\t\(.url)"')
-        log "$id: $kind: $n candidatas ($got nuevas)"
-        # Elegida por defecto: la más votada, si no hay otra.
-        if ! compgen -G "$art/$kind.*" >/dev/null; then
-            first="$(find "$dir" -maxdepth 1 -name '01-*' -printf '%f\n' | head -1)"
-            if [[ -n "$first" ]]; then
-                cp "$dir/$first" "$art/$kind.${first##*.}"
-                echo "$first" > "$dir/.elegida"
-            fi
+        log "$id: $kind: $(( n < COUNT ? n : COUNT )) candidatas ($got nuevas)"
+        # La elegida en game.conf o, si no hay, la más votada.
+        first=""
+        if [[ -n "$want" ]]; then
+            first="$(find "$dir" -maxdepth 1 -name "[0-9][0-9]-$want.*" -printf '%f\n' | head -1)"
+            [[ -n "$first" ]] || log "$id: AVISO: la $kind elegida ($var=$want) ya no está en SteamGridDB"
         fi
+        if [[ -z "$first" ]] && ! compgen -G "$art/$kind.*" >/dev/null; then
+            first="$(find "$dir" -maxdepth 1 -name '01-*' -printf '%f\n' | head -1)"
+        fi
+        [[ -n "$first" ]] && set_art_choice "$game" "$kind" "$first"
     done
     write_index "$id" "$art"
     log "$id: compáralas en $art/candidatas/index.html"

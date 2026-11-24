@@ -41,7 +41,8 @@ tools/
   lib.sh             funciones comunes de los build.sh
   package.sh         empaqueta games/<id>/build + instalador para la Deck
   fetch-art.sh       descarga imágenes candidatas de SteamGridDB (games/<id>/art)
-  pick-art.sh        elige una candidata para el paquete
+  pick-art.sh        elige una candidata (y guarda su id en game.conf)
+  art-lib.sh         funciones comunes de fetch-art.sh y pick-art.sh
   deck/              lo que se ejecuta en la Deck (instalar.sh, steam-art.py)
 dist/                paquetes para la Deck, si no se cambia el destino (no va a git)
 local.conf           configuración local: destino, API key (no va a git)
@@ -229,6 +230,12 @@ tools/pick-art.sh doa3 cover 04  # elegir la candidata 04 como portada
 elegida). Si un tipo no tiene elegida, usa la 01. Lo ya descargado no se vuelve
 a bajar. Al paquete solo van las elegidas, `games/<id>/art/<tipo>.<ext>`
 (también se pueden poner a mano). Tras cambiarlas, volver a empaquetar.
+
+Las imágenes no van a git, pero **la elección sí**: `pick-art.sh` guarda el id
+de SteamGridDB de cada elegida en `game.conf` (`ART_COVER=389967`,
+`ART_HEADER=…`). `fetch-art.sh` baja siempre esa imagen, aunque no esté entre
+las N primeras, así que en otro PC basta con `tools/fetch-art.sh` para tener
+las mismas. Si un tipo no tiene elegida, se anota la más votada.
 
 Usa el enlace `STEAMGRIDDB` de `games/<id>/game.conf` (sale de `ports.md`) y
 una API key gratuita (<https://www.steamgriddb.com/profile/preferences/api>) en

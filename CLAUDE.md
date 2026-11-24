@@ -157,6 +157,10 @@ gastar espacio.
    `game.conf`. A petición suya, `fetch-art.sh` baja varias candidatas por tipo
    (`-n`, 10 por defecto) con un `index.html` para compararlas, y
    `tools/pick-art.sh` elige una. Al paquete solo van las elegidas.
+7. Imágenes elegidas por el usuario para los 5 juegos. Las imágenes siguen
+   fuera de git (repo público, derechos), pero la elección se guarda en
+   `game.conf` como id de SteamGridDB (`ART_<TIPO>=…`); `fetch-art.sh` las
+   recupera aunque estén fuera del top N (probado con `-n 1`).
 
 ### Pendiente
 

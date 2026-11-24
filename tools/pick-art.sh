@@ -7,10 +7,14 @@
 # Ejemplo: tools/pick-art.sh doa3 cover 04
 #
 # Copia la candidata a games/<id>/art/<tipo>.<ext>, que es la que va al
-# paquete. Después hay que volver a empaquetar (tools/package.sh <id>).
+# paquete, y guarda su id de SteamGridDB en game.conf (ART_<TIPO>=…, va a git)
+# para que tools/fetch-art.sh la recupere en otro PC. Después hay que volver a
+# empaquetar (tools/package.sh <id>).
 set -euo pipefail
 
 ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+# shellcheck source=tools/art-lib.sh
+source "$ROOT/tools/art-lib.sh"
 die() { printf '\e[1;31m[art] %s\e[0m\n' "$*" >&2; exit 1; }
 
 [[ $# -eq 3 ]] || die "Uso: tools/pick-art.sh <id> <tipo> <NN>"
@@ -23,9 +27,7 @@ dir="$art/candidatas/$kind"
 file="$(find "$dir" -maxdepth 1 -name "$nn-*" -printf '%f\n' | head -1)"
 [[ -n "$file" ]] || die "No existe la candidata $nn de $kind"
 
-rm -f "$art/$kind".*
-cp "$dir/$file" "$art/$kind.${file##*.}"
-echo "$file" > "$dir/.elegida"
+set_art_choice "$ROOT/games/$id" "$kind" "$file"
 # Marca la elegida en index.html
 sed -i "\\|href=\"$kind/|s|<figure class=\"chosen\">|<figure>|" "$art/candidatas/index.html" 2>/dev/null || true
 sed -i "s|<figure><a href=\"$kind/$file\">|<figure class=\"chosen\"><a href=\"$kind/$file\">|" \
