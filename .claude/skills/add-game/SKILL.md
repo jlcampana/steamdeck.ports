@@ -71,7 +71,15 @@ Todo en español: mensajes de los scripts, docs y commits.
      dependencias que tenga SteamOS.
    Si algo falla, investiga la causa en el log antes de tocar nada.
 
-7. **Documenta.**
+7. **`games/<id>/game.conf` y paquete.** Copia el de un juego parecido:
+   `NAME` (nombre en Steam), `EXEC` (`steamdeck.sh`, o el `.exe` si es
+   Windows), `PROTON` (1 si es Windows) y `STEAMGRIDDB` (el enlace
+   `SteamGridDB:` de `ports.md`, si lo hay). Si hay `STEAMGRIDDB_API_KEY`
+   (env o `local.conf`), `tools/fetch-art.sh <id>`. Prueba
+   `tools/package.sh -o <scratchpad> <id>` y el instalador en el PC con un HOME
+   falso: `HOME=<tmp> <scratchpad>/<id>/instalar.sh <tmp>/Games </dev/null`.
+
+8. **Documenta.**
    - `games/<id>/README.md` con las mismas secciones que los demás: datos del
      repo y la release, contenido, datos del juego, Build, Jugar (indicando
      `steamdeck.sh` o Proton) e "Imagen Ubuntu 24.04 (contenedor de build)".
@@ -80,7 +88,7 @@ Todo en español: mensajes de los scripts, docs y commits.
    - `CLAUDE.md`: ids en Convenciones, datos que no se deducen del código y
      una entrada con fecha en el registro de trabajo.
 
-8. **Resumen y git.** Resume al usuario qué se ha hecho, el tamaño y si queda
+9. **Resumen y git.** Resume al usuario qué se ha hecho, el tamaño y si queda
    algo sin verificar. Pregunta antes de hacer commit y push. Comprueba con
-   `git status` que no se cuela nada de `isos/`, `latest/`, `build/` ni
-   `tools/bin/`.
+   `git status` que no se cuela nada de `isos/`, `latest/`, `build/`,
+   `art/`, `dist/` ni `tools/bin/`.

@@ -1,5 +1,7 @@
 # Archivos de juego (copias propias, nunca a git)
-isos/
+# isos puede ser un enlace simbólico a otro disco (sin barra final para que lo cubra)
+isos
+_isos/
 
 # Descargas y estado local de update.sh
 latest/
@@ -18,3 +20,10 @@ games/*/build.old/
 
 # Scripts descargados por games/castlevania-son/build.sh
 games/castlevania-son/extract_game-*.py
+
+# Paquetes para la Deck (tools/package.sh) y configuración local
+dist/
+local.conf
+
+# Imágenes de Steam (tools/fetch-art.sh o a mano)
+games/*/art/

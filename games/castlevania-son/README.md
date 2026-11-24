@@ -38,6 +38,9 @@ Formas de instalarlos:
 
 ## Jugar
 
+- **Instalar en la Deck:** `tools/package.sh castlevania-son` y, en la Deck, doble clic en
+  `Instalar <Nombre>.desktop` (ver «Distribución a la Steam Deck» en el README
+  principal). Nombre en Steam, ejecutable y Proton: `game.conf`.
 - Un `portable.txt` vacío junto al binario guarda partidas, opciones y caché
   al lado del juego.
 - Rutas configurables en `nocturnerecomp.toml` o con `--nombre=valor`:

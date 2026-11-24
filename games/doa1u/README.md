@@ -23,7 +23,11 @@ para el PC (solo una vez). En la Deck ocurrirá en el primer arranque con Proton
 
 ## Jugar
 
-- Añadir `DOA1U.exe` a Steam como juego no de Steam y forzar Proton.
+- **Instalar en la Deck:** `tools/package.sh doa1u` y, en la Deck, doble clic en
+  `Instalar <Nombre>.desktop` (ver «Distribución a la Steam Deck» en el README
+  principal). Nombre en Steam, ejecutable y Proton: `game.conf`.
+- En Steam hay que forzar Proton (Propiedades → Compatibilidad); el instalador
+  lo recuerda al terminar.
 - Ajustes con F10: modo de pantalla, resolución interna (25–400 %), V-Sync,
   filtrado anisotrópico, sustitución/volcado de texturas
   (`textures/replacement`, `textures/dumps`).

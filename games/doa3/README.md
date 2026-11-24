@@ -22,6 +22,9 @@ Se compila en Ubuntu 24.04 (Docker en el PC). Requiere Python 3.12+ con `venv`:
 
 ## Jugar
 
+- **Instalar en la Deck:** `tools/package.sh doa3` y, en la Deck, doble clic en
+  `Instalar <Nombre>.desktop` (ver «Distribución a la Steam Deck» en el README
+  principal). Nombre en Steam, ejecutable y Proton: `game.conf`.
 - **En la Deck, usar `steamdeck.sh`** (lo genera `build.sh`; es el punto de
   entrada común de todos los juegos Linux). Pone las librerías del build (SDL3)
   en `LD_LIBRARY_PATH` y lanza `launcher.sh` → `run_game.sh` → `run_game.py`

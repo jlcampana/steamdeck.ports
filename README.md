@@ -34,9 +34,18 @@ games/<id>/
   build.sh           genera games/<id>/build a partir de latest/ + la ISO
   latest/            release descomprimida (no va a git)
   build/             resultado final listo para copiar a la Deck (no va a git)
+  game.conf          nombre en Steam, ejecutable, Proton y enlace de SteamGridDB
+  art/               imágenes para Steam (no va a git)
 tools/
   install.sh         instala paquetes del sistema y extract-xiso
   lib.sh             funciones comunes de los build.sh
+  package.sh         empaqueta games/<id>/build + instalador para la Deck
+  fetch-art.sh       descarga imágenes candidatas de SteamGridDB (games/<id>/art)
+  pick-art.sh        elige una candidata para el paquete
+  deck/              lo que se ejecuta en la Deck (instalar.sh, steam-art.py)
+dist/                paquetes para la Deck, si no se cambia el destino (no va a git)
+local.conf           configuración local: destino, API key (no va a git)
+local.conf.template  plantilla de local.conf
   docker/ubuntu-build.Dockerfile   imagen única de compilación (Ubuntu 24.04)
   bin/               extract-xiso (no va a git)
 isos/                ISOs y paquetes de los juegos (no va a git)
@@ -47,8 +56,9 @@ isos/                ISOs y paquetes de los juegos (no va a git)
 1. `tools/install.sh` — instala dependencias del PC (una vez).
 2. `./update.sh` — comprueba las releases y descarga lo nuevo.
 3. `games/<id>/build.sh [-f] [iso]` — genera `games/<id>/build`.
-4. Copiar `games/<id>/build` a la Deck (por ejemplo a `~/Games/<id>`) y
-   añadir el ejecutable a Steam como *juego no de Steam* (ver cada README).
+4. `tools/fetch-art.sh` (opcional) — imágenes de Steam desde SteamGridDB.
+5. `tools/package.sh` — crea el paquete y su instalador; en la Deck, doble clic
+   en `Instalar <juego>.desktop` (ver [Distribución](#distribución-a-la-steam-deck)).
 
 ## Añadir un juego
 
@@ -147,6 +157,90 @@ lanza `launcher.sh`. **En la Deck, el acceso de Steam debe apuntar a
 `steamdeck.sh`.** `run_game.py` solo usa la librería estándar de Python, así
 que funciona con el Python de SteamOS.
 
+## Distribución a la Steam Deck
+
+En la Deck nunca se compila: se empaqueta en el PC el `build/` ya hecho.
+
+```
+tools/package.sh                       # todos los juegos con build/
+tools/package.sh doa3 castlevania-son  # solo esos
+tools/package.sh -o /otra/carpeta doa3 # otro destino
+```
+
+El destino por defecto es `DEST` en `local.conf` o, si no está, `dist/`.
+`local.conf` no va a git; se crea a partir de la plantilla
+(`cp local.conf.template local.conf`) y guarda también la API key de
+SteamGridDB. Por cada juego crea `<destino>/<id>/`:
+
+| Archivo | Qué es |
+|---|---|
+| `<id>.tar.zst` (+ `.sha256`) | `games/<id>/build` como carpeta `<id>/` |
+| `Instalar <Nombre>.desktop` | doble clic en el modo escritorio de la Deck |
+| `instalar.sh` | el instalador (`tools/deck/instalar.sh`); también vale desde una terminal |
+| `steam-art.py` | pone las imágenes en la ficha de Steam |
+| `game.conf` | id, nombre, ejecutable, Proton, versión y tamaño |
+| `art/` | imágenes (copia de `games/<id>/art`) |
+
+Del paquete se quitan `private/venv` (es el Python del contenedor;
+`run_game.sh` usa `python3` del sistema si falta), los logs, `__pycache__` y
+la caché de shaders (es de cada GPU). Los enlaces duros se conservan (en doa2u,
+`private/play-disc` son enlaces a `private/imported-disc`).
+
+**Por qué no AppImage:** un AppImage solo se puede leer (squashfs montado) y
+estos ports escriben en su carpeta: DOA1U compila el juego en el primer
+arranque, los DOA de NoRain guardan partidas y ajustes en `private/` y
+Castlevania en la suya (`portable.txt`). `tar.zst` conserva permisos y enlaces,
+y `zstd` viene en SteamOS.
+
+### En la Deck
+
+Copiar la carpeta del juego (USB, red…) y, en el modo escritorio, doble clic en
+`Instalar <Nombre>.desktop` (KDE puede pedir confirmar que se ejecute). Se abre
+una terminal y el instalador:
+
+1. Pregunta dónde instalar: `~/Games` (interna) o `<tarjeta SD>/Games`, con el
+   espacio libre de cada uno. Comprueba que cabe.
+2. Si el juego ya estaba, lo mueve a `<id>.old` (las partidas y ajustes
+   anteriores se quedan ahí; se borra el `.old` previo).
+3. Descomprime en `<base>/<id>` y crea `<id>.desktop` (nombre, ejecutable e
+   icono `art/icon.*`).
+4. Lo añade a Steam con `steamos-add-to-steam <id>.desktop`, salvo que ya haya
+   un acceso directo a esa carpeta (al reinstalar no se duplica).
+5. Busca el appid del acceso en `userdata/*/config/shortcuts.vdf` y copia las
+   imágenes a `config/grid/`: `cover` → `<appid>p`, `header` → `<appid>`,
+   `hero` → `<appid>_hero`, `logo` → `<appid>_logo`.
+6. DOA1U (Windows): avisa de que hay que forzar Proton en Propiedades →
+   Compatibilidad.
+
+Sin teclado físico: Steam + X abre el teclado en pantalla.
+
+### Imágenes (SteamGridDB)
+
+```
+tools/fetch-art.sh             # 10 candidatas de cada tipo, todos los juegos
+tools/fetch-art.sh -n 20 doa3  # 20 candidatas, solo doa3
+tools/pick-art.sh doa3 cover 04  # elegir la candidata 04 como portada
+```
+
+`fetch-art.sh` descarga las imágenes más votadas de cada tipo (`cover`
+600x900, `header` 920x430, `hero`, `logo`, `icon`; sin NSFW; solo png/jpg) en
+`games/<id>/art/candidatas/<tipo>/NN-<id>.<ext>` y crea
+`games/<id>/art/candidatas/index.html` para verlas en el navegador (borde azul =
+elegida). Si un tipo no tiene elegida, usa la 01. Lo ya descargado no se vuelve
+a bajar. Al paquete solo van las elegidas, `games/<id>/art/<tipo>.<ext>`
+(también se pueden poner a mano). Tras cambiarlas, volver a empaquetar.
+
+Usa el enlace `STEAMGRIDDB` de `games/<id>/game.conf` (sale de `ports.md`) y
+una API key gratuita (<https://www.steamgriddb.com/profile/preferences/api>) en
+`STEAMGRIDDB_API_KEY` o en `local.conf`. Las imágenes no van a git.
+
+### Pantalla completa
+
+En el modo Juego, gamescope ya muestra cualquier ventana a pantalla completa.
+Además, los DOA de NoRain con SDL_GPU abren a pantalla completa en Big Picture
+y en la Deck (F11 o Alt+Enter alternan), y DOA1U tiene el ajuste
+`display_mode` (F10; por defecto `borderless`).
+
 ## Cómo se construye cada tipo de port
 
 ### Ports de NoRain211 (doaxtreme, doa3, doa2u)
@@ -172,7 +266,7 @@ que luego se juega con `run_game.sh` / `launcher.sh`.
   libpulse-dev libpipewire-0.3-dev libudev-dev libdbus-1-dev`.
   Sin las cabeceras de ALSA/PulseAudio/PipeWire, SDL3 se queda sin audio y el
   build se detiene a propósito.
-- En la Deck: añadir `launcher.sh` (o `run_game.sh`) como juego no de Steam.
+- En la Deck: se instala con `tools/package.sh` (el acceso de Steam apunta a `steamdeck.sh`).
   Si un mando controla dos puertos, desactivar Steam Input para ese acceso.
 
 Diferencias entre los tres `build_game.sh`:

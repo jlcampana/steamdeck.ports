@@ -3,7 +3,7 @@
 Guía para Claude Code (y para cualquiera) sobre este proyecto. Toda la
 documentación y el registro de trabajo van en el repo, **no** en la memoria de
 `~/.claude`. La documentación para usuarios está en `README.md` y en
-`games/<id>/README.md`; los requisitos originales, en `leeme.md`.
+`games/<id>/README.md`.
 
 ## Objetivo
 
@@ -17,6 +17,9 @@ juegos de Xbox/Xbox 360:
   Deck. Si hace falta compilar, en un contenedor Ubuntu 24.04
   (`tools/docker/ubuntu-build.Dockerfile`, imagen única compartida).
 - `tools/`: herramientas externas y `tools/install.sh` para instalarlas.
+- `tools/package.sh`: empaqueta cada `build/` (`tar.zst`) con un instalador
+  `.desktop` para la Deck (`tools/deck/`), que lo añade a Steam con imágenes
+  (`games/<id>/art`, de SteamGridDB con `tools/fetch-art.sh`).
 - Juegos sin versión Linux → Proton en la Deck.
 
 ## Convenciones
@@ -127,6 +130,34 @@ gastar espacio.
     (`steamos-add-to-steam`, a comprobar en la Deck). DOA1U necesita además
     forzar Proton.
 
+### 2026-11-24
+
+1. Leído `dudas.md` (formato de distribución, imágenes, pantalla completa).
+   `isos` es ahora un enlace a `/run/media/pandi/Roms/isos.ports`: en
+   `.gitignore` pasa de `isos/` a `isos` (con barra no cubre un enlace) y se
+   ignora `_isos/` (copia antigua).
+2. **Distribución:** `tar.zst` + instalador `.desktop`, no AppImage (solo
+   lectura; los ports escriben en su carpeta). `games/<id>/game.conf` (nombre,
+   ejecutable, Proton, SteamGridDB), `tools/package.sh` (destino en
+   `local.conf`, sin `private/venv`, logs ni caché de shaders),
+   `tools/deck/instalar.sh` (elige interna/SD, mueve la instalación anterior a
+   `.old`, `steamos-add-to-steam` con un `.desktop` propio sin duplicar) y
+   `tools/deck/steam-art.py` (lee `shortcuts.vdf` binario → appid → imágenes
+   en `config/grid`). `tools/fetch-art.sh` descarga de SteamGridDB (API key).
+3. El `Exec` del `.desktop` del instalador sigue la especificación (`\\$`,
+   `\\"` dentro de comillas): validado con `desktop-file-validate` y
+   ejecutado con `gio launch` desde una ruta con espacios. Instalador probado
+   en el PC con HOME falso y un `shortcuts.vdf` sintético (instalar,
+   reinstalar, imágenes).
+4. Pantalla completa: gamescope en el modo Juego; los DOA de NoRain (SDL_GPU)
+   ya abren a pantalla completa en la Deck; DOA1U tiene `display_mode` (F10).
+5. Paquetes de los 5 juegos en `/run/media/pandi/tmp` (~4 min 45 s; 228 MB,
+   2,8 GB, 4,0 GB, 3,5 GB, 3,5 GB). Sumas y enlaces duros de doa2u comprobados.
+6. El usuario añadió los enlaces de SteamGridDB a `ports.md` (también DOA4) →
+   `game.conf`. A petición suya, `fetch-art.sh` baja varias candidatas por tipo
+   (`-n`, 10 por defecto) con un `index.html` para compararlas, y
+   `tools/pick-art.sh` elige una. Al paquete solo van las elegidas.
+
 ### Pendiente
 
 - [x] `tools/install.sh`.
@@ -134,9 +165,14 @@ gastar espacio.
 - [x] Rutas absolutas en los builds de NoRain → resuelto con `steamdeck.sh`.
 - [x] Imagen única de compilación (ver punto 14).
 - [x] `steamdeck.sh` en todos los juegos Linux (ver punto 15).
-- [ ] **Distribución a la Steam Deck (al final).** En la Deck nunca se
-      ejecutan builds: se compila todo en el PC y se copia el juego completo
-      (`games/<id>/build`). Hace falta un script para enviarlo (p. ej. rsync por
-      SSH o empaquetado) y que el build funcione desde otra ruta (de ahí
-      `check_absolute_paths`). Decidir también si se añaden los accesos a Steam.
-- [ ] Probar en la Deck.
+- [x] Distribución a la Steam Deck: `tools/package.sh` + instalador.
+- [ ] Probar en la Deck: el instalador `.desktop` en KDE,
+      `steamos-add-to-steam` con un `.desktop` (¿usa `Name`, `Exec` e `Icon`?),
+      que Steam escriba `shortcuts.vdf` a tiempo para las imágenes, y cada juego.
+- [x] Enlaces de SteamGridDB: de `ports.md` a cada `game.conf`.
+- [ ] API key de SteamGridDB en `local.conf` → `tools/fetch-art.sh` y volver a empaquetar.
+- [ ] Al reinstalar, las partidas se quedan en `<id>.old`: ver si conviene
+      copiarlas a la nueva instalación (dónde guarda cada port).
+- [ ] Podar los builds de NoRain (fuentes y `_deps` del compilado) sin romper
+      la comprobación del runner en `run_game.py`.
+- [ ] DOA4 (`/add-game`).
