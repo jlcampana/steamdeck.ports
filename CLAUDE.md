@@ -183,6 +183,19 @@ gastar espacio.
    `deck-notes.md` por juego. Instalador probado en el PC (toml, idempotente,
    sin pregunta de sysctl con 0.3.8). Imágenes elegidas por el usuario.
 
+10. `isos` es un enlace a otro disco: los builds en contenedor fallaban
+    («la ISO tiene que estar dentro del proyecto»). `run_in_container` monta
+    también la carpeta real de `isos/` (solo lectura); `require_container_path`.
+11. Bug arreglado: `prepare_build` copiaba `latest/.release-tag` a `build/`, así
+    que un build fallido parecía terminado. Ahora la marca solo la escribe
+    `finish_build`; a medias hay `.building-tag` (se continúa con la misma
+    versión; con otra, se borra sin pisar `build.old/`). Probados 6 casos con
+    un juego falso.
+12. `update.sh`: resumen final (versiones nuevas, builds y paquetes atrasados)
+    y `--build` (compila y empaqueta lo atrasado). Ayuda `-h/--help` en todos
+    los scripts (`tools/help.sh`: la cabecera del script es la ayuda; los
+    `build.sh` la reciben por `tools/lib.sh`).
+
 ### Pendiente
 
 - [x] `tools/install.sh`.
@@ -201,6 +214,6 @@ gastar espacio.
 - [ ] Podar los builds de NoRain (fuentes y `_deps` del compilado) sin romper
       la comprobación del runner en `run_game.py`.
 - [x] DOA4 (`/add-game`).
-- [ ] Recompilar y empaquetar doaxtreme v0.8.0 y doa3 v0.8.0.
+- [ ] Recompilar y empaquetar doaxtreme v0.8.0 y doa3 v0.8.0 (en marcha).
 - [ ] DOA4: quitar el arreglo del puerto 1000 cuando salga la 0.3.8 (ya se
       salta solo por versión; probar en la Deck).

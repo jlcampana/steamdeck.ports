@@ -4,6 +4,7 @@
 # Uso: tools/pick-art.sh <id> <tipo> <NN>
 #   tipo: cover | header | hero | logo | icon
 #   NN:   número de la candidata (el de games/<id>/art/candidatas/index.html)
+#   -h, --help  muestra esta ayuda
 # Ejemplo: tools/pick-art.sh doa3 cover 04
 #
 # Copia la candidata a games/<id>/art/<tipo>.<ext>, que es la que va al
@@ -13,11 +14,14 @@
 set -euo pipefail
 
 ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+# shellcheck source=tools/help.sh
+source "$ROOT/tools/help.sh"
+show_help_if_asked "$0" "$@"
 # shellcheck source=tools/art-lib.sh
 source "$ROOT/tools/art-lib.sh"
 die() { printf '\e[1;31m[art] %s\e[0m\n' "$*" >&2; exit 1; }
 
-[[ $# -eq 3 ]] || die "Uso: tools/pick-art.sh <id> <tipo> <NN>"
+[[ $# -eq 3 ]] || die "Uso: tools/pick-art.sh <id> <tipo> <NN> (ver --help)"
 id="$1" kind="$2" nn="$(printf '%02d' "$((10#$3))")"
 [[ "$kind" =~ ^(cover|header|hero|logo|icon)$ ]] || die "Tipo no válido: $kind"
 art="$ROOT/games/$id/art"

@@ -131,6 +131,9 @@ def copy_art(game_dir, art_dir):
 
 
 def main(argv):
+    if len(argv) >= 2 and argv[1] in ("-h", "--help"):
+        print(__doc__)
+        return 0
     if len(argv) == 3 and argv[1] == "find":
         hits = matches(argv[2])
         for _, appid, _ in hits:

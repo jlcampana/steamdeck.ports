@@ -14,6 +14,8 @@
 #     README.md                  cómo instalarlo en la Deck (tools/deck/README.md.in)
 #
 # Uso: tools/package.sh [-o destino] [-m] [id…]   (sin ids: todos los que tienen build/)
+#   -o destino  carpeta de los paquetes
+#   -h, --help  muestra esta ayuda
 #   -m  solo metadatos: README, instalador, game.conf e imágenes, sin volver a
 #       comprimir el juego (tiene que haber ya un <id>.tar.zst de esa versión)
 # Destino por defecto: DEST de local.conf (no va a git) o dist/.
@@ -23,6 +25,9 @@
 set -euo pipefail
 
 ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+# shellcheck source=tools/help.sh
+source "$ROOT/tools/help.sh"
+show_help_if_asked "$0" "$@"
 DEST="$ROOT/dist"
 # shellcheck source=/dev/null
 [[ -f "$ROOT/local.conf" ]] && source "$ROOT/local.conf"
@@ -35,7 +40,7 @@ while [[ "${1:-}" == -* ]]; do
     case "$1" in
         -o) [[ $# -ge 2 ]] || die "Falta la carpeta tras -o"; DEST="$2"; shift 2 ;;
         -m) META_ONLY=1; shift ;;
-        *)  die "Opción desconocida: $1" ;;
+        *)  die "Opción desconocida: $1 (ver tools/package.sh --help)" ;;
     esac
 done
 command -v zstd >/dev/null || die "Falta zstd"
@@ -52,6 +57,7 @@ EXCLUDES=(
     --exclude='build/private/shader-cache'
     --exclude='build/logs'
     --exclude='__pycache__'
+    --exclude='build/.building-tag'
 )
 
 # Imagen de art/ de un tipo (png o jpg), o vacío.

@@ -5,6 +5,7 @@
 #
 # Uso: games/doa1u/build.sh [-f] [ruta.iso]
 #   -f        build limpio (el anterior pasa a build.old/)
+#   -h, --help  muestra esta ayuda
 #   ruta.iso  por defecto isos/DOA2U.iso
 source "$(dirname "${BASH_SOURCE[0]}")/../../tools/lib.sh"
 

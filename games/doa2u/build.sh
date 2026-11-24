@@ -1,9 +1,10 @@
 #!/usr/bin/env bash
 # Dead or Alive 2 Ultimate: compila el port en Ubuntu 24.04 (contenedor) con la ISO del juego.
-# Resultado: games/doa2u/build (se juega con launcher.sh o run_game.sh).
+# Resultado: games/doa2u/build (en la Deck se lanza con steamdeck.sh).
 #
 # Uso: games/doa2u/build.sh [-f] [ruta.iso]
 #   -f        build limpio (el anterior pasa a build.old/)
+#   -h, --help  muestra esta ayuda
 #   ruta.iso  por defecto isos/DOA2U.iso
 source "$(dirname "${BASH_SOURCE[0]}")/../../tools/lib.sh"
 
@@ -14,7 +15,7 @@ ISO="$(realpath "${1:-$ISOS/DOA2U.iso}")"
 require_latest
 require_file "$ISO"
 require_extract_xiso
-[[ "$ISO" == "$ROOT"/* ]] || die "La ISO tiene que estar dentro de $ROOT (se monta en el contenedor)"
+require_container_path "$ISO"
 
 prepare_build "$FORCE"
 # build_game.py hace "pip install capstone" con el Python con el que se lanza y

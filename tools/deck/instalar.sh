@@ -1,7 +1,12 @@
 #!/usr/bin/env bash
 # Instalador de un juego en la Steam Deck (lo copia tools/package.sh junto al
 # paquete). Se lanza con doble clic en "Instalar <juego>.desktop" (modo
-# escritorio) o desde una terminal: ./instalar.sh [carpeta-base]
+# escritorio) o desde una terminal:
+#
+#   ./instalar.sh [carpeta-base]
+#     carpeta-base  dónde instalar (se crea <carpeta-base>/<id>); sin ella,
+#                   pregunta: ~/Games (interna) o <tarjeta SD>/Games
+#     -h, --help    muestra esta ayuda
 #
 # 1. Elige dónde instalar: ~/Games (interna) o <tarjeta SD>/Games.
 # 2. Descomprime <id>.tar.zst en <base>/<id>. Si ya existía, lo mueve antes a
@@ -12,6 +17,12 @@
 # Si el paquete trae post-install.sh (games/<id>/deck-post-install.sh), lo
 # ejecuta tras descomprimir con la carpeta del juego como argumento.
 set -euo pipefail
+
+case "${1:-}" in
+    -h|--help)
+        awk 'NR == 1 && /^#!/ { next } !/^#/ { exit } { sub(/^# ?/, ""); print }' "$0"
+        exit 0 ;;
+esac
 
 HERE="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 # shellcheck source=/dev/null

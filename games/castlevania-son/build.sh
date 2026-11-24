@@ -6,6 +6,7 @@
 #
 # Uso: games/castlevania-son/build.sh [-f] [carpeta]
 #   -f       build limpio (el anterior pasa a build.old/)
+#   -h, --help  muestra esta ayuda
 #   carpeta  por defecto "isos/Castlevania SON" (con "world version/" y
 #            "japan version/"; "addon/" se ignora: el title update ya está portado)
 source "$(dirname "${BASH_SOURCE[0]}")/../../tools/lib.sh"

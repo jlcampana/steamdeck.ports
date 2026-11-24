@@ -58,6 +58,9 @@ Todo en español: mensajes de los scripts, docs y commits.
      `tools/docker/ubuntu-build.Dockerfile` si son genéricos; si no, crea
      `games/<id>/Dockerfile` con `FROM steamdeck-ports/ubuntu-build:24.04` y
      solo lo suyo. Toda imagen sale de un Dockerfile versionado.
+   - La cabecera es la ayuda de `-h/--help` (la muestra `tools/lib.sh`):
+     incluye `-h, --help  muestra esta ayuda` en el bloque de uso.
+   - Si el build usa contenedor y recibe una ruta, `require_container_path`.
    - `chmod +x` y `bash -n`.
 
 6. **Ejecuta y verifica.** Lanza el build (en segundo plano si va a tardar

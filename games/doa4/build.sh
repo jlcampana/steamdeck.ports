@@ -9,6 +9,7 @@
 #
 # Uso: games/doa4/build.sh [-f] [ruta.iso]
 #   -f        build limpio (el anterior pasa a build.old/)
+#   -h, --help  muestra esta ayuda
 #   ruta.iso  por defecto isos/DOA4.iso (Dead or Alive 4 (USA, Europe) (Rev 1))
 source "$(dirname "${BASH_SOURCE[0]}")/../../tools/lib.sh"
 

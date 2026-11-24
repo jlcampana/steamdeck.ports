@@ -4,10 +4,14 @@
 #   - extract-xiso en tools/bin (release de XboxDev/extract-xiso)
 #
 # Uso: tools/install.sh [--print]
-#   --print  solo muestra lo que haría con el gestor de paquetes
+#   --print     solo muestra lo que haría con el gestor de paquetes
+#   -h, --help  muestra esta ayuda
 set -euo pipefail
 
 TOOLS="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+# shellcheck source=tools/help.sh
+source "$TOOLS/help.sh"
+show_help_if_asked "$0" "$@"
 BIN="$TOOLS/bin"
 PRINT=0
 [[ "${1:-}" == "--print" ]] && PRINT=1

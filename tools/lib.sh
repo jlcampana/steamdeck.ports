@@ -12,6 +12,12 @@ BUILD="$GAME_DIR/build"
 ISOS="$ROOT/isos"
 EXTRACT_XISO="$ROOT/tools/bin/extract-xiso"
 
+# -h / --help: la cabecera del build.sh es su ayuda. Al cargar lib.sh con
+# source y sin argumentos, "$@" son los del build.sh.
+# shellcheck source=tools/help.sh
+source "$ROOT/tools/help.sh"
+show_help_if_asked "${BASH_SOURCE[1]}" "$@"
+
 log()  { printf '\e[1;34m[%s]\e[0m %s\n' "$GAME_ID" "$*"; }
 die()  { printf '\e[1;31m[%s] %s\e[0m\n' "$GAME_ID" "$*" >&2; exit 1; }
 
@@ -42,12 +48,28 @@ prepare_build() {
             log "Reutilizando build/ ($tag)"
             return
         fi
-        log "Moviendo el build anterior ($old_tag) a build.old/"
-        rm -rf "$GAME_DIR/build.old"
-        mv "$BUILD" "$GAME_DIR/build.old"
+        # Un build de esta versión que no terminó: se continúa (los scripts
+        # de los ports reaprovechan lo hecho) sin tocar build.old/.
+        if [[ "$old_tag" == "?" && "$(cat "$BUILD/.building-tag" 2>/dev/null)" == "$tag" && "$force" -eq 0 ]]; then
+            log "Continuando el build sin terminar de $tag"
+            return
+        fi
+        if [[ "$old_tag" == "?" ]]; then
+            log "Borrando un build sin terminar ($(cat "$BUILD/.building-tag" 2>/dev/null || echo "?"))"
+            rm -rf "$BUILD"
+        else
+            log "Moviendo el build anterior ($old_tag) a build.old/"
+            rm -rf "$GAME_DIR/build.old"
+            mv "$BUILD" "$GAME_DIR/build.old"
+        fi
     fi
     log "Copiando latest/ ($tag) en build/"
     cp -a --reflink=auto "$LATEST" "$BUILD"
+    # .release-tag (versión de un build terminado) solo lo pone finish_build:
+    # un build a medias o fallido no debe parecer listo (update.sh y
+    # package.sh lo miran). Mientras tanto, .building-tag.
+    rm -f "$BUILD/.release-tag"
+    echo "$tag" > "$BUILD/.building-tag"
 }
 
 # Motor de contenedores: podman (rootless) o docker con el daemon activo.
@@ -62,9 +84,21 @@ container_engine() {
 BUILD_IMAGE="steamdeck-ports/ubuntu-build:24.04"
 BUILD_DOCKERFILE="$ROOT/tools/docker/ubuntu-build.Dockerfile"
 
+# Carpeta real de isos/ (puede ser un enlace a otro disco).
+ISOS_REAL="$(realpath "$ISOS" 2>/dev/null || echo "$ISOS")"
+
+# El contenedor solo ve el proyecto y la carpeta real de isos/ (solo lectura):
+# $1 tiene que estar en uno de los dos.
+require_container_path() {
+    [[ "$1" == "$ROOT"/* || "$1" == "$ISOS_REAL"/* ]] \
+        || die "$1 tiene que estar dentro de $ROOT o de isos/ ($ISOS_REAL): es lo que se monta en el contenedor"
+}
+
 # Construye (o reutiliza de la caché) la imagen común y ejecuta un comando
 # dentro. El proyecto se monta en la misma ruta que en el host, con el usuario
 # del host, para que los archivos generados sean tuyos y las rutas coincidan.
+# Si isos/ es un enlace a otro disco, su carpeta real se monta también, en solo
+# lectura y en la misma ruta.
 run_in_container() {
     local engine image="$BUILD_IMAGE"
     engine="$(container_engine)"
@@ -75,10 +109,13 @@ run_in_container() {
     [[ "$engine" == podman ]] && user_args=(--userns=keep-id)
     log "Ejecutando en el contenedor: $*"
     local tty=(-i); [[ -t 0 && -t 1 ]] && tty=(-it)
+    local isos_mount=()
+    [[ -d "$ISOS_REAL" && "$ISOS_REAL" != "$ROOT"/* ]] && isos_mount=(-v "$ISOS_REAL:$ISOS_REAL:ro")
     "$engine" run --rm "${tty[@]}" \
         "${user_args[@]}" \
         --security-opt label=disable \
         -v "$ROOT:$ROOT" \
+        "${isos_mount[@]}" \
         -w "$BUILD" \
         -e HOME=/tmp \
         "$image" "$@"
@@ -137,5 +174,6 @@ write_steamdeck_launcher() {
 
 finish_build() {
     release_tag > "$BUILD/.release-tag"
+    rm -f "$BUILD/.building-tag"
     log "Build listo en $BUILD ($(du -sh "$BUILD" | cut -f1))"
 }

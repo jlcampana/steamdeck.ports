@@ -62,6 +62,12 @@ isos/                ISOs y paquetes de los juegos (no va a git)
 5. `tools/package.sh` — crea el paquete y su instalador; en la Deck, doble clic
    en `Instalar <juego>.desktop` (ver [Distribución](#distribución-a-la-steam-deck)).
 
+Los pasos 2, 3 y 5 de una vez: **`./update.sh --build`** (descarga, compila y
+empaqueta solo lo que ha cambiado).
+
+Todos los scripts tienen ayuda con **`-h` o `--help`** (es la cabecera de
+comentarios de cada script; `tools/help.sh`).
+
 ## Añadir un juego
 
 Añadirlo a `ports.md` y, en Claude Code, ejecutar `/add-game [nombre]`. La skill
@@ -75,7 +81,25 @@ prueba y lo documenta.
 ./update.sh            # actualiza todos los juegos
 ./update.sh doa3 doa2u # solo esos
 ./update.sh -f doa3    # vuelve a descargar y descomprimir aunque esté al día
+./update.sh --build    # además compila y empaqueta lo que se haya quedado atrás
+./update.sh --help     # ayuda
 ```
+
+Al final resume qué ha descargado y qué se ha quedado atrás:
+
+```
+Versiones nuevas: doa3 (v0.7.1 -> v0.8.0)
+Builds atrasados: doa3 (v0.7.1 -> v0.8.0)
+Paquetes atrasados (/run/media/pandi/tmp): doa3 (v0.7.1 -> v0.8.0)
+Para generarlos: ./update.sh --build [id …]  (o games/<id>/build.sh y tools/package.sh <id>)
+```
+
+Compara la versión de `games/<id>/latest`, la de `games/<id>/build`
+(`.release-tag`, que solo existe si el build terminó bien) y la del paquete en
+el destino (`VERSION` de su `game.conf`). Con `--build` ejecuta
+`games/<id>/build.sh` de los builds atrasados y `tools/package.sh <id>` de los
+paquetes atrasados; si un build falla, no lo empaqueta, sigue con los demás y
+termina con error.
 
 - Consulta `https://api.github.com/repos/<repo>/releases/latest` y elige el
   archivo cuyo nombre cumple la regex de `ports.tsv`. Si el repo no tiene
@@ -124,14 +148,18 @@ games/doa3/build.sh -f         # build limpio
   gastar espacio en btrfs). Si `build/` ya es de esa versión, se reutiliza; si
   es de otra (o con `-f`), el anterior se mueve a `build.old/` para no perder
   partidas ni ajustes. Solo se guarda un `build.old/`.
-- Al terminar escriben `build/.release-tag` con la versión construida.
+- Al terminar escriben `build/.release-tag` con la versión construida. Mientras
+  el build no termina, solo hay `build/.building-tag`: si falla y se relanza
+  con la misma versión, se continúa; si entretanto sale otra versión, el build
+  a medias se borra (no pisa `build.old/`).
 - Los que compilan (doaxtreme, doa3, doa2u) construyen la imagen
   `steamdeck-ports/ubuntu-build:24.04` (una sola imagen para los tres, desde
   `tools/docker/ubuntu-build.Dockerfile`) y ejecutan
   `build_game.sh <iso> --extractor tools/bin/extract-xiso` dentro. Usan
   **podman** (rootless, `--userns=keep-id`) o docker si su daemon está activo.
-  El proyecto se monta en la misma ruta que en el host, así que la ISO tiene
-  que estar dentro del proyecto. Después avisan si algún `.json`/`.txt`/`.toml`
+  El proyecto se monta en la misma ruta que en el host. Si `isos` es un enlace
+  a otro disco, su carpeta real se monta también (solo lectura, misma ruta):
+  la ISO tiene que estar en el proyecto o en `isos/`. Después avisan si algún `.json`/`.txt`/`.toml`
   del build guarda rutas absolutas del PC.
 
 | Juego | Qué hace `build.sh` | Tiempo aprox. | Tamaño de `build/` |

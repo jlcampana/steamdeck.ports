@@ -3,6 +3,8 @@
 # header, hero, logo, icon) para elegir las de la ficha de Steam.
 #
 # Uso: tools/fetch-art.sh [-n N] [id…]   (sin ids: todos; N por defecto 10)
+#   -n N        candidatas por tipo (1-50); la elegida se baja aunque quede fuera
+#   -h, --help  muestra esta ayuda
 #
 #   games/<id>/art/candidatas/<tipo>/NN-<idsgdb>.<ext>   ordenadas por votos
 #   games/<id>/art/candidatas/index.html                  para verlas todas
@@ -20,6 +22,9 @@
 set -euo pipefail
 
 ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+# shellcheck source=tools/help.sh
+source "$ROOT/tools/help.sh"
+show_help_if_asked "$0" "$@"
 # shellcheck source=/dev/null
 [[ -f "$ROOT/local.conf" ]] && source "$ROOT/local.conf"
 
