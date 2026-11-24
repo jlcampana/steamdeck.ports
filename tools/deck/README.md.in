@@ -1,0 +1,76 @@
+@ART_TOP@# @NAME@ para Steam Deck
+
+Versión del port: **@VERSION@** · Instalado ocupa unos **@SIZE_GB@ GB**
+
+Este paquete trae el juego ya preparado para la Steam Deck y un instalador
+que lo copia y lo añade a Steam con sus imágenes. En la Deck no hay que
+compilar ni configurar nada.
+
+## Qué hay en esta carpeta
+
+| Archivo | Para qué sirve |
+|---|---|
+| `Instalar @NAME@.desktop` | el instalador: doble clic en el modo escritorio |
+| `@ID@.tar.zst` | el juego comprimido |
+| `@ID@.tar.zst.sha256` | suma para comprobar que se ha copiado bien |
+| `instalar.sh` | el instalador (lo lanza el `.desktop`; vale también desde una terminal) |
+| `steam-art.py` | pone las imágenes en la ficha de Steam |
+| `game.conf` | datos del juego que usa el instalador |
+| `art/` | portada, cabecera, fondo, logo e icono para Steam |
+
+@ART_GALLERY@
+## Instalación
+
+1. **Copia esta carpeta entera a la Deck**: con un USB o una tarjeta SD, por
+   red o con cualquier otro método. Se puede instalar desde el propio USB; no
+   hace falta copiarla antes a la memoria interna.
+2. Cambia al **modo escritorio**: botón Steam → Apagar → Cambiar a escritorio.
+3. Abre esta carpeta en el gestor de archivos (Dolphin) y haz **doble clic en
+   `Instalar @NAME@.desktop`**. Si KDE pregunta si quieres ejecutarlo, di que
+   sí.
+4. Se abre una terminal. Si hay una tarjeta SD, pregunta dónde instalar
+   (escribe el número y pulsa Intro):
+   - **memoria interna** → `~/Games/@ID@` (`/home/deck/Games/@ID@`)
+   - **tarjeta SD** → `<tarjeta>/Games/@ID@`
+   Para escribir, Steam + X abre el teclado en pantalla.
+5. Al terminar, el juego aparece en Steam con el nombre **@NAME@** y sus
+   imágenes. Si Steam ya estaba abierto y no se ven, reinícialo.
+6. Vuelve al modo Juego y búscalo en la biblioteca, en *No de Steam*.
+@PROTON_STEP@
+Si el doble clic no funciona, abre una terminal (Konsole) en esta carpeta y
+ejecuta `./instalar.sh`.
+
+## Qué hace el instalador
+
+- Comprueba que cabe en el destino.
+- Descomprime el juego en `<destino>/@ID@`.
+- Crea `<destino>/@ID@/@ID@.desktop`, que lanza `@EXEC@`, y lo añade a
+  Steam con `steamos-add-to-steam`. Si ya había un acceso directo a esa
+  carpeta, no crea otro.
+- Copia las imágenes a la ficha de Steam
+  (`~/.local/share/Steam/userdata/<usuario>/config/grid/`).
+
+## Partidas y ajustes
+
+Se guardan dentro de la carpeta del juego: @SAVES@.
+
+## Actualizar a una versión nueva
+
+Ejecuta el instalador del paquete nuevo y elige el mismo destino. La
+instalación anterior se mueve a `@ID@.old`, con sus **partidas y ajustes**,
+y el acceso de Steam se reutiliza.
+
+**Las partidas no se pasan solas a la versión nueva:** cópialas de
+`@ID@.old` a la carpeta nueva (lo que indica «Partidas y ajustes»). Cuando compruebes que todo va bien,
+borra `@ID@.old`. Solo se guarda un `.old`: si vuelves a instalar, se borra el
+anterior.
+
+## Desinstalar
+
+1. En Steam: el juego → ⚙ → Gestionar → Eliminar acceso directo no de Steam.
+2. Borra la carpeta `<destino>/@ID@` (y `@ID@.old`, si existe).
+
+## Pantalla completa
+
+En el modo Juego, Steam (gamescope) muestra el juego a pantalla completa
+aunque abra en ventana. En el modo escritorio puede abrir en una ventana.

@@ -161,6 +161,11 @@ gastar espacio.
    fuera de git (repo público, derechos), pero la elección se guarda en
    `game.conf` como id de SteamGridDB (`ART_<TIPO>=…`); `fetch-art.sh` las
    recupera aunque estén fuera del top N (probado con `-n 1`).
+8. Paquetes regenerados con las imágenes elegidas. Cada paquete lleva un
+   `README.md` (plantilla `tools/deck/README.md.in`, con las imágenes del
+   juego y `SAVES` de `game.conf`). `package.sh -m` regenera solo metadatos.
+   Ojo: en `game.conf` los valores con comillas invertidas van entre comillas
+   simples (se carga con `source`).
 
 ### Pendiente
 

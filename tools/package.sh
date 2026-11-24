@@ -10,7 +10,11 @@
 #     game.conf                  id, nombre, ejecutable, Proton, versión, tamaño
 #     art/                       imágenes (games/<id>/art, si hay)
 #
-# Uso: tools/package.sh [-o destino] [id…]   (sin ids: todos los que tienen build/)
+#     README.md                  cómo instalarlo en la Deck (tools/deck/README.md.in)
+#
+# Uso: tools/package.sh [-o destino] [-m] [id…]   (sin ids: todos los que tienen build/)
+#   -m  solo metadatos: README, instalador, game.conf e imágenes, sin volver a
+#       comprimir el juego (tiene que haber ya un <id>.tar.zst de esa versión)
 # Destino por defecto: DEST de local.conf (no va a git) o dist/.
 #
 # Fuera del paquete: private/venv (el Python del PC; run_game.sh usa el del
@@ -25,10 +29,14 @@ DEST="$ROOT/dist"
 log() { printf '\e[1;34m[package]\e[0m %s\n' "$*"; }
 die() { printf '\e[1;31m[package] %s\e[0m\n' "$*" >&2; exit 1; }
 
-if [[ "${1:-}" == "-o" ]]; then
-    [[ $# -ge 2 ]] || die "Falta la carpeta tras -o"
-    DEST="$2"; shift 2
-fi
+META_ONLY=0
+while [[ "${1:-}" == -* ]]; do
+    case "$1" in
+        -o) [[ $# -ge 2 ]] || die "Falta la carpeta tras -o"; DEST="$2"; shift 2 ;;
+        -m) META_ONLY=1; shift ;;
+        *)  die "Opción desconocida: $1" ;;
+    esac
+done
 command -v zstd >/dev/null || die "Falta zstd"
 
 ids=("$@")
@@ -45,11 +53,48 @@ EXCLUDES=(
     --exclude='__pycache__'
 )
 
+# Imagen de art/ de un tipo (png o jpg), o vacío.
+art_file() { local f; for f in "$1/art/$2".{png,jpg}; do [[ -f "$f" ]] && { basename "$f"; return; }; done; }
+
+# README.md del paquete a partir de tools/deck/README.md.in.
+write_readme() {
+    local id="$1" out="$2" version="$3" size_kb="$4" t hero logo cover header icon top="" gallery="" proton=""
+    hero="$(art_file "$out" hero)"; logo="$(art_file "$out" logo)"
+    cover="$(art_file "$out" cover)"; header="$(art_file "$out" header)"; icon="$(art_file "$out" icon)"
+    [[ -n "$hero" ]] && top+="![$NAME](art/$hero)"$'\n\n'
+    [[ -n "$logo" ]] && top+="<p align=\"center\"><img src=\"art/$logo\" alt=\"$NAME\" width=\"420\"></p>"$'\n\n'
+    if [[ -n "$cover$header$icon" ]]; then
+        gallery="Así se verá en Steam:"$'\n\n'
+        [[ -n "$cover" ]] && gallery+="<img src=\"art/$cover\" alt=\"Portada\" height=\"240\"> "
+        [[ -n "$header" ]] && gallery+="<img src=\"art/$header\" alt=\"Cabecera\" height=\"112\"> "
+        [[ -n "$icon" ]] && gallery+="<img src=\"art/$icon\" alt=\"Icono\" height=\"64\">"
+        gallery+=$'\n'
+    fi
+    if [[ "${PROTON:-0}" == 1 ]]; then
+        proton=$'7. **Este juego es de Windows: hay que activar Proton.** En Steam, en el juego →\n'
+        proton+=$'   ⚙ → Propiedades → Compatibilidad → «Forzar el uso de una herramienta de\n'
+        proton+=$'   compatibilidad» → Proton (la versión más reciente). El instalador lo recuerda.\n'
+    fi
+    # Sustituciones literales (sin que & tenga significado especial)
+    shopt -u patsub_replacement 2>/dev/null || true
+    t="$(<"$ROOT/tools/deck/README.md.in")"
+    t="${t//@ART_TOP@/$top}"
+    t="${t//@ART_GALLERY@/$gallery}"
+    t="${t//@PROTON_STEP@/$proton}"
+    t="${t//@NAME@/$NAME}"
+    t="${t//@ID@/$id}"
+    t="${t//@EXEC@/$EXEC}"
+    t="${t//@VERSION@/$version}"
+    t="${t//@SAVES@/$SAVES}"
+    t="${t//@SIZE_GB@/$(awk -v k="$size_kb" 'BEGIN { printf "%.1f", k / 1048576 }' | tr . ,)}"
+    printf '%s\n' "$t" > "$out/README.md"
+}
+
 package() {
     local id="$1" game="$ROOT/games/$1"
     [[ -f "$game/build/.release-tag" ]] || die "$id: no hay build terminado (games/$id/build.sh)"
     [[ -f "$game/game.conf" ]] || die "$id: falta games/$id/game.conf"
-    local NAME EXEC PROTON STEAMGRIDDB
+    local NAME EXEC PROTON STEAMGRIDDB SAVES="la carpeta del juego"
     # shellcheck source=/dev/null
     source "$game/game.conf"
     [[ -e "$game/build/$EXEC" ]] || die "$id: no existe build/$EXEC"
@@ -60,13 +105,22 @@ package() {
     mkdir -p "$out"
     size_kb="$(du -sk "$game/build" | cut -f1)"
 
-    log "$id ($version): comprimiendo $(du -sh "$game/build" | cut -f1) en $out/$id.tar.zst"
-    # La carpeta build/ se guarda como <id>/. Los enlaces duros (p. ej.
-    # play-disc → imported-disc en doa2u) se conservan.
-    tar -C "$game" "${EXCLUDES[@]}" --transform="s|^build|$id|" -cf - build \
-        | zstd -T0 -6 -q -f -o "$out/$id.tar.zst.part"
-    mv -f "$out/$id.tar.zst.part" "$out/$id.tar.zst"
-    (cd "$out" && sha256sum "$id.tar.zst" > "$id.tar.zst.sha256")
+    if (( META_ONLY )); then
+        [[ -f "$out/$id.tar.zst" ]] || die "$id: -m sin paquete previo en $out"
+        local packaged
+        packaged="$(sed -n 's/^VERSION=//p' "$out/game.conf" 2>/dev/null)"
+        [[ "$(eval "echo $packaged")" == "$version" ]] \
+            || die "$id: el paquete de $out es de otra versión (${packaged:-?}); empaqueta sin -m"
+        log "$id ($version): solo metadatos"
+    else
+        log "$id ($version): comprimiendo $(du -sh "$game/build" | cut -f1) en $out/$id.tar.zst"
+        # La carpeta build/ se guarda como <id>/. Los enlaces duros (p. ej.
+        # play-disc → imported-disc en doa2u) se conservan.
+        tar -C "$game" "${EXCLUDES[@]}" --transform="s|^build|$id|" -cf - build \
+            | zstd -T0 -6 -q -f -o "$out/$id.tar.zst.part"
+        mv -f "$out/$id.tar.zst.part" "$out/$id.tar.zst"
+        (cd "$out" && sha256sum "$id.tar.zst" > "$id.tar.zst.sha256")
+    fi
 
     {
         echo "# Generado por tools/package.sh"
@@ -106,6 +160,7 @@ EOF
         echo "Terminal=true"
     } > "$desktop"
     chmod +x "$desktop"
+    write_readme "$id" "$out" "$version" "$size_kb"
     log "$id: listo ($(du -sh "$out/$id.tar.zst" | cut -f1))"
 }
 

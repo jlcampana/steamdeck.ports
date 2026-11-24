@@ -166,6 +166,7 @@ En la Deck nunca se compila: se empaqueta en el PC el `build/` ya hecho.
 tools/package.sh                       # todos los juegos con build/
 tools/package.sh doa3 castlevania-son  # solo esos
 tools/package.sh -o /otra/carpeta doa3 # otro destino
+tools/package.sh -m                    # solo README, instalador e imágenes (sin recomprimir)
 ```
 
 El destino por defecto es `DEST` en `local.conf` o, si no está, `dist/`.
@@ -180,7 +181,8 @@ SteamGridDB. Por cada juego crea `<destino>/<id>/`:
 | `instalar.sh` | el instalador (`tools/deck/instalar.sh`); también vale desde una terminal |
 | `steam-art.py` | pone las imágenes en la ficha de Steam |
 | `game.conf` | id, nombre, ejecutable, Proton, versión y tamaño |
-| `art/` | imágenes (copia de `games/<id>/art`) |
+| `art/` | imágenes elegidas (de `games/<id>/art`) |
+| `README.md` | cómo se instala en la Deck, dónde queda, partidas, actualizar y desinstalar, con las imágenes del juego (plantilla `tools/deck/README.md.in`; `SAVES` de `game.conf`) |
 
 Del paquete se quitan `private/venv` (es el Python del contenedor;
 `run_game.sh` usa `python3` del sistema si falta), los logs, `__pycache__` y
