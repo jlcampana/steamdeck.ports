@@ -1,6 +1,7 @@
 #!/usr/bin/env bash
 # Descarga la última release de cada port (ports.tsv) en latest/<id>/ y la
-# descomprime en games/<id>/latest/. Las versiones se registran en ports.db.
+# descomprime en games/<id>/latest/. Si el repo no tiene release "latest" (solo
+# prereleases), usa la más reciente. Las versiones se registran en ports.db.
 #
 # Uso: ./update.sh [-f] [id ...]
 #   -f   fuerza la descarga aunque la versión ya esté instalada
@@ -46,6 +47,21 @@ api() {
     curl -fsSL "${auth[@]}" -H "Accept: application/vnd.github+json" "https://api.github.com/$1"
 }
 
+# JSON de la release a descargar: la marcada como "latest" si tiene un archivo
+# que cumpla la regex; si no (p. ej. un repo que solo publica prereleases, como
+# doa4), la más reciente, sin contar borradores, que lo tenga.
+release_json() {
+    local repo="$1" regex="$2" json
+    if json="$(api "repos/$repo/releases/latest" 2>/dev/null)" \
+        && jq -e --arg re "$regex" 'any(.assets[]; .name | test($re))' <<<"$json" >/dev/null; then
+        echo "$json"
+        return
+    fi
+    api "repos/$repo/releases?per_page=30" | jq -e --arg re "$regex" '
+        [.[] | select(.draft | not) | select(any(.assets[]; .name | test($re)))]
+        | sort_by(.published_at) | last'
+}
+
 # Descomprime $1 en $2. Si el archivo tiene una única carpeta raíz, la aplana.
 extract() {
     local archive="$1" dest="$2" tmp
@@ -75,7 +91,7 @@ while IFS=$'\t' read -r id repo regex; do
     if (( ${#ONLY[@]} )) && [[ ! " ${ONLY[*]} " == *" $id "* ]]; then continue; fi
 
     echo "== $id ($repo)"
-    json="$(api "repos/$repo/releases/latest")" || { echo "  No se pudo consultar la release" >&2; continue; }
+    json="$(release_json "$repo" "$regex")" || { echo "  No hay ninguna release con un archivo que cumpla /$regex/" >&2; continue; }
     tag="$(jq -r .tag_name <<<"$json")"
     published="$(jq -r .published_at <<<"$json")"
     asset_json="$(jq -c --arg re "$regex" '[.assets[] | select(.name | test($re))] | first // empty' <<<"$json")"

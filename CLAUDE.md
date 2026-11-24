@@ -26,7 +26,7 @@ juegos de Xbox/Xbox 360:
 
 - Idioma: español en docs, mensajes de scripts y commits.
 - Ids de juego (carpeta `games/<id>`): `doaxtreme`, `doa3`, `doa2u`, `doa1u`,
-  `castlevania-son`.
+  `castlevania-son`, `doa4`.
 - Nunca subir archivos de juego: `isos/`, `latest/`, `ports.db`,
   `games/*/latest/`, `games/*/build/` están en `.gitignore`.
 - Los assets de Castlevania SON los extrae el usuario a mano en
@@ -57,6 +57,14 @@ proyecto [`.claude/skills/add-game/SKILL.md`](.claude/skills/add-game/SKILL.md):
   `scripts/extract_game.py` del repo (no viene en la release; solo stdlib) a
   `assets/xbla-world` y `assets/xbla-jp`. El title update (`addon/TU_…`) **no
   hace falta**: sus cambios están portados en `src/hooks/tu_hooks.cpp`.
+
+- **DOA4 solo publica prereleases** (`alpha-v…`): `update.sh` usa la release
+  más reciente con el archivo si no hay «latest». Es solo Windows → Proton.
+  Hasta alpha-v0.3.7 se congela al arrancar en Proton (puerto UDP 1000, issue
+  #12; arreglado para la 0.3.8): `games/doa4/deck-post-install.sh` ofrece
+  `net.ipv4.ip_unprivileged_port_start=1000`. Ese script también escribe
+  `doa4_game_files`/`doa4_user_data` (rutas `Z:/…`) en `dead_or_alive_4.toml`
+  para que no salga la pantalla de configuración.
 
 ## Entorno del PC de build
 
@@ -167,6 +175,14 @@ gastar espacio.
    Ojo: en `game.conf` los valores con comillas invertidas van entre comillas
    simples (se carga con `source`).
 
+9. **DOA4** (`/add-game`), con Proton + sysctl (decisión del usuario; el
+   Linux nativo desde main está poco probado y no juega online con la
+   release). `update.sh` admite repos con solo prereleases (de paso bajó
+   doaxtreme v0.8.0 y doa3 v0.8.0, sin compilar todavía). Build ~45 s,
+   6,8 GB; paquete ~4,8 GB. Nuevo en el empaquetado: `deck-post-install.sh` y
+   `deck-notes.md` por juego. Instalador probado en el PC (toml, idempotente,
+   sin pregunta de sysctl con 0.3.8). Imágenes elegidas por el usuario.
+
 ### Pendiente
 
 - [x] `tools/install.sh`.
@@ -184,4 +200,7 @@ gastar espacio.
       copiarlas a la nueva instalación (dónde guarda cada port).
 - [ ] Podar los builds de NoRain (fuentes y `_deps` del compilado) sin romper
       la comprobación del runner en `run_game.py`.
-- [ ] DOA4 (`/add-game`).
+- [x] DOA4 (`/add-game`).
+- [ ] Recompilar y empaquetar doaxtreme v0.8.0 y doa3 v0.8.0.
+- [ ] DOA4: quitar el arreglo del puerto 1000 cuando salga la 0.3.8 (ya se
+      salta solo por versión; probar en la Deck).

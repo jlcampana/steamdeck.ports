@@ -9,6 +9,8 @@
 # 3. Crea <base>/<id>/<id>.desktop y lo añade a Steam con
 #    steamos-add-to-steam (si no estaba ya).
 # 4. Copia las imágenes de art/ a la ficha de Steam (steam-art.py).
+# Si el paquete trae post-install.sh (games/<id>/deck-post-install.sh), lo
+# ejecuta tras descomprimir con la carpeta del juego como argumento.
 set -euo pipefail
 
 HERE="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
@@ -77,6 +79,12 @@ mkdir -p "$tmp"
 zstd -dc --progress "$PKG" | tar -x -C "$tmp"
 mv "$tmp/$ID" "$DEST"
 rmdir "$tmp"
+
+# Paso propio del juego, si lo hay (games/<id>/deck-post-install.sh)
+if [[ -f "$HERE/post-install.sh" ]]; then
+    VERSION="$VERSION" bash "$HERE/post-install.sh" "$DEST" \
+        || warn "El paso propio del juego (post-install.sh) ha fallado; revisa los mensajes"
+fi
 
 # --- 3. Acceso directo en Steam ---------------------------------------------
 ICON=""

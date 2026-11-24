@@ -18,6 +18,7 @@ disponibles). Usa como referencia el `build.sh` existente más parecido:
 | Igual, pero el build pide un venv/pip | `games/doa2u/build.sh` |
 | Binario Linux listo + paquetes STFS de Xbox 360 | `games/castlevania-son/build.sh` |
 | Solo Windows (Proton) + ISO extraída en `assets/` | `games/doa1u/build.sh` |
+| Solo Windows (Proton) + ISO de Xbox 360 + rutas en un `.toml` al instalar | `games/doa4/build.sh` y `deck-post-install.sh` |
 
 Todo en español: mensajes de los scripts, docs y commits.
 
@@ -77,7 +78,12 @@ Todo en español: mensajes de los scripts, docs y commits.
    `SteamGridDB:` de `ports.md`, si lo hay). Si hay `STEAMGRIDDB_API_KEY`
    (env o `local.conf`), `tools/fetch-art.sh <id>`. Prueba
    `tools/package.sh -o <scratchpad> <id>` y el instalador en el PC con un HOME
-   falso: `HOME=<tmp> <scratchpad>/<id>/instalar.sh <tmp>/Games </dev/null`.
+   falso: `HOME=<tmp> <scratchpad>/<id>/instalar.sh <tmp>/Games </dev/null`
+   (el scratchpad es tmpfs: para juegos grandes, instala en otro disco).
+   Si en la Deck hace falta algo tras descomprimir (rutas absolutas en la
+   configuración, ajustes del sistema), escribe `games/<id>/deck-post-install.sh`
+   (recibe la carpeta del juego y `VERSION`). Lo que deba saber quien instala
+   va en `games/<id>/deck-notes.md` (sale en el README del paquete).
 
 8. **Documenta.**
    - `games/<id>/README.md` con las mismas secciones que los demás: datos del

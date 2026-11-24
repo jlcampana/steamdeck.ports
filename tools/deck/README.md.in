@@ -47,10 +47,10 @@ ejecuta `./instalar.sh`.
 - Crea `<destino>/@ID@/@ID@.desktop`, que lanza `@EXEC@`, y lo añade a
   Steam con `steamos-add-to-steam`. Si ya había un acceso directo a esa
   carpeta, no crea otro.
-- Copia las imágenes a la ficha de Steam
+@POST_INSTALL@- Copia las imágenes a la ficha de Steam
   (`~/.local/share/Steam/userdata/<usuario>/config/grid/`).
 
-## Partidas y ajustes
+@NOTES@## Partidas y ajustes
 
 Se guardan dentro de la carpeta del juego: @SAVES@.
 

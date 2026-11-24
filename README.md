@@ -15,6 +15,7 @@ aportan desde copias propias y quedan fuera de git (`isos/`).
 | `doa2u`            | Dead or Alive 2 Ultimate | [NoRain211/doa2u-re](https://github.com/NoRain211/doa2u-re/releases) | `DOA2U-<v>-Alpha-Linux.zip` | Linux nativo (compilar) | `isos/DOA2U.iso` |
 | `doa1u`            | Dead or Alive 1 Ultimate | [vini1264/DOA1U-XBERecomp](https://github.com/vini1264/DOA1U-XBERecomp/releases) | `DOA1U-XBERecomp.zip` | Windows → **Proton** | `isos/DOA2U.iso` (*) |
 | `castlevania-son`  | Castlevania: Symphony of the Night (XBLA) | [birabittoh/NocturneRecomp](https://github.com/birabittoh/NocturneRecomp/releases) | `nocturnerecomp-<v>-linux-amd64.tar.gz` | Linux nativo (binario) | `isos/Castlevania SON/` (paquetes STFS) |
+| `doa4`             | Dead or Alive 4 Online | [dwreckgg/doa4-online](https://github.com/dwreckgg/doa4-online/releases) | `DOA4-alpha-v<v>-win64.zip` (solo prereleases) | Windows → **Proton** (+ arreglo del puerto 1000 hasta 0.3.7) | `isos/DOA4.iso` |
 
 (*) DOA1U no tiene ISO propia: el disco de DOA2U trae los dos juegos
 (`Doa1.xbe` y `DOA2.xbe` en la raíz, comprobado con `extract-xiso -l`).
@@ -77,7 +78,9 @@ prueba y lo documenta.
 ```
 
 - Consulta `https://api.github.com/repos/<repo>/releases/latest` y elige el
-  archivo cuyo nombre cumple la regex de `ports.tsv`.
+  archivo cuyo nombre cumple la regex de `ports.tsv`. Si el repo no tiene
+  release «latest» o no trae ese archivo (doa4 solo publica prereleases), usa
+  la release más reciente, sin contar borradores, que lo tenga.
 - Lo descarga en `latest/<id>/` (borra las descargas anteriores de ese juego) y
   comprueba el SHA-256 con el `digest` que publica GitHub cuando existe.
 - Lo descomprime en `games/<id>/latest/` (zip, tar.gz, tar.xz, tar.zst y 7z).
@@ -134,6 +137,7 @@ games/doa3/build.sh -f         # build limpio
 | Juego | Qué hace `build.sh` | Tiempo aprox. | Tamaño de `build/` |
 |---|---|---|---|
 | castlevania-son | descarga `scripts/extract_game.py` del mismo tag, instala World y Japón en `assets/`, crea `portable.txt` | segundos | ~300 MB |
+| doa4 | extrae `isos/DOA4.iso` en `game/` y comprueba `SHA256SUMS.txt` | ~45 s | 6,8 GB |
 | doa1u | extrae `isos/DOA2U.iso` en `assets/` con extract-xiso | ~20 s | ~4,3 GB |
 | doa3 | compila en Ubuntu 24.04 (podman) | ~6 min | 4,4 GB |
 | doaxtreme | compila en Ubuntu 24.04 (podman) | ~6 min | 4,4 GB |
@@ -181,8 +185,9 @@ SteamGridDB. Por cada juego crea `<destino>/<id>/`:
 | `instalar.sh` | el instalador (`tools/deck/instalar.sh`); también vale desde una terminal |
 | `steam-art.py` | pone las imágenes en la ficha de Steam |
 | `game.conf` | id, nombre, ejecutable, Proton, versión y tamaño |
+| `post-install.sh` | paso propio del juego tras descomprimir, si lo hay (`games/<id>/deck-post-install.sh`; p. ej. doa4 escribe sus rutas en el `.toml`) |
 | `art/` | imágenes elegidas (de `games/<id>/art`) |
-| `README.md` | cómo se instala en la Deck, dónde queda, partidas, actualizar y desinstalar, con las imágenes del juego (plantilla `tools/deck/README.md.in`; `SAVES` de `game.conf`) |
+| `README.md` | cómo se instala en la Deck, dónde queda, partidas, actualizar y desinstalar, con las imágenes del juego (plantilla `tools/deck/README.md.in`; `SAVES` de `game.conf` y notas de `games/<id>/deck-notes.md`, si hay) |
 
 Del paquete se quitan `private/venv` (es el Python del contenedor;
 `run_game.sh` usa `python3` del sistema si falta), los logs, `__pycache__` y

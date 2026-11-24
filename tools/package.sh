@@ -7,6 +7,7 @@
 #     Instalar <Nombre>.desktop  doble clic en el modo escritorio de la Deck
 #     instalar.sh                el instalador (tools/deck/instalar.sh)
 #     steam-art.py               pone las imágenes en la ficha de Steam
+#     post-install.sh            paso propio del juego (games/<id>/deck-post-install.sh), si lo hay
 #     game.conf                  id, nombre, ejecutable, Proton, versión, tamaño
 #     art/                       imágenes (games/<id>/art, si hay)
 #
@@ -81,6 +82,14 @@ write_readme() {
     t="${t//@ART_TOP@/$top}"
     t="${t//@ART_GALLERY@/$gallery}"
     t="${t//@PROTON_STEP@/$proton}"
+    local post=""
+    [[ -f "$out/post-install.sh" ]] && post="- Ejecuta \`post-install.sh\`, el paso propio de este juego (ver «Notas de este juego»)."$'\n'
+    t="${t//@POST_INSTALL@/$post}"
+    local notes=""
+    if [[ -f "$ROOT/games/$id/deck-notes.md" ]]; then
+        notes="## Notas de este juego"$'\n\n'"$(<"$ROOT/games/$id/deck-notes.md")"$'\n\n'
+    fi
+    t="${t//@NOTES@/$notes}"
     t="${t//@NAME@/$NAME}"
     t="${t//@ID@/$id}"
     t="${t//@EXEC@/$EXEC}"
@@ -129,6 +138,11 @@ package() {
     } > "$out/game.conf"
     install -m 755 "$ROOT/tools/deck/instalar.sh" "$out/instalar.sh"
     install -m 755 "$ROOT/tools/deck/steam-art.py" "$out/steam-art.py"
+    if [[ -f "$game/deck-post-install.sh" ]]; then
+        install -m 755 "$game/deck-post-install.sh" "$out/post-install.sh"
+    else
+        rm -f "$out/post-install.sh"
+    fi
 
     # Solo las elegidas (art/<tipo>.png|jpg), no las candidatas.
     rm -rf "$out/art"
