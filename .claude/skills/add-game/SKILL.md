@@ -31,6 +31,10 @@ Todo en español: mensajes de los scripts, docs y commits.
    elige el archivo de Linux x86-64, o el de Windows si no hay versión Linux
    (→ Proton). Si el juego aún no está en `ports.md`, añádelo con el mismo
    formato que los demás.
+   **Comprueba si hay versión específica para Steam Deck/SteamOS** además de
+   la de Linux: archivos de la release, README, docs (sección SteamOS) o
+   scripts como `build_steamdeck.sh`. Si la hay, valora usarla en vez de la
+   de Linux/Windows y cuéntaselo al usuario antes de seguir.
 
 2. **Descarga.** `GITHUB_TOKEN=$(gh auth token) ./update.sh <id>` y mira qué
    trae `games/<id>/latest`: ¿un binario listo para usar o código para compilar?

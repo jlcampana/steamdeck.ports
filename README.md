@@ -27,6 +27,7 @@ La lista de juegos que usa `update.sh` está en [`ports.tsv`](ports.tsv);
 
 ```
 update.sh            descarga la última release de cada port y la descomprime
+clean-old-builds.sh  borra los builds anteriores (games/<id>/build.old)
 ports.tsv            id, repo de GitHub y regex del archivo de release a descargar
 ports.db             SQLite con el histórico de versiones (no va a git)
 latest/<id>/         archivo de release descargado, tal cual (no va a git)
@@ -65,6 +66,10 @@ isos/                ISOs y paquetes de los juegos (no va a git)
 Los pasos 2, 3 y 5 de una vez: **`./update.sh --build`** (descarga, compila y
 empaqueta solo lo que ha cambiado).
 
+Los builds anteriores que quedan al cambiar de versión (`games/<id>/build.old/`)
+se borran con **`./clean-old-builds.sh`** (`-n` para ver cuánto ocupan, `-y`
+para no preguntar) cuando la versión nueva funcione en la Deck.
+
 Todos los scripts tienen ayuda con **`-h` o `--help`** (es la cabecera de
 comentarios de cada script; `tools/help.sh`).
 
@@ -93,6 +98,10 @@ Builds atrasados: doa3 (v0.7.1 -> v0.8.0)
 Paquetes atrasados (/run/media/pandi/tmp): doa3 (v0.7.1 -> v0.8.0)
 Para generarlos: ./update.sh --build [id …]  (o games/<id>/build.sh y tools/package.sh <id>)
 ```
+
+Si una release trae un archivo específico para Steam Deck o SteamOS (en el
+nombre: `steamdeck`, `steam_deck`, `steamos`…), lo avisa: podría sustituir a la
+versión de Linux o de Windows que se usa ahora.
 
 Compara la versión de `games/<id>/latest`, la de `games/<id>/build`
 (`.release-tag`, que solo existe si el build terminó bien) y la del paquete en

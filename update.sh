@@ -11,7 +11,9 @@
 #   id            limita la actualización a esos juegos (por defecto, todos)
 #
 # Al final resume qué versiones se han descargado y qué builds y paquetes para
-# la Deck (DEST de local.conf o dist/) se han quedado atrás.
+# la Deck (DEST de local.conf o dist/) se han quedado atrás. También avisa si
+# una release trae un archivo específico para Steam Deck / SteamOS (podría
+# servir en vez de la versión de Linux o de Windows que se usa ahora).
 #
 # GITHUB_TOKEN (opcional) evita el límite de 60 peticiones/hora de la API.
 set -euo pipefail
@@ -109,6 +111,7 @@ extract() {
 
 updated=0
 new_versions=()   # "id (antes -> ahora)"
+deck_assets=()    # "id: archivo" de releases con algo para Steam Deck
 ids=()            # juegos revisados
 while IFS=$'\t' read -r id repo regex; do
     [[ -z "$id" || "$id" == \#* ]] && continue
@@ -121,6 +124,11 @@ while IFS=$'\t' read -r id repo regex; do
     published="$(jq -r .published_at <<<"$json")"
     asset_json="$(jq -c --arg re "$regex" '[.assets[] | select(.name | test($re))] | first // empty' <<<"$json")"
     if [[ -z "$asset_json" ]]; then echo "  Ningún archivo coincide con /$regex/ en $tag" >&2; continue; fi
+    while IFS= read -r deck; do
+        [[ -n "$deck" ]] || continue
+        echo "  AVISO: esta release trae un archivo para Steam Deck: $deck"
+        deck_assets+=("$id: $deck ($tag)")
+    done < <(jq -r '.assets[].name | select(test("steam.?deck|steamos|[-_.]deck[-_.]"; "i"))' <<<"$json")
     name="$(jq -r .name <<<"$asset_json")"
     url="$(jq -r .browser_download_url <<<"$asset_json")"
     size="$(jq -r .size <<<"$asset_json")"
@@ -192,6 +200,10 @@ summary() {
     else
         echo "Versiones nuevas: ninguna"
     fi
+    if (( ${#deck_assets[@]} )); then
+        echo "Archivos para Steam Deck en las releases (revisar si sustituyen a lo que usamos):"
+        printf '  %s\n' "${deck_assets[@]}"
+    fi
     check_stale
     (( ${#stale_builds[@]} )) && echo "Builds atrasados: $(join_by ', ' "${stale_builds[@]}")"
     (( ${#stale_packages[@]} )) && echo "Paquetes atrasados ($DEST): $(join_by ', ' "${stale_packages[@]}")"
@@ -224,7 +236,7 @@ if (( BUILD )); then
         echo "== Paquete de $id"
         "$ROOT/tools/package.sh" "$id" || failed+=("$id (paquete)")
     done
-    new_versions=()
+    new_versions=(); deck_assets=()
     summary
     if (( ${#failed[@]} )); then
         echo "Fallos: $(join_by ', ' "${failed[@]}")" >&2

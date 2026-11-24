@@ -32,6 +32,15 @@ juegos de Xbox/Xbox 360:
 - Los assets de Castlevania SON los extrae el usuario a mano en
   `isos/Castlevania SON/`.
 
+- **Versión específica para Steam Deck:** al añadir un juego o al buscar una
+  versión nueva, comprobar si, además de la de Linux (o Windows), el port
+  publica una versión para Steam Deck/SteamOS: archivos de la release, README,
+  docs (`docs/building.md`, sección SteamOS) o scripts como
+  `build_steamdeck.sh`. Si la hay y vale, puede sustituir a la que usamos
+  (menos pasos, o sin Proton). `update.sh` avisa si una release trae un
+  archivo con «steamdeck», «steam_deck» o «steamos» en el nombre, pero hay que
+  mirar también README y docs.
+
 ## Añadir un juego nuevo
 
 El usuario lo añade a `ports.md` (nombre + enlace a releases) y lanza
@@ -201,6 +210,12 @@ gastar espacio.
     ruta. Lección: **no editar un `build.sh` mientras se ejecuta** (bash lee
     el script a trozos; el primer intento de doa3 compiló bien pero cortó en
     la línea 21 con «EOF inesperado»). Los builds 0.7.x están en `build.old/`.
+
+14. `clean-old-builds.sh` (raíz): borra los `games/<id>/build.old/`
+    (`-n` para ver, `-y` sin preguntar). Norma nueva (petición del usuario):
+    comprobar siempre si hay versión específica para Steam Deck; `update.sh`
+    avisa de archivos de release con ese nombre. Ninguno de los 6 repos la
+    tiene ahora.
 
 ### Pendiente
 
