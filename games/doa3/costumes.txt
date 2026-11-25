@@ -1,0 +1,33 @@
+# Trajes de mods de DOA3 que instala games/doa3/costumes.py en el build (uno por línea).
+# Se edita con games/doa3/pick-costumes.py. Sin este archivo: todos los de las chicas.
+alpA1
+alpA2
+aya07
+aya10
+aya11
+ayaA4
+gok05
+gok11
+hik08
+hik09
+kas33
+kas34
+kas35
+kas42
+kas43
+kas44
+kasA5
+kasA7
+kor13
+kor17
+kor19
+korA1
+korA2
+korA3
+korA4
+lei10
+lei12
+tin10
+tin12
+tin13
+tinA1

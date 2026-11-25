@@ -11,7 +11,9 @@
 #
 # 1. Elige dónde instalar (ver arriba).
 # 2. Descomprime <id>.tar.zst en <base>/<id>. Si ya existía, lo mueve antes a
-#    <base>/<id>.old (ahí quedan las partidas y ajustes anteriores).
+#    <base>/<id>.old y copia de ahí a la nueva las partidas y ajustes (KEEP de
+#    game.conf: rutas o patrones relativos a la carpeta del juego; en las
+#    carpetas se salta KEEP_EXCLUDE). El .old queda como copia de seguridad.
 # 3. Crea <base>/<id>/<id>.desktop y lo añade a Steam (si no estaba ya):
 #    en la Deck con steamos-add-to-steam; en un PC, escribiendo shortcuts.vdf
 #    (con Steam cerrado) y, si el juego es de Windows, con el Proton más
@@ -31,7 +33,8 @@ esac
 HERE="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 # shellcheck source=/dev/null
 PC_GAMES=""
-source "$HERE/game.conf"   # ID, NAME, EXEC, PROTON, VERSION, SIZE_KB, PC_GAMES
+KEEP=""; KEEP_EXCLUDE=""
+source "$HERE/game.conf"   # ID, NAME, EXEC, PROTON, VERSION, SIZE_KB, PC_GAMES, KEEP, KEEP_EXCLUDE
 
 say()  { printf '\e[1;34m==>\e[0m %s\n' "$*"; }
 warn() { printf '\e[1;33m[aviso]\e[0m %s\n' "$*"; }
@@ -91,7 +94,8 @@ fi
 if [[ -e "$DEST" ]]; then
     old="$(cat "$DEST/.release-tag" 2>/dev/null || echo "?")"
     warn "Ya está instalado en $DEST (versión $old)."
-    echo "    Se moverá a $DEST.old (con sus partidas y ajustes; se borra el .old anterior)."
+    echo "    Se moverá a $DEST.old (se borra el .old anterior) y sus partidas y ajustes"
+    echo "    se copiarán a la nueva instalación."
     ask_yes "¿Continuar?" || { echo "Cancelado."; pause; exit 0; }
     rm -rf "$DEST.old"
     mv "$DEST" "$DEST.old"
@@ -104,6 +108,40 @@ mkdir -p "$tmp"
 zstd -dc --progress "$PKG" | tar -x -C "$tmp"
 mv "$tmp/$ID" "$DEST"
 rmdir "$tmp"
+
+# Partidas y ajustes de la instalación anterior (KEEP de game.conf)
+keep_saves() {
+    local old="$DEST.old" pattern path n=0 f skip x pats excl
+    [[ -d "$old" && -n "$KEEP" ]] || return 0
+    read -r -a pats <<<"$KEEP"           # read no expande los patrones
+    read -r -a excl <<<"$KEEP_EXCLUDE"
+    shopt -s nullglob globstar
+    for pattern in "${pats[@]}"; do
+        for path in "$old"/$pattern; do
+            path="${path#"$old"/}"
+            if [[ -d "$old/$path" ]]; then
+                while IFS= read -r -d '' f; do
+                    skip=0
+                    for x in "${excl[@]}"; do
+                        # shellcheck disable=SC2053
+                        [[ "${f##*/}" == $x ]] && skip=1
+                    done
+                    (( skip )) && continue
+                    (cd "$old" && cp -a --parents "$f" "$DEST/") && n=$((n + 1))
+                done < <(cd "$old" && find "$path" -type f -print0)
+            elif [[ -f "$old/$path" ]]; then
+                (cd "$old" && cp -a --parents "$path" "$DEST/") && n=$((n + 1))
+            fi
+        done
+    done
+    shopt -u nullglob globstar
+    if (( n )); then
+        say "Copiados $n archivos de partidas y ajustes de la instalación anterior."
+    else
+        say "La instalación anterior no tenía partidas ni ajustes que copiar."
+    fi
+}
+keep_saves || warn "No se han podido copiar todas las partidas; siguen en $DEST.old"
 
 # Paso propio del juego, si lo hay (games/<id>/deck-post-install.sh)
 if [[ -f "$HERE/post-install.sh" ]]; then

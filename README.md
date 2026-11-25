@@ -294,8 +294,12 @@ una terminal y el instalador:
 
 1. Pregunta dónde instalar: `~/Games` (interna) o `<tarjeta SD>/Games`, con el
    espacio libre de cada uno. Comprueba que cabe.
-2. Si el juego ya estaba, lo mueve a `<id>.old` (las partidas y ajustes
-   anteriores se quedan ahí; se borra el `.old` previo).
+2. Si el juego ya estaba, lo mueve a `<id>.old` (se borra el `.old`
+   previo) y, tras descomprimir, copia de ahí las partidas y ajustes: `KEEP`
+   de `game.conf` (rutas o patrones relativos a la carpeta del juego; en las
+   carpetas se salta `KEEP_EXCLUDE`, p. ej. los trajes de doa3, que trae el
+   paquete). `package.sh -m` regenera los metadatos aunque ya no haya
+   `build/`.
 3. Descomprime en `<base>/<id>` y crea `<id>.desktop` (nombre, ejecutable e
    icono `art/icon.*`).
 4. Lo añade a Steam con `steamos-add-to-steam <id>.desktop`, salvo que ya haya

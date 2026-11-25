@@ -404,6 +404,19 @@ gastar espacio.
     límite. Ojo al probar `costumes.py` fuera de `build/`: `build_game.ROOT`
     es la carpeta de su propio archivo, no la actual.
 
+21. DOA3 reinstalado en el PC con los 31 trajes elegidos por el usuario
+    (`costumes.txt`) y la europea sin trajes; partidas copiadas a mano de
+    `doa3.old` (comprobadas con `cmp`) y `doa3.old` borrado (11 GB, a
+    petición del usuario). **El instalador conserva ahora las partidas**
+    (petición del usuario): `KEEP`/`KEEP_EXCLUDE` en cada `game.conf` (sacado
+    del README de cada port y de las cadenas de sus binarios: vf3tb
+    `settings.ini`, `eeprom`, `Screenshots`; urban-reign `game/memcards`,
+    `game/states`…), `package.sh` los pasa al paquete y `instalar.sh` los
+    copia de `<id>.old` antes de `post-install.sh` (doa4 reescribe sus rutas
+    después). Probado con un paquete de prueba (copia ajustes y partida, se
+    salta `*.xpr`). `package.sh -m` sin `build/` toma versión y tamaño del
+    paquete: metadatos de los 11 paquetes de `DEST` regenerados.
+
 ### Pendiente
 
 - [x] `tools/install.sh`.
@@ -417,8 +430,8 @@ gastar espacio.
       que Steam escriba `shortcuts.vdf` a tiempo para las imágenes, y cada juego.
 - [x] Enlaces de SteamGridDB: de `ports.md` a cada `game.conf`.
 - [ ] API key de SteamGridDB en `local.conf` → `tools/fetch-art.sh` y volver a empaquetar.
-- [ ] Al reinstalar, las partidas se quedan en `<id>.old`: ver si conviene
-      copiarlas a la nueva instalación (dónde guarda cada port).
+- [x] Al reinstalar, el instalador copia las partidas de `<id>.old`
+      (`KEEP` en `game.conf`, punto 21). Falta probarlo en la Deck.
 - [ ] Podar los builds de NoRain (fuentes y `_deps` del compilado) sin romper
       la comprobación del runner en `run_game.py`.
 - [x] DOA4 (`/add-game`).

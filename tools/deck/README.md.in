@@ -65,12 +65,10 @@ carpeta, el instalador te da el comando `flatpak override` que hace falta.
 ## Actualizar a una versión nueva
 
 Ejecuta el instalador del paquete nuevo y elige el mismo destino. La
-instalación anterior se mueve a `@ID@.old`, con sus **partidas y ajustes**,
-y el acceso de Steam se reutiliza.
-
-**Las partidas no se pasan solas a la versión nueva:** cópialas de
-`@ID@.old` a la carpeta nueva (lo que indica «Partidas y ajustes»). Cuando compruebes que todo va bien,
-borra `@ID@.old`. Solo se guarda un `.old`: si vuelves a instalar, se borra el
+instalación anterior se mueve a `@ID@.old`, el instalador **copia sus
+partidas y ajustes** a la carpeta nueva (lo que indica «Partidas y
+ajustes») y el acceso de Steam se reutiliza. `@ID@.old` queda como copia de
+seguridad: cuando compruebes que todo va bien, bórrala. Solo se guarda un `.old`: si vuelves a instalar, se borra el
 anterior.
 
 ## Desinstalar

@@ -81,8 +81,12 @@ Todo en español: mensajes de los scripts, docs y commits.
 
 7. **`games/<id>/game.conf` y paquete.** Copia el de un juego parecido:
    `NAME` (nombre en Steam), `EXEC` (`steamdeck.sh`, o el `.exe` si es
-   Windows), `PROTON` (1 si es Windows) y `STEAMGRIDDB` (el enlace
-   `SteamGridDB:` de `ports.md`, si lo hay). Si hay `STEAMGRIDDB_API_KEY`
+   Windows), `PROTON` (1 si es Windows), `STEAMGRIDDB` (el enlace
+   `SteamGridDB:` de `ports.md`, si lo hay), `SAVES` (texto para el README
+   del paquete) y `KEEP` (las partidas y ajustes que el instalador copia de
+   la instalación anterior al reinstalar; mira en el README del port dónde
+   guarda; `KEEP_EXCLUDE` para saltarse archivos de esas carpetas que trae
+   el paquete). Si hay `STEAMGRIDDB_API_KEY`
    (env o `local.conf`), `tools/fetch-art.sh <id>`. Prueba
    `tools/package.sh -o <scratchpad> <id>` y el instalador en el PC con un HOME
    falso: `HOME=<tmp> <scratchpad>/<id>/instalar.sh <tmp>/Games </dev/null`

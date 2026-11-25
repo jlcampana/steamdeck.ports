@@ -108,20 +108,34 @@ write_readme() {
     printf '%s\n' "$t" > "$out/README.md"
 }
 
+# Valor de una variable del game.conf de un paquete (escrito con printf %q)
+pkg_value() {
+    local v
+    v="$(sed -n "s/^$2=//p" "$1")"
+    eval "printf '%s' $v"
+}
+
 package() {
     local id="$1" game="$ROOT/games/$1"
-    [[ -f "$game/build/.release-tag" ]] || die "$id: no hay build terminado (games/$id/build.sh)"
+    [[ -f "$game/build/.release-tag" ]] || (( META_ONLY )) \
+        || die "$id: no hay build terminado (games/$id/build.sh)"
     [[ -f "$game/game.conf" ]] || die "$id: falta games/$id/game.conf"
-    local NAME EXEC PROTON STEAMGRIDDB SAVES="la carpeta del juego"
+    local NAME EXEC PROTON STEAMGRIDDB SAVES="la carpeta del juego" KEEP="" KEEP_EXCLUDE=""
     # shellcheck source=/dev/null
     source "$game/game.conf"
-    [[ -e "$game/build/$EXEC" ]] || die "$id: no existe build/$EXEC"
-
     local version out size_kb
-    version="$(cat "$game/build/.release-tag")"
     out="$DEST/$id"
+    if [[ -f "$game/build/.release-tag" ]]; then
+        [[ -e "$game/build/$EXEC" ]] || die "$id: no existe build/$EXEC"
+        version="$(cat "$game/build/.release-tag")"
+        size_kb="$(du -sk "$game/build" | cut -f1)"
+    else
+        # -m sin build/ (p. ej. tras clean-builds.sh): versión y tamaño del paquete
+        [[ -f "$out/game.conf" ]] || die "$id: -m sin build/ ni paquete previo en $out"
+        version="$(pkg_value "$out/game.conf" VERSION)"
+        size_kb="$(pkg_value "$out/game.conf" SIZE_KB)"
+    fi
     mkdir -p "$out"
-    size_kb="$(du -sk "$game/build" | cut -f1)"
 
     if (( META_ONLY )); then
         [[ -f "$out/$id.tar.zst" ]] || die "$id: -m sin paquete previo en $out"
@@ -142,8 +156,8 @@ package() {
 
     {
         echo "# Generado por tools/package.sh"
-        printf 'ID=%q\nNAME=%q\nEXEC=%q\nPROTON=%q\nVERSION=%q\nSIZE_KB=%q\nPC_GAMES=%q\n' \
-            "$id" "$NAME" "$EXEC" "${PROTON:-0}" "$version" "$size_kb" "${PC_GAMES:-}"
+        printf 'ID=%q\nNAME=%q\nEXEC=%q\nPROTON=%q\nVERSION=%q\nSIZE_KB=%q\nPC_GAMES=%q\nKEEP=%q\nKEEP_EXCLUDE=%q\n' \
+            "$id" "$NAME" "$EXEC" "${PROTON:-0}" "$version" "$size_kb" "${PC_GAMES:-}" "$KEEP" "$KEEP_EXCLUDE"
     } > "$out/game.conf"
     install -m 755 "$ROOT/tools/deck/instalar.sh" "$out/instalar.sh"
     install -m 755 "$ROOT/tools/deck/steam-art.py" "$out/steam-art.py"
