@@ -208,7 +208,7 @@ document.querySelectorAll('[data-none]').forEach(b=>b.onclick=()=>{{boxes.filter
 document.getElementById('save').onclick=async()=>{{
   const chosen=boxes.filter(b=>b.checked).map(b=>b.value);
   const r=await fetch('save',{{method:'POST',headers:{{'Content-Type':'application/json'}},body:JSON.stringify(chosen)}});
-  document.getElementById('status').textContent=r.ok?'Guardado ('+chosen.length+'). Ya puedes cerrar la página.':'Error al guardar';
+  document.getElementById('status').textContent=r.ok?'Guardado ('+chosen.length+'). El selector ha terminado: ya puedes cerrar la página.':'Error al guardar';
 }};
 update();
 </script></body></html>'''
@@ -228,6 +228,15 @@ def write_selection(chosen, valid):
         "# Se edita con games/doa3/pick-costumes.py. Sin este archivo: todos los de las chicas.\n"
         + "".join(f"{c}\n" for c in chosen), encoding="utf-8")
     return chosen
+
+
+def open_browser(url):
+    """Abre la página sin que el navegador escriba sus avisos en esta terminal."""
+    try:
+        subprocess.Popen(["xdg-open", url], stdin=subprocess.DEVNULL, stdout=subprocess.DEVNULL,
+                         stderr=subprocess.DEVNULL, start_new_session=True)
+    except OSError:
+        webbrowser.open(url)
 
 
 def main():
@@ -275,12 +284,23 @@ def main():
             print(f"Guardados {len(saved)} trajes en {SELECTION}: "
                   + ", ".join(f"{GIRLS[g]} {n}" for g, n in per.items()), flush=True)
             self.send(200, b"ok", "text/plain")
+            # Guardado: el script termina solo (sin Ctrl+C).
+            threading.Thread(target=self.server.shutdown, daemon=True).start()
 
-    server = http.server.ThreadingHTTPServer(("127.0.0.1", args.port), Handler)
+    class Server(http.server.ThreadingHTTPServer):
+        daemon_threads = True
+
+        def handle_error(self, request, client_address):
+            # El navegador corta conexiones (imágenes a medio cargar, página
+            # cerrada): no es un error del selector.
+            if not isinstance(sys.exc_info()[1], (BrokenPipeError, ConnectionResetError)):
+                super().handle_error(request, client_address)
+
+    server = Server(("127.0.0.1", args.port), Handler)
     url = f"http://127.0.0.1:{server.server_address[1]}/"
-    print(f"Selector de trajes en {url} (Ctrl+C para terminar)", flush=True)
+    print(f"Selector de trajes en {url} (termina al guardar, o con Ctrl+C)", flush=True)
     if not args.no_browser:
-        threading.Timer(0.5, webbrowser.open, [url]).start()
+        threading.Timer(0.5, open_browser, [url]).start()
     try:
         server.serve_forever()
     except KeyboardInterrupt:
