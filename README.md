@@ -82,6 +82,10 @@ destino (`DEST` de `local.conf`); los que no, los salta y avisa (`-f` los
 borra igualmente). Se rehacen con su `build.sh`. `clean-old-builds.sh` es
 `clean-builds.sh --old-only`.
 
+Cada `build.sh` y cada paquete terminado lanza un **aviso de escritorio**
+(`notify-send`, `tools/notify.sh`), también si un build falla.
+`STEAMDECK_PORTS_NOTIFY=0` los quita.
+
 Todos los scripts tienen ayuda con **`-h` o `--help`** (es la cabecera de
 comentarios de cada script; `tools/help.sh`).
 

@@ -27,6 +27,8 @@ set -euo pipefail
 ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 # shellcheck source=tools/help.sh
 source "$ROOT/tools/help.sh"
+# shellcheck source=tools/notify.sh
+source "$ROOT/tools/notify.sh"
 show_help_if_asked "$0" "$@"
 DEST="$ROOT/dist"
 # shellcheck source=/dev/null
@@ -182,6 +184,7 @@ EOF
     chmod +x "$desktop"
     write_readme "$id" "$out" "$version" "$size_kb"
     log "$id: listo ($(du -sh "$out/$id.tar.zst" | cut -f1))"
+    notify "Paquete de $id listo" "$version, $(du -sh "$out/$id.tar.zst" | cut -f1) en $out"
 }
 
 for id in "${ids[@]}"; do package "$id"; done

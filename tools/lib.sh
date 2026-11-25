@@ -18,6 +18,17 @@ EXTRACT_XISO="$ROOT/tools/bin/extract-xiso"
 source "$ROOT/tools/help.sh"
 show_help_if_asked "${BASH_SOURCE[1]}" "$@"
 
+# shellcheck source=tools/notify.sh
+source "$ROOT/tools/notify.sh"
+# Aviso de escritorio al terminar el build.sh: bien (finish_build) o con error.
+BUILD_NOTIFIED=0
+notify_build_exit() {
+    local rc=$?
+    (( BUILD_NOTIFIED || rc == 0 )) && return 0
+    notify "Build de $GAME_ID: ERROR" "Ha fallado (código $rc). Mira la salida de la terminal." dialog-error
+}
+trap notify_build_exit EXIT
+
 log()  { printf '\e[1;34m[%s]\e[0m %s\n' "$GAME_ID" "$*"; }
 die()  { printf '\e[1;31m[%s] %s\e[0m\n' "$GAME_ID" "$*" >&2; exit 1; }
 
@@ -179,4 +190,6 @@ finish_build() {
     release_tag > "$BUILD/.release-tag"
     rm -f "$BUILD/.building-tag"
     log "Build listo en $BUILD ($(du -sh "$BUILD" | cut -f1))"
+    BUILD_NOTIFIED=1
+    notify "Build de $GAME_ID listo" "$(release_tag), $(du -sh "$BUILD" | cut -f1)"
 }

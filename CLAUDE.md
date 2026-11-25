@@ -286,6 +286,13 @@ gastar espacio.
     `GITHUB_TOKEN` (entorno o `local.conf`) o el de `gh auth token`, y
     comprueba el límite antes (`/rate_limit` no gasta). El token **no** va
     en el script: el repo es público.
+13. Avisos de escritorio (petición del usuario): `tools/notify.sh`
+    (`notify-send`; nada sin escritorio; `STEAMDECK_PORTS_NOTIFY=0` lo
+    quita). `lib.sh` avisa al acabar cada `build.sh` (bien en
+    `finish_build`, error con un `trap EXIT`) y `package.sh` al acabar cada
+    paquete. Con `update.sh` en marcha: no se tocan los scripts que están
+    corriendo y los demás se reescriben con un archivo nuevo (`os.replace`),
+    así quien ya los leyó sigue con el viejo.
 
 ### Pendiente
 
