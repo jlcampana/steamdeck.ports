@@ -44,6 +44,31 @@ GIRLS = {"kas": "Kasumi", "aya": "Ayane", "lei": "Lei Fang", "tin": "Tina",
 NAME = re.compile(r"([a-z]{3})(?:[0-9]{2}|A[0-9])")
 DEFAULT_LIMIT = 9
 
+# Etiquetas de los dibujos de cada hoja de muestra (leídas de las imágenes; un
+# rango como kas17-19 es un solo dibujo para varios archivos: variantes del
+# mismo traje). Los trajes que no salen aquí van a la fila «sin dibujo».
+SHEET_LABELS = {
+    "0/kas.jpg": "kas17-19 kas20-22 kas23-25 kas26-28 kas33-35 kas36-38 kas39-41 kas42-44",
+    "0/aya.jpg": "aya05 aya06 aya07 aya08 aya09 aya11 aya12 aya13",
+    "0/lei.jpg": "lei07 lei08 lei09 lei10 lei11 lei12 lei15 lei16-19",
+    "0/tin.jpg": "tin04 tin05 tin06 tin07 tin08 tin10 tin11 tin12",
+    "0/hik.jpg": "hik04 hik05 hik06 hik07 hik08 hik09 hik11",
+    "0/kor.jpg": "kor12 kor13 kor14 kor15 kor16 kor17 kor19",
+    "0/gok.jpg": "gok05 gok06 gok07 gok08 gok09 gok10 gok11 gok12 gok13",
+    "0/extra1.jpg": "hik10 lei13 lei14 tin09 tin13",
+    "0/extra2.jpg": "aya10 kas29-30 kas31-32",
+    "1/CostumePack2.jpg": "ayaA2 ayaA3 ayaA5 ayaA4 hikA1 hikA4 hikA2 hikA5 hikA3 hikA7 hikA8 kasA5 kasA6 kasA7 "
+                          "korA1 korA2 korA3 korA4 leiA1 leiA3 leiA5 leiA6 leiA7 leiA8 tinA1 tinA2 alpA1 alpA2",
+}
+
+
+def label_codes(label):
+    """kas17-19 -> [kas17, kas18, kas19]"""
+    m = re.fullmatch(r"([a-z]{3})([0-9]{2})-([0-9]{2})", label)
+    if not m:
+        return [label]
+    return [f"{m.group(1)}{n:02d}" for n in range(int(m.group(2)), int(m.group(3)) + 1)]
+
 
 def unpack(archive, folder):
     if zipfile.is_zipfile(archive):
@@ -104,15 +129,34 @@ def catalog(packs):
 
 
 def page(costumes, sheets, chosen):
+    pack_of = {c: p for cs in costumes.values() for c, p in cs}
+
+    def box(c):
+        return (f'<label class="c"><input type="checkbox" name="c" value="{c}" data-g="{c[:3]}"'
+                f'{" checked" if c in chosen else ""}> {c} <small>{pack_of[c]}</small></label>')
+
     def imgs(paths):
         return "".join(f'<a href="img/{html.escape(p)}" target="_blank"><img src="img/{html.escape(p)}" '
                        f'loading="lazy" alt="{html.escape(p)}"></a>' for p in paths)
     sections = []
     for g, name in GIRLS.items():
-        boxes = "".join(
-            f'<label class="c"><input type="checkbox" name="c" value="{c}" data-g="{g}"'
-            f'{" checked" if c in chosen else ""}> {c} <small>{p}</small></label>'
-            for c, p in costumes[g])
+        # Una fila por dibujo de las hojas (con sus variantes) y otra con los que no salen
+        rows, shown = [], set()
+        for sheet, labels in SHEET_LABELS.items():
+            for label in labels.split():
+                codes = [c for c in label_codes(label) if c in pack_of and c.startswith(g)]
+                if not codes:
+                    continue
+                shown.update(codes)
+                variants = f" <small>{len(codes)} variantes</small>" if len(codes) > 1 else ""
+                rows.append(f'<div class="row"><span class="lbl">{label}{variants}<br><small>hoja '
+                            f'{html.escape(sheet.split("/")[1])}</small></span>'
+                            + "".join(box(c) for c in codes) + "</div>")
+        missing = [c for c, _ in costumes[g] if c not in shown]
+        if missing:
+            rows.append('<div class="row"><span class="lbl">sin dibujo<br><small>no sale en ninguna hoja'
+                        '</small></span>' + "".join(box(c) for c in missing) + "</div>")
+        boxes = "".join(rows)
         sections.append(f'''<section id="{g}"><h2>{name} <code>{g}</code>
 <span class="count" data-g="{g}"></span></h2>
 <div class="sheets">{imgs(sheets[g]) or "<p class=note>Sin hoja propia: mira «Varias».</p>"}</div>
@@ -128,7 +172,9 @@ header{{position:sticky;top:0;background:#1f242b;padding:.6em 1em;border-bottom:
 header nav a{{color:#9cf;margin-right:.6em}} main{{padding:1em}} section{{margin-bottom:2.5em}}
 h2{{border-bottom:1px solid #333;padding-bottom:.2em}} code{{color:#9cf}}
 .sheets img{{max-width:100%;max-height:420px;margin:.3em;border:1px solid #333;background:#36c}}
-.boxes{{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:.3em}}
+.boxes{{display:flex;flex-direction:column;gap:.3em}}
+.row{{display:flex;flex-wrap:wrap;gap:.3em;align-items:stretch;border-top:1px solid #2a2f36;padding-top:.3em}}
+.lbl{{width:11em;color:#9cf}} label.c{{display:flex;align-items:center;gap:.3em}}
 label.c{{background:#232932;padding:.35em .5em;border-radius:4px;cursor:pointer}}
 label.c:has(input:checked){{background:#2d5a3a}} small{{color:#999}}
 .count{{font-size:.7em;font-weight:normal;margin-left:.5em}} .over{{color:#f86}}
@@ -139,8 +185,9 @@ button{{background:#2b6cb0;color:#fff;border:0;padding:.45em .9em;border-radius:
 <label>Límite por personaje <input id="limit" type="number" min="1" max="99" value="{DEFAULT_LIMIT}" style="width:4em"></label>
 <span id="total"></span><button id="save">Guardar en costumes.txt</button><span id="status"></span>
 <nav>{"".join(f'<a href="#{g}">{n}</a>' for g, n in GIRLS.items())}<a href="#varias">Varias</a></nav></header>
-<main><p class="note">El número de cada traje sale debajo de su dibujo en las hojas (p. ej. <code>kas17-19</code>
-son kas17, kas18 y kas19). Pulsa una hoja para verla en grande. El juego enseña unos pocos trajes extra por
+<main><p class="note">Cada fila es un dibujo de las hojas, con su etiqueta y la hoja donde sale. Un rango como
+<code>kas17-19</code> es un solo dibujo para varios archivos: variantes del mismo traje (el dibujo es de una de
+ellas), y cada variante cuenta como un traje. Pulsa una hoja para verla en grande. El juego enseña unos pocos trajes extra por
 personaje: el límite solo avisa, no impide marcar más.</p>
 {"".join(sections)}
 <section id="varias"><h2>Hojas con varios personajes</h2><div class="sheets">{imgs(sheets["varias"])}</div></section>
