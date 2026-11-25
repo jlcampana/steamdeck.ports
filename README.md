@@ -113,8 +113,10 @@ Para generarlos: ./update.sh --build [id …]  (o games/<id>/build.sh y tools/pa
 ```
 
 Después, si se ejecuta desde una terminal y sin `--build`, sale un **menú de
-builds** con todos los juegos (nombre, versión y estado del build y del
-paquete), con los atrasados ya marcados; se puede marcar cualquier otro. De
+builds** con todos los juegos (nombre, versión y estado: `al día`,
+`UPDATE vieja -> nueva`, `falta el paquete` o `nuevo`), con los que no están
+al día ya marcados; se puede marcar cualquier otro. Un juego con paquete de su
+versión está al día aunque su `build/` se haya borrado (`clean-builds.sh`). De
 cada juego elegido ejecuta `build.sh` si su `build/` no es de esa versión y
 **siempre** `tools/package.sh`: así se regeneran los paquetes si se pierde el
 disco de destino (con `build/` borrado, lo recompila). Usa `whiptail` si está
@@ -123,10 +125,10 @@ terminal (lee la respuesta de stdin) y `-M` lo quita.
 
 ```
 Build y paquete para la Deck (paquetes en /run/media/pandi/tmp):
-   1) [x] Dead or Alive Xtreme Beach Volleyball    v0.8.0       sin paquete al día
-   2) [x] Dead or Alive 3                          v0.8.1       build: v0.8.0, paquete: no
+   1) [ ] Dead or Alive Xtreme Beach Volleyball    v0.8.0               al día
+   2) [x] Dead or Alive 3                          v0.8.1               UPDATE v0.8.0 -> v0.8.1
    …
-   9) [ ] Urban Reign                              v1.4.1       al día
+   9) [ ] Urban Reign                              v1.4.1               al día
 Números separados por espacios, 'a' = todos, Intro = los marcados [x], 'n' = ninguno:
 ```
 

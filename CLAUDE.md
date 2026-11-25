@@ -276,6 +276,10 @@ gastar espacio.
     Bug arreglado de paso: `pkg_tag_of` devolvía 1 sin paquete en `DEST` y
     `set -e` cortaba el resumen (justo con el destino vacío). Probado con un
     `DEST` vacío. Llegaron doa3 v0.8.1 y DOA4 alpha-v0.3.8 (sin compilar).
+11. Menú: estado `UPDATE vieja -> nueva` (petición del usuario), `falta el
+    paquete` o `nuevo`. Arreglado: un juego con paquete al día pero sin
+    `build/` (tras `clean-builds.sh`) salía como atrasado y `--build` lo
+    habría recompilado; ahora el paquete al día basta.
 
 ### Pendiente
 

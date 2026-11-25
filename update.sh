@@ -200,8 +200,10 @@ check_stale() {
         [[ -n "$latest" ]] || continue
         built="$(tag_of "$ROOT/games/$id/build/.release-tag")"
         packaged="$(pkg_tag_of "$DEST/$id/game.conf")"
+        # Con el paquete al día, el build/ no hace falta (clean-builds.sh lo borra)
+        [[ "$packaged" == "$latest" ]] && continue
         [[ "$built" == "$latest" ]] || stale_builds+=("$id (${built:-sin build} -> $latest)")
-        [[ "$packaged" == "$latest" ]] || stale_packages+=("$id (${packaged:-sin paquete} -> $latest)")
+        stale_packages+=("$id (${packaged:-sin paquete} -> $latest)")
     done
 }
 join_by() { local IFS=","; local out="${*:2}"; echo "${out//,/$1}"; }
@@ -269,21 +271,26 @@ game_name() {
 # $chosen. Devuelve 1 si se cancela.
 chosen=()
 choose_games() {
-    local id latest built packaged state mark all=() names=() states=() marks=()
+    local id latest built packaged old state mark all=() names=() states=() marks=()
     while IFS=$'\t' read -r id _; do
         [[ -z "$id" || "$id" == \#* ]] && continue
         latest="$(tag_of "$ROOT/games/$id/latest/.release-tag")"
         [[ -n "$latest" ]] || continue
         built="$(tag_of "$ROOT/games/$id/build/.release-tag")"
         packaged="$(pkg_tag_of "$DEST/$id/game.conf")"
-        mark=0
-        if [[ "$built" == "$latest" && "$packaged" == "$latest" ]]; then
-            state="al día"
+        # Estado: al día (paquete de la versión descargada; el build/ no hace
+        # falta), UPDATE (hay una versión anterior empaquetada o compilada),
+        # falta el paquete (build al día) o nuevo (ni build ni paquete).
+        mark=1
+        old="${packaged:-$built}"
+        if [[ "$packaged" == "$latest" ]]; then
+            mark=0; state="al día"
+        elif [[ -n "$old" && "$old" != "$latest" ]]; then
+            state="UPDATE $old -> $latest"
+        elif [[ "$built" == "$latest" ]]; then
+            state="falta el paquete"
         else
-            mark=1
-            state="build: ${built:-no}, paquete: ${packaged:-no}"
-            [[ "$built" == "$latest" ]] && state="sin paquete al día"
-            [[ "$packaged" == "$latest" ]] && state="build: ${built:-no}"
+            state="nuevo: sin build ni paquete"
         fi
         all+=("$id"); names+=("$(game_name "$id")"); states+=("$state"); marks+=("$mark")
     done < "$ROOT/ports.tsv"
