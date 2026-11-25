@@ -28,3 +28,5 @@ local.conf
 # Imágenes de Steam (tools/fetch-art.sh o a mano)
 games/*/art/
 __pycache__/
+# Paquetes de trajes de DOA3 descargados por pick-costumes.py
+games/doa3/costume-packs/

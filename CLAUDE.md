@@ -393,6 +393,17 @@ gastar espacio.
     disco: la comprobación de seguridad no deja borrarla; la borra el
     usuario).
 
+20. DOA3, prueba del usuario: la **europea no enseña los trajes** (el log
+    muestra que abre los 113 de `TDATA/4D53002D`: el nombre de carpeta
+    vale, el juego los ignora) y la **USA no enseña todos**: parece haber un
+    límite por personaje (en la incidencia #131 del port preguntan por «más
+    de 9 por personaje», sin respuesta). A petición del usuario:
+    `games/doa3/pick-costumes.py` (página local con las hojas de muestra de
+    los paquetes y casillas; escribe `games/doa3/costumes.txt`) y
+    `costumes.py` instala solo esa selección. Hasta que el port amplíe el
+    límite. Ojo al probar `costumes.py` fuera de `build/`: `build_game.ROOT`
+    es la carpeta de su propio archivo, no la actual.
+
 ### Pendiente
 
 - [x] `tools/install.sh`.
@@ -414,8 +425,9 @@ gastar espacio.
 - [x] Recompilar y empaquetar doaxtreme v0.8.0 y doa3 v0.8.0.
 - [x] Imágenes de vf3tb elegidas (sin icono: no hay en
       SteamGridDB). urban-reign: las primeras candidatas.
-- [ ] DOA3 europea: ¿carga los trajes de `TDATA/4D53002D`? ¿Aguanta Kasumi
-      32 trajes extra? (prueba del usuario).
+- [ ] DOA3: el usuario elige los trajes (`games/doa3/pick-costumes.py`),
+      luego `games/doa3/build.sh` + `tools/package.sh doa3`. ¿Quitar los
+      trajes de la europea, que no los enseña?
 - [x] Imágenes de vrdeluxe y soulcalibur elegidas por el usuario.
 - [ ] DOA4: quitar el arreglo del puerto 1000 cuando salga la 0.3.8 (ya se
       salta solo por versión; probar en la Deck).

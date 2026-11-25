@@ -7,6 +7,10 @@ de partidas entre todos los personajes. Aquí se usa su misma función
 (113). Si la carpeta tiene trajes de chicos (un build anterior), se borran y
 se vuelven a instalar los paquetes.
 
+Si existe games/doa3/costumes.txt (lo escribe pick-costumes.py), solo se
+instalan los trajes que lista y se quitan los demás: el juego enseña pocos
+trajes extra por personaje.
+
 Europa (title ID 0x4D53002D) guarda en otra carpeta y el port no le pone
 trajes. A petición del usuario se le copian los mismos (de USA o Japón), en
 prueba: si el juego no los carga, quitar EUR_TITLE.
@@ -14,6 +18,7 @@ prueba: si el juego no los carga, quitar EUR_TITLE.
 Se ejecuta en el contenedor de build, con build/ como carpeta actual:
     python3 games/doa3/costumes.py
 """
+import hashlib
 import re
 import sys
 from pathlib import Path
@@ -22,17 +27,32 @@ ROOT = Path.cwd()
 sys.path.insert(0, str(ROOT / "tools"))
 import build_game  # noqa: E402  (del port)
 
+# Cualquier nombre de traje (antes de que main() lo cambie por la selección)
+ANY_COSTUME = build_game.COSTUME_NAME
+
 # Códigos de personaje de los archivos (comprobados con las imágenes de
 # muestra de los paquetes): kas Kasumi, aya Ayane, lei Lei Fang, tin Tina,
 # hik Helena, kor Hitomi, gok Christie, alp Alpha-152.
 GIRLS = ("kas", "aya", "lei", "tin", "hik", "kor", "gok", "alp")
-MARK = "steamdeck-ports: solo chicas\n"
+SELECTION = Path(__file__).resolve().parent / "costumes.txt"
 # Carpeta de partidas de la versión europea (docs/doa3-eur-test.md).
 EUR_TITLE = "4D53002D"
 
 
+def wanted_pattern():
+    """(regex de los trajes que se quieren, marca que identifica la selección)"""
+    if SELECTION.is_file():
+        names = sorted({line.strip() for line in SELECTION.read_text(encoding="utf-8").splitlines()
+                        if line.strip() and not line.startswith("#")})
+        digest = hashlib.sha256("\n".join(names).encode()).hexdigest()[:16]
+        print(f"Selección de costumes.txt: {len(names)} trajes", flush=True)
+        return re.compile("|".join(map(re.escape, names)) or "(?!)"), f"steamdeck-ports: costumes.txt {digest}\n"
+    return (re.compile(r"(?:%s)(?:[0-9]{2}|A[0-9])" % "|".join(GIRLS)),
+            "steamdeck-ports: solo chicas\n")
+
+
 def main():
-    girls_only = re.compile(r"(?:%s)(?:[0-9]{2}|A[0-9])" % "|".join(GIRLS))
+    girls_only, MARK = wanted_pattern()
     source = None  # carpeta de trajes ya filtrada, para copiarla a Europa
     for version in sorted(build_game.VERSIONS.values(), key=lambda v: v["eur"]):
         if version["eur"]:
@@ -47,11 +67,11 @@ def main():
         if not mark.is_file() or mark.read_text(encoding="utf-8") != MARK:
             removed = 0
             for file in list(saves.iterdir()) if saves.is_dir() else []:
-                if (file.suffix in (".xpr", ".cat") and build_game.COSTUME_NAME.fullmatch(file.stem)
+                if (file.suffix in (".xpr", ".cat") and ANY_COSTUME.fullmatch(file.stem)
                         and not girls_only.fullmatch(file.stem)):
                     file.unlink()
                     removed += 1
-            print(f"{play}: borrados {removed // 2} trajes de chicos", flush=True)
+            print(f"{play}: quitados {removed // 2} trajes que no están en la selección", flush=True)
             # Para que install_costumes vuelva a ofrecer los paquetes.
             (storage / "costume-packs.txt").unlink(missing_ok=True)
         build_game.COSTUME_NAME = girls_only
@@ -73,6 +93,10 @@ def copy_to_europe(version, source, girls_only):
         return
     saves = ROOT / "private" / play / ".recomp-storage" / "partition1" / "TDATA" / EUR_TITLE
     saves.mkdir(parents=True, exist_ok=True)
+    for file in list(saves.iterdir()):   # los que ya no están en la selección
+        if (file.suffix in (".xpr", ".cat") and ANY_COSTUME.fullmatch(file.stem)
+                and not girls_only.fullmatch(file.stem)):
+            file.unlink()
     copied = 0
     for file in sorted(source.iterdir()):
         if file.suffix in (".xpr", ".cat") and girls_only.fullmatch(file.stem):
