@@ -312,17 +312,22 @@ choose_games() {
     done
 
     if [[ "${UPDATE_MENU:-}" != text ]] && command -v whiptail >/dev/null; then
-        local items=() out cols width text
+        local items=() out cols width text pad
         text="Espacio marca/desmarca, Intro acepta. Paquetes en: $DEST"
-        for i in "${!all[@]}"; do
-            items+=("${all[$i]}" "${rows[$i]}")
-            (( marks[i] )) && items+=(ON) || items+=(OFF)
-        done
-        # Ancho: id + fila + casilla y márgenes de whiptail; no más que la terminal
+        # Ancho del cuadro: id + fila + casilla y márgenes de whiptail, con
+        # holgura; no más que la terminal
         cols="$(tput cols 2>/dev/null || echo 80)"
-        width=$(( wid + wrow + 26 ))   # +10 de holgura sobre lo justo
+        width=$(( wid + wrow + 26 ))
         (( width < ${#text} + 6 )) && width=$(( ${#text} + 6 ))
         (( width > cols - 2 )) && width=$(( cols - 2 ))
+        # La lista (zona azul) mide lo que su texto: «[ ] » + id + 2 + fila.
+        # Se rellenan las filas con espacios para que llegue hasta dejar a la
+        # derecha el mismo margen que a la izquierda (borde + 2 espacios).
+        pad=$(( width - wid - 11 ))
+        for i in "${!all[@]}"; do
+            items+=("${all[$i]}" "$(printf "%-${pad}s" "${rows[$i]}")")
+            (( marks[i] )) && items+=(ON) || items+=(OFF)
+        done
         out="$(whiptail --title "Build y paquete para la Deck" --separate-output \
             --checklist "$text" \
             $(( ${#all[@]} + 8 )) "$width" "${#all[@]}" "${items[@]}" 3>&1 1>&2 2>&3)" || return 1
