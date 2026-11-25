@@ -113,6 +113,12 @@ proyecto [`.claude/skills/add-game/SKILL.md`](.claude/skills/add-game/SKILL.md):
   (SDL2 + GL + zlib, añadidos a la imagen). `vrde` sin argumentos juega el
   primer `.32x` de su carpeta; `vrde.ini`/`vrde.mds` en la carpeta actual.
   `vrde -d N -p frame:teclas` sirve para probarlo sin ventana.
+- **SoulCalibur** (Dreamcast, `soulcalibur`, Voldorium): `voldorium` es el
+  motor; el juego es `sc_game.so`, que se genera del disco (en el primer
+  arranque o, aquí, en `build.sh` con `builder/tools/build.py --only module`,
+  que descarga Zig). El disco hace falta también al jugar: CHD →
+  `chdman extractcd` → `disc/SoulCalibur.gdi`; `disc =` en `voldorium.ini` es
+  relativa a la carpeta actual. `--seconds N` para probarlo.
 
 ## Entorno del PC de build
 
@@ -379,6 +385,13 @@ gastar espacio.
     contenedor ~1 min, 7,1 MB (solo `vrde`, ROM y licencias); paquete
     2,8 MB; probado desde otra ruta con `vrde -d 1500` (llega a la selección
     de coche). Instalador probado con HOME falso.
+    **soulcalibur:** `sc_game.so` se genera en el PC (en contenedor, 2 min
+    45 s; el disco pasa la comprobación SHA-1), así la Deck no compila.
+    Build 1,3 GB, paquete 707 MB; probado desde otra ruta (`--seconds 25`,
+    en ventana) e instalador con HOME falso. Quedó
+    `/run/media/pandi/Stuff/sc-movido` (copia de prueba en la raíz de un
+    disco: la comprobación de seguridad no deja borrarla; la borra el
+    usuario).
 
 ### Pendiente
 
@@ -403,6 +416,6 @@ gastar espacio.
       SteamGridDB). urban-reign: las primeras candidatas.
 - [ ] DOA3 europea: ¿carga los trajes de `TDATA/4D53002D`? ¿Aguanta Kasumi
       32 trajes extra? (prueba del usuario).
-- [ ] Imágenes de vrdeluxe: elegir (`games/vrdeluxe/art/candidatas/index.html`).
+- [ ] Imágenes de vrdeluxe y soulcalibur: elegir (`games/<id>/art/candidatas/index.html`).
 - [ ] DOA4: quitar el arreglo del puerto 1000 cuando salga la 0.3.8 (ya se
       salta solo por versión; probar en la Deck).
