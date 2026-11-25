@@ -18,7 +18,9 @@
 #    en la Deck con steamos-add-to-steam; en un PC, escribiendo shortcuts.vdf
 #    (con Steam cerrado) y, si el juego es de Windows, con el Proton más
 #    reciente ya elegido. En un PC, los juegos Linux van también al menú de
-#    aplicaciones.
+#    aplicaciones, y los de Windows arrancan con .proton-dpi.sh, que pone en
+#    su prefijo de Proton los DPI de PC_PROTON_DPI (game.conf, 192 = doble;
+#    0 = no tocar): si no, menús como el de DOA4 salen diminutos.
 # 4. Copia las imágenes de art/ a la ficha de Steam (steam-art.py).
 # Si el paquete trae post-install.sh (games/<id>/deck-post-install.sh), lo
 # ejecuta tras descomprimir con la carpeta del juego como argumento.
@@ -33,8 +35,9 @@ esac
 HERE="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 # shellcheck source=/dev/null
 PC_GAMES=""
+PC_PROTON_DPI=192
 KEEP=""; KEEP_EXCLUDE=""
-source "$HERE/game.conf"   # ID, NAME, EXEC, PROTON, VERSION, SIZE_KB, PC_GAMES, KEEP, KEEP_EXCLUDE
+source "$HERE/game.conf"   # ID, NAME, EXEC, PROTON, VERSION, SIZE_KB, PC_GAMES, KEEP, KEEP_EXCLUDE, PC_PROTON_DPI
 
 say()  { printf '\e[1;34m==>\e[0m %s\n' "$*"; }
 warn() { printf '\e[1;33m[aviso]\e[0m %s\n' "$*"; }
@@ -160,6 +163,16 @@ if [[ -d "$HERE/art" ]]; then
 fi
 cp "$HERE/steam-art.py" "$DEST/.steam-art.py"
 
+# PC + Proton: DPI del prefijo (el menú del juego sale a escala)
+PROTON_DPI=0
+if (( ! ON_DECK )) && [[ "$PROTON" == 1 && "$PC_PROTON_DPI" =~ ^[0-9]+$ && "$PC_PROTON_DPI" != 0 \
+      && -f "$HERE/proton-dpi.sh" ]]; then
+    PROTON_DPI="$PC_PROTON_DPI"
+    cp "$HERE/proton-dpi.sh" "$DEST/.proton-dpi.sh"
+    chmod +x "$DEST/.proton-dpi.sh"
+    echo "$PROTON_DPI" > "$DEST/.proton-dpi"
+fi
+
 # Exec del .desktop: rutas entre comillas (puede haber espacios).
 quote() {   # especificación de .desktop: escapar \ " ` $ y doblar %
     local s="${1//\\/\\\\}"
@@ -204,11 +217,17 @@ ART_PY=(python3 -I "$DEST/.steam-art.py")
 ADDED_PROTON=0
 if "${ART_PY[@]}" find "$DEST" >/dev/null 2>&1; then
     say "Ya estaba en Steam (misma carpeta): no se añade otra vez."
+    # Accesos de antes de .proton-dpi.sh: los DPI, directamente en el prefijo.
+    if (( PROTON_DPI )); then
+        "${ART_PY[@]}" dpi "$DEST" "$PROTON_DPI" \
+            || warn "Sin DPI en el prefijo de Proton (¿aún no has arrancado el juego?). Luego: python3 \"$DEST/.steam-art.py\" dpi \"$DEST\" $PROTON_DPI"
+    fi
 elif (( ! ON_DECK )); then
     # PC: shortcuts.vdf a mano. Steam lo reescribe al salir, así que tiene que estar cerrado.
     add_args=(add "$DEST/$EXEC" "$NAME")
     [[ -n "$ICON" ]] && add_args+=(--icon "$ICON")
     [[ "$PROTON" == 1 ]] && add_args+=(--proton)
+    (( PROTON_DPI )) && add_args+=(--launch-options "\"$DEST/.proton-dpi.sh\" %command%")
     while pgrep -x steam >/dev/null; do
         warn "Steam está abierto. Para añadir el juego hay que cerrarlo (Steam → Salir)."
         read -rp "Ciérralo y pulsa Enter (o escribe «n» para no añadirlo a Steam): " a || a=n

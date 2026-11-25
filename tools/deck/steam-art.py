@@ -19,10 +19,22 @@ Busca Steam en ~/.local/share/Steam, ~/.steam/steam y el de Flatpak
       (el icono va en el .desktop con el que se añade el juego).
 
   steam-art.py add <ejecutable> <nombre> [--icon <imagen>] [--proton]
+                   [--launch-options <opciones>]
       Para el PC (en la Deck se usa steamos-add-to-steam): añade el acceso
       directo a shortcuts.vdf de cada usuario de Steam e imprime su appid.
       Con --proton, además fuerza el Proton más reciente (como «proton»).
+      Con --launch-options, las opciones de lanzamiento (p. ej.
+      «"<script>" %command%»).
       Steam tiene que estar cerrado: si no, al salir pisa los archivos.
+
+  steam-art.py dpi <carpeta-del-juego> <dpi>
+      Para los juegos con Proton en un PC: pone esos DPI (96 = normal, 192 =
+      doble) en el prefijo de Proton (compatdata/<appid>/pfx) de sus accesos
+      directos, si ya existe (se crea al arrancar el juego por primera vez).
+      El juego tiene que estar cerrado: Wine reescribe el registro al salir.
+
+  steam-art.py dpi-reg <user.reg> <dpi>
+      Lo mismo sobre un user.reg concreto (lo usa .proton-dpi.sh).
 
   steam-art.py proton <appid> [herramienta]
       Fuerza una herramienta de compatibilidad para ese appid en
@@ -199,7 +211,7 @@ def shortcut_appid(exe_field, name):
     return (zlib.crc32((exe_field + name).encode()) & 0xFFFFFFFF) | 0x80000000
 
 
-def add_shortcut(exe, name, icon="", proton=False):
+def add_shortcut(exe, name, icon="", proton=False, launch_options=""):
     if steam_running():
         print("Steam está abierto: ciérralo (Steam → Salir) y vuelve a intentarlo.", file=sys.stderr)
         return 3
@@ -213,7 +225,7 @@ def add_shortcut(exe, name, icon="", proton=False):
         ("StartDir", f'"{exe.parent}"'),
         ("icon", str(icon) if icon else ""),
         ("ShortcutPath", ""),
-        ("LaunchOptions", ""),
+        ("LaunchOptions", launch_options),
         ("IsHidden", 0),
         ("AllowDesktopConfig", 1),
         ("AllowOverlay", 1),
@@ -258,6 +270,61 @@ def add_shortcut(exe, name, icon="", proton=False):
         return 1
     print(appid)
     return 0
+
+
+# --- DPI del prefijo de Proton (user.reg de Wine) --------------------------
+
+DPI_KEYS = ("Control Panel\\\\Desktop", "Software\\\\Wine\\\\Fonts")
+
+
+def set_reg_dpi(user_reg, dpi):
+    """Pone LogPixels=<dpi> en user.reg. Devuelve True si ha cambiado algo."""
+    user_reg = Path(user_reg)
+    text = user_reg.read_text(encoding="utf-8", errors="surrogateescape")
+    value = f'"LogPixels"=dword:{dpi:08x}'
+    lines = text.rstrip("\n").split("\n")
+    for key in DPI_KEYS:
+        head = f"[{key}]"
+        start = next((i for i, l in enumerate(lines) if l == head or l.startswith(head + " ")), None)
+        if start is None:
+            lines += ["", f"{head} 0", value]
+            continue
+        end = next((i for i in range(start + 1, len(lines)) if lines[i].startswith("[")), len(lines))
+        found = [i for i in range(start + 1, end) if lines[i].startswith('"LogPixels"=')]
+        if found:
+            for i in found:
+                lines[i] = value
+        else:
+            at = start + 1
+            while at < end and lines[at].startswith("#"):
+                at += 1
+            lines.insert(at, value)
+    new = "\n".join(lines) + "\n"
+    if new == text:
+        return False
+    backup(user_reg)
+    user_reg.with_name(user_reg.name + ".tmp").write_text(new, encoding="utf-8", errors="surrogateescape")
+    os.replace(user_reg.with_name(user_reg.name + ".tmp"), user_reg)
+    return True
+
+
+def set_game_dpi(game_dir, dpi):
+    hits = matches(game_dir)
+    if not hits:
+        print("No hay accesos directos de ese juego en Steam.", file=sys.stderr)
+        return 1
+    status = 0
+    for vdf, appid, _ in hits:
+        base = vdf.parents[3]  # <Steam>/userdata/<usuario>/config/shortcuts.vdf
+        user_reg = base / "steamapps" / "compatdata" / str(appid) / "pfx" / "user.reg"
+        if not user_reg.is_file():
+            print(f"Aún no hay prefijo de Proton para el appid {appid} ({user_reg.parent})")
+            status = 4
+        elif set_reg_dpi(user_reg, dpi):
+            print(f"DPI {dpi} en {user_reg}")
+        else:
+            print(f"Ya tenía DPI {dpi}: {user_reg}")
+    return status
 
 
 # --- config.vdf (texto) ----------------------------------------------------
@@ -362,16 +429,25 @@ def main(argv):
     if len(argv) == 4 and argv[1] == "art":
         return copy_art(argv[2], argv[3])
     if len(argv) >= 4 and argv[1] == "add":
-        icon, proton, rest = "", False, argv[4:]
+        icon, proton, options, rest = "", False, "", argv[4:]
         while rest:
             if rest[0] == "--proton":
                 proton, rest = True, rest[1:]
             elif rest[0] == "--icon" and len(rest) >= 2:
                 icon, rest = rest[1], rest[2:]
+            elif rest[0] == "--launch-options" and len(rest) >= 2:
+                options, rest = rest[1], rest[2:]
             else:
                 print(__doc__, file=sys.stderr)
                 return 2
-        return add_shortcut(argv[2], argv[3], icon, proton)
+        return add_shortcut(argv[2], argv[3], icon, proton, options)
+    if len(argv) == 4 and argv[1] == "dpi" and argv[3].isdigit():
+        return set_game_dpi(argv[2], int(argv[3]))
+    if len(argv) == 4 and argv[1] == "dpi-reg" and argv[3].isdigit():
+        if not Path(argv[2]).is_file():
+            return 4
+        set_reg_dpi(argv[2], int(argv[3]))
+        return 0
     if len(argv) in (3, 4) and argv[1] == "proton" and argv[2].isdigit():
         if steam_running():
             print("Steam está abierto: ciérralo y vuelve a intentarlo.", file=sys.stderr)

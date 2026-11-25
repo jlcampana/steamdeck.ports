@@ -417,6 +417,20 @@ gastar espacio.
     salta `*.xpr`). `package.sh -m` sin `build/` toma versión y tamaño del
     paquete: metadatos de los 11 paquetes de `DEST` regenerados.
 
+22. **Menús diminutos con Proton en el PC** (DOA4: su menú, F1/Esc, es
+    ImGui y crece con los DPI de Windows; Wine da 96). Ahora el instalador,
+    **solo en PC** (en la Deck, 1280×800, no hace falta, decisión del
+    usuario) y en juegos con Proton, añade el acceso con las opciones de
+    lanzamiento `".proton-dpi.sh" %command%`: antes de arrancar pone
+    `LogPixels` (`[Control Panel\\Desktop]` y `[Software\\Wine\\Fonts]`
+    de `user.reg`) en `$STEAM_COMPAT_DATA_PATH/pfx` con `steam-art.py
+    dpi-reg`. El prefijo se crea en el primer arranque: vale desde el
+    segundo. Si el acceso ya estaba, `steam-art.py dpi <carpeta> <dpi>`
+    directamente (el juego cerrado: Wine reescribe el registro al salir).
+    `PC_PROTON_DPI` en `local.conf` (192 por defecto; 0 = no tocar).
+    Aplicado a mano a DOA4 y DOA1U en el PC. Ojo: DOA4 pintaba a
+    5012×2862 («Output size»), más que los monitores del usuario.
+
 ### Pendiente
 
 - [x] `tools/install.sh`.

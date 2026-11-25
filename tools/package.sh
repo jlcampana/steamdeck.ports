@@ -7,9 +7,12 @@
 #     Instalar <Nombre>.desktop  doble clic en el modo escritorio de la Deck
 #     instalar.sh                el instalador (tools/deck/instalar.sh)
 #     steam-art.py               pone las imágenes en la ficha de Steam
+#     proton-dpi.sh              (PC, Proton) pone los DPI antes de arrancar
 #     post-install.sh            paso propio del juego (games/<id>/deck-post-install.sh), si lo hay
-#     game.conf                  id, nombre, ejecutable, Proton, versión, tamaño
-#                                y PC_GAMES (de local.conf: dónde instalar en un PC)
+#     game.conf                  id, nombre, ejecutable, Proton, versión, tamaño,
+#                                PC_GAMES (de local.conf: dónde instalar en un PC)
+#                                y PC_PROTON_DPI (de local.conf: DPI de los juegos
+#                                con Proton en un PC; 192 por defecto, 96 = normal)
 #     art/                       imágenes (games/<id>/art, si hay)
 #
 #     README.md                  cómo instalarlo en la Deck (tools/deck/README.md.in)
@@ -156,11 +159,13 @@ package() {
 
     {
         echo "# Generado por tools/package.sh"
-        printf 'ID=%q\nNAME=%q\nEXEC=%q\nPROTON=%q\nVERSION=%q\nSIZE_KB=%q\nPC_GAMES=%q\nKEEP=%q\nKEEP_EXCLUDE=%q\n' \
-            "$id" "$NAME" "$EXEC" "${PROTON:-0}" "$version" "$size_kb" "${PC_GAMES:-}" "$KEEP" "$KEEP_EXCLUDE"
+        printf 'ID=%q\nNAME=%q\nEXEC=%q\nPROTON=%q\nVERSION=%q\nSIZE_KB=%q\nPC_GAMES=%q\nKEEP=%q\nKEEP_EXCLUDE=%q\nPC_PROTON_DPI=%q\n' \
+            "$id" "$NAME" "$EXEC" "${PROTON:-0}" "$version" "$size_kb" "${PC_GAMES:-}" "$KEEP" "$KEEP_EXCLUDE" \
+            "${PC_PROTON_DPI:-192}"
     } > "$out/game.conf"
     install -m 755 "$ROOT/tools/deck/instalar.sh" "$out/instalar.sh"
     install -m 755 "$ROOT/tools/deck/steam-art.py" "$out/steam-art.py"
+    install -m 755 "$ROOT/tools/deck/proton-dpi.sh" "$out/proton-dpi.sh"
     if [[ -f "$game/deck-post-install.sh" ]]; then
         install -m 755 "$game/deck-post-install.sh" "$out/post-install.sh"
     else
