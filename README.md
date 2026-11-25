@@ -114,8 +114,8 @@ Para generarlos: ./update.sh --build [id …]  (o games/<id>/build.sh y tools/pa
 
 Después, si se ejecuta desde una terminal y sin `--build`, sale un **menú de
 builds** con todos los juegos (nombre, versión y estado: `al día`,
-`UPDATE vieja -> nueva`, `falta el paquete` o `nuevo`), con los que no están
-al día ya marcados; se puede marcar cualquier otro. Un juego con paquete de su
+`UPDATE vieja -> nueva`, `falta el paquete` o `nuevo`), con **solo los
+UPDATE marcados**; se puede marcar cualquier otro. Un juego con paquete de su
 versión está al día aunque su `build/` se haya borrado (`clean-builds.sh`). De
 cada juego elegido ejecuta `build.sh` si su `build/` no es de esa versión y
 **siempre** `tools/package.sh`: así se regeneran los paquetes si se pierde el

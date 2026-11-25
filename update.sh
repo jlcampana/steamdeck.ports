@@ -19,7 +19,7 @@
 # servir en vez de la versión de Linux o de Windows que se usa ahora).
 #
 # Menú de builds (desde una terminal, sin --build): lista todos los juegos con
-# su nombre, versión y estado, con los atrasados ya marcados. De cada juego
+# su nombre, versión y estado, con los que tienen un UPDATE ya marcados. De cada juego
 # elegido compila lo que haga falta (build.sh si build/ no es de esa versión)
 # y lo empaqueta siempre: sirve también para regenerar paquetes perdidos.
 # Usa whiptail si está; si no (o con UPDATE_MENU=text), una lista numerada.
@@ -281,12 +281,13 @@ choose_games() {
         # Estado: al día (paquete de la versión descargada; el build/ no hace
         # falta), UPDATE (hay una versión anterior empaquetada o compilada),
         # falta el paquete (build al día) o nuevo (ni build ni paquete).
-        mark=1
+        # Marcados por defecto: solo los UPDATE.
+        mark=0
         old="${packaged:-$built}"
         if [[ "$packaged" == "$latest" ]]; then
-            mark=0; state="al día"
+            state="al día"
         elif [[ -n "$old" && "$old" != "$latest" ]]; then
-            state="UPDATE $old -> $latest"
+            mark=1; state="UPDATE $old -> $latest"
         elif [[ "$built" == "$latest" ]]; then
             state="falta el paquete"
         else

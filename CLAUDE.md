@@ -279,7 +279,8 @@ gastar espacio.
 11. Menú: estado `UPDATE vieja -> nueva` (petición del usuario), `falta el
     paquete` o `nuevo`. Arreglado: un juego con paquete al día pero sin
     `build/` (tras `clean-builds.sh`) salía como atrasado y `--build` lo
-    habría recompilado; ahora el paquete al día basta.
+    habría recompilado; ahora el paquete al día basta. Por defecto solo van
+    marcados los UPDATE (petición del usuario).
 
 ### Pendiente
 
