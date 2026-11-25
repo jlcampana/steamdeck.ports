@@ -323,7 +323,7 @@ choose_games() {
         # La lista (zona azul) mide lo que su texto: «[ ] » + id + 2 + fila.
         # Se rellenan las filas con espacios para que llegue hasta dejar a la
         # derecha el mismo margen que a la izquierda (borde + 2 espacios).
-        pad=$(( width - wid - 11 ))
+        pad=$(( width - wid - 12 ))
         for i in "${!all[@]}"; do
             items+=("${all[$i]}" "$(printf "%-${pad}s" "${rows[$i]}")")
             (( marks[i] )) && items+=(ON) || items+=(OFF)
