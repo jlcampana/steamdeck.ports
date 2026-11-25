@@ -27,7 +27,7 @@ juegos de Xbox/Xbox 360:
 - Idioma: español en docs, mensajes de scripts y commits.
 - Ids de juego (carpeta `games/<id>`): `doaxtreme`, `doa3`, `doa2u`, `doa1u`,
   `castlevania-son`, `doa4`, `drakengard3`, `vf3tb`, `urban-reign`,
-  `vrdeluxe`, `soulcalibur`.
+  `vrdeluxe`, `soulcalibur`, `doa4-linux`.
 - Nunca subir archivos de juego: `isos/`, `latest/`, `ports.db`,
   `games/*/latest/`, `games/*/build/` están en `.gitignore`.
 - Los assets de Castlevania SON los extrae el usuario a mano en
@@ -91,6 +91,16 @@ proyecto [`.claude/skills/add-game/SKILL.md`](.claude/skills/add-game/SKILL.md):
   `doa4_game_files`/`doa4_user_data` (rutas `Z:/…`) en `dead_or_alive_4.toml`
   para que no salga la pantalla de configuración.
 
+- **doa4-linux**: segunda variante de DOA4, nativa de Linux, compilada aquí
+  del código de la release (`@source`; `update.sh` admite ahora `@source`
+  en repos con solo prereleases). SDK ReXGlue en el commit de
+  `netplay_sdk.txt`, clang 23 (`games/doa4-linux/Dockerfile`, primer juego
+  con Dockerfile propio: `run_in_container` lo usa si existe). Compila en
+  `games/doa4-linux/work/` (se conserva; ~40 min la primera vez con
+  `-j 2`). Se identifica como `dev`: online solo con el mismo build. En PCs
+  con menos de 6 procesadores lógicos el SDK no fija la afinidad de los
+  hilos y **se congela a veces al arrancar** (este PC, 4: 2 de 5; con 2
+  núcleos, siempre). La Deck tiene 8.
 - **Drakengard 3** (PS3, `drakengard3`): binario Linux listo (SDL2 del
   sistema, Vulkan 1.3). Solo prereleases. Pide la ISO USA **descifrada**
   (`isos/Drakengard3.iso`: su `EBOOT.BIN` coincide con el SHA-256 de
@@ -431,6 +441,19 @@ gastar espacio.
     Aplicado a mano a DOA4 y DOA1U en el PC. Ojo: DOA4 pintaba a
     5012×2862 («Output size»), más que los monitores del usuario.
 
+23. **`doa4-linux`** (petición del usuario: versión nativa de Linux de
+    DOA4 como segunda variante, sin quitar la de Proton). Código de
+    alpha-v0.3.8 + SDK `ca6b9284`, compilado en contenedor (clang 23,
+    `-j 2`): ~40 min, `work/` 2,1 GB, build 6,8 GB (`game/` copiado con
+    reflink de `games/doa4/build/game`), paquete 4,8 GB en `DEST`.
+    `steamdeck.sh` le pasa `--game_data_root`/`--user_data_root` con la
+    ruta de la instalación (sin `post-install.sh`). Probado: `ldd` desde
+    otra ruta, arranque con Vulkan (intro, título, demo a 60 fps),
+    instalador con HOME falso. Congelaciones al arrancar en este PC de 4
+    núcleos (ver arriba; pilas con `eu-stack`: el hilo principal del juego
+    espera en un bucle de `KeDelayExecutionThread`). No se ha añadido al
+    Steam del usuario (estaba abierto).
+
 ### Pendiente
 
 - [x] `tools/install.sh`.
@@ -456,5 +479,7 @@ gastar espacio.
       luego `games/doa3/build.sh` + `tools/package.sh doa3`. La europea ya
       no lleva trajes (decisión del usuario).
 - [x] Imágenes de vrdeluxe y soulcalibur elegidas por el usuario.
+- [ ] doa4-linux: probarlo en la Deck (¿se congela al arrancar con 8
+      hilos?) y, si va bien, decidir si sustituye a la de Proton.
 - [ ] DOA4: quitar el arreglo del puerto 1000 cuando salga la 0.3.8 (ya se
       salta solo por versión; probar en la Deck).

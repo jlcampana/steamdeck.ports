@@ -17,6 +17,7 @@ aportan desde copias propias y quedan fuera de git (`isos/`).
 | `doa1u`            | Dead or Alive 1 Ultimate | [vini1264/DOA1U-XBERecomp](https://github.com/vini1264/DOA1U-XBERecomp/releases) | `DOA1U-XBERecomp.zip` | Windows → **Proton** | `isos/DOA2U.iso` (*) |
 | `castlevania-son`  | Castlevania: Symphony of the Night (XBLA) | [birabittoh/NocturneRecomp](https://github.com/birabittoh/NocturneRecomp/releases) | `nocturnerecomp-<v>-linux-amd64.tar.gz` | Linux nativo (binario) | `isos/Castlevania SON/` (paquetes STFS) |
 | `doa4`             | Dead or Alive 4 Online | [dwreckgg/doa4-online](https://github.com/dwreckgg/doa4-online/releases) | `DOA4-alpha-v<v>-win64.zip` (solo prereleases) | Windows → **Proton** (+ arreglo del puerto 1000 hasta 0.3.7) | `isos/DOA4.iso` |
+| `doa4-linux`       | Dead or Alive 4 Online (Linux nativo) | [dwreckgg/doa4-online](https://github.com/dwreckgg/doa4-online/releases) | código fuente de la última release (`@source`) | Linux nativo **compilado aquí** (clang 23, ~40 min); online solo con este mismo build | `isos/DOA4.iso` (o el `game/` de doa4) |
 | `drakengard3`      | Drakengard 3 (PS3) | [soyjxck/dod3-recomp](https://github.com/soyjxck/dod3-recomp/releases) | `dod3-recomp-<v>-linux-x86_64.tar.gz` (solo prereleases) | Linux nativo (binario; instala el juego en el PC) | `isos/Drakengard3.iso` (descifrada) + update 1.01 `.pkg` |
 | `vf3tb`            | Virtua Fighter 3 Team Battle (arcade Model 3) | [mr-finster/vf3-recomp](https://github.com/mr-finster/vf3-recomp/releases) | `VirtuaFighter3Recomp-deck.tar.gz` (**versión para Steam Deck**) | Linux nativo (binario) | `isos/VF33tb.zip` (set de MAME vf3tb completo) |
 | `urban-reign`      | Urban Reign (PS2) | [thiagordsfx/urban-reign-recomp](https://github.com/thiagordsfx/urban-reign-recomp/releases) | `UrbanReignPC-<v>-linux-x86_64.tar.gz` | Linux nativo (binario) | `isos/UrbanReign.chd` (→ `.iso`) |
@@ -152,7 +153,8 @@ termina con error.
 - Consulta `https://api.github.com/repos/<repo>/releases/latest` y elige el
   archivo cuyo nombre cumple la regex de `ports.tsv`. Si el repo no tiene
   release «latest» o no trae ese archivo (doa4 solo publica prereleases), usa
-  la release más reciente, sin contar borradores, que lo tenga.
+  la release más reciente, sin contar borradores, que lo tenga. Con
+  `@source` (código fuente, para compilarlo aquí), lo mismo sin mirar archivos.
 - Lo descarga en `latest/<id>/` (borra las descargas anteriores de ese juego) y
   comprueba el SHA-256 con el `digest` que publica GitHub cuando existe.
 - Lo descomprime en `games/<id>/latest/` (zip, tar.gz, tar.xz, tar.zst y 7z).
@@ -217,6 +219,7 @@ games/doa3/build.sh -f         # build limpio
 |---|---|---|---|
 | castlevania-son | descarga `scripts/extract_game.py` del mismo tag, instala World y Japón en `assets/`, crea `portable.txt` | segundos | ~300 MB |
 | doa4 | extrae `isos/DOA4.iso` en `game/` y comprueba `SHA256SUMS.txt` | ~45 s | 6,8 GB |
+| doa4-linux | compila el código y el SDK (podman, clang 23, `-j 2`) y copia `game/` de doa4 | ~40 min (1.ª vez) | 6,8 GB |
 | doa1u | extrae `isos/DOA2U.iso` en `assets/` con extract-xiso | ~20 s | ~4,3 GB |
 | doa3 | compila en Ubuntu 24.04 (podman) | ~6-9 min | 4,4 GB |
 | doaxtreme | compila en Ubuntu 24.04 (podman) | ~6-7 min | 4,4 GB |
@@ -232,7 +235,7 @@ Casi todo el tamaño de los DOA es el disco extraído (`private/`).
 ### `build/steamdeck.sh`: punto de entrada común en la Deck
 
 Todos los juegos Linux (doa3, doa2u, doaxtreme, castlevania-son,
-drakengard3, vf3tb, urban-reign, vrdeluxe, soulcalibur) tienen `build/steamdeck.sh`, así que en la
+drakengard3, vf3tb, urban-reign, vrdeluxe, soulcalibur, doa4-linux) tienen `build/steamdeck.sh`, así que en la
 Deck se añaden a Steam igual. En los binarios listos solo lanza el ejecutable
 desde su carpeta (`write_steamdeck_launcher <ejecutable> [args…]`; p. ej.
 `urban-reign --game`). En los DOA hace además esto:

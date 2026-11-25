@@ -110,12 +110,24 @@ require_container_path() {
 # del host, para que los archivos generados sean tuyos y las rutas coincidan.
 # Si isos/ es un enlace a otro disco, su carpeta real se monta también, en solo
 # lectura y en la misma ruta.
+# Si el juego tiene su propio games/<id>/Dockerfile (FROM de la imagen común,
+# con lo que solo necesita él), se construye también y se usa esa:
+# steamdeck-ports/<id>:24.04. CONTAINER_WORKDIR cambia la carpeta de trabajo
+# (por defecto build/; tiene que estar dentro del proyecto).
 run_in_container() {
     local engine image="$BUILD_IMAGE"
     engine="$(container_engine)"
     log "Construyendo la imagen $image ($engine)"
     # Contexto = tools/docker (solo contiene Dockerfiles)
     "$engine" build -t "$image" -f "$BUILD_DOCKERFILE" "$(dirname "$BUILD_DOCKERFILE")"
+    if [[ -f "$GAME_DIR/Dockerfile" ]]; then
+        image="steamdeck-ports/$GAME_ID:24.04"
+        log "Construyendo la imagen $image (games/$GAME_ID/Dockerfile)"
+        # Contexto vacío: el Dockerfile no copia nada (y así no se envía build/)
+        local ctx; ctx="$(mktemp -d)"
+        "$engine" build -t "$image" -f "$GAME_DIR/Dockerfile" "$ctx"
+        rmdir "$ctx"
+    fi
     local user_args=(--user "$(id -u):$(id -g)")
     [[ "$engine" == podman ]] && user_args=(--userns=keep-id)
     log "Ejecutando en el contenedor: $*"
@@ -127,7 +139,7 @@ run_in_container() {
         --security-opt label=disable \
         -v "$ROOT:$ROOT" \
         "${isos_mount[@]}" \
-        -w "$BUILD" \
+        -w "${CONTAINER_WORKDIR:-$BUILD}" \
         -e HOME=/tmp \
         "$image" "$@"
 }

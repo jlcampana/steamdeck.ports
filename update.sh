@@ -116,9 +116,12 @@ check_rate_limit() {
 # doa4), la más reciente, sin contar borradores, que lo tenga.
 release_json() {
     local repo="$1" regex="$2" json
-    # @source: el código fuente de la última release (sin mirar sus archivos)
+    # @source: el código fuente de la última release (sin mirar sus archivos);
+    # si no hay «latest» (solo prereleases, doa4-linux), la más reciente.
     if [[ "$regex" == "@source" ]]; then
-        api "repos/$repo/releases/latest"
+        api "repos/$repo/releases/latest" 2>/dev/null && return
+        api "repos/$repo/releases?per_page=30" | jq -e '
+            [.[] | select(.draft | not)] | sort_by(.published_at) | last'
         return
     fi
     if json="$(api "repos/$repo/releases/latest" 2>/dev/null)" \

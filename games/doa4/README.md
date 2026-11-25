@@ -79,12 +79,13 @@ comprueba el `SHA256SUMS.txt` de la release.
 - Requisitos del port: CPU con AVX2 (la Deck lo tiene) y el runtime de VC++
   2015-2022 (Proton trae su implementación).
 
-## Linux nativo (no usado)
+## Linux nativo: `doa4-linux`
 
 Desde la 0.3.8 el código compila como programa nativo de Linux (sección 12 de
-`docs/BUILDING.md`: clang 23, Ubuntu 24.04; hasta 4 h con `-j2`). No hay
-release Linux, el arranque está poco probado y un build propio no juega online
-con la release, así que se usa la de Windows con Proton.
+`docs/BUILDING.md`). No hay release Linux y un build propio no juega online
+con la release, así que este juego sigue siendo la de Windows con Proton, y
+la nativa es una segunda variante: [`games/doa4-linux`](../doa4-linux/README.md)
+(«Dead or Alive 4 (Linux)» en Steam; las dos pueden estar instaladas).
 
 ## Imagen Ubuntu 24.04 (contenedor de build)
 
