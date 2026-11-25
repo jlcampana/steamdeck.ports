@@ -33,6 +33,14 @@ Se compila en Ubuntu 24.04 (Docker en el PC). Requiere Python 3.12+ con `venv`:
   ruta del PC donde se compiló.
 
 - `./launcher.sh` (pantalla de ajustes con mando) o `./run_game.sh`.
+- **Trajes de mods** (Gultigargar y usagiZ, desde 0.8.x): el build los
+  descarga una vez y los **añade** como trajes extra (no sustituyen a los del
+  disco) en `private/play-disc/.recomp-storage/partition1/TDATA/54430001`,
+  junto a las partidas. Caben 128 trajes (256 archivos) y ya está lleno; se
+  reparten por turnos entre personajes. `costume-packs.txt` anota los
+  paquetes ya instalados. `build_game.py --no-costumes` los omite.
+- Trajes de baño de DOAXBV («swimsuits» en el launcher): no tocan archivos;
+  se cambian en partida (L3) y cada luchadora empieza con su traje de DOA3.
 - Las capturas de pantalla se guardan en `~/Pictures/DOA3` (la tecla está en
   `docs/runtime-options.md`).
 - Añadir `launcher.sh` a Steam como juego no de Steam. Con un mando para dos
