@@ -136,7 +136,11 @@ run_in_container() {
 # del PC: en la Deck la carpeta estará en otra ruta.
 check_absolute_paths() {
     local hits
-    hits="$(find "$BUILD" -path "$BUILD/private/venv" -prune -o -type f -size -1M \
+    # -size -1024k y no -1M: find redondea a MiB enteros y -1M solo coge
+    # archivos vacíos. Lo de CMake (_deps, CMakeFiles, CMakeCache) solo sirve
+    # para compilar.
+    hits="$(find "$BUILD" \( -path "$BUILD/private/venv" -o -name _deps -o -name CMakeFiles \) -prune \
+                -o -type f -size -1024k ! -name CMakeCache.txt \
                 \( -name '*.json' -o -name '*.txt' -o -name '*.toml' -o -name '*.cfg' \) -print0 \
             | xargs -0 -r grep -l -F "$ROOT" 2>/dev/null || true)"
     if [[ -n "$hits" ]]; then

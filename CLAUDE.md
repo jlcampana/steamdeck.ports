@@ -340,10 +340,30 @@ gastar espacio.
     Novedad de doa3 0.8.1: `build_game.py` escribe `private/disc-path.txt`
     con la ruta **absoluta** del disco (la del PC de build) y `run_game.py`
     la resuelve con `strict=True` antes de lanzar el runner → excepción sin
-    log (no llega a crear `private/play-logs`). `check_absolute_paths` ya lo
-    avisaba en el build. Ahora `write_steamdeck_launcher` lo detecta y
+    log (no llega a crear `private/play-logs`). `check_absolute_paths` no lo
+    detectó (ver punto 18). Ahora `write_steamdeck_launcher` lo detecta y
     `steamdeck.sh` reescribe ese archivo al arrancar con la ruta de la
     instalación. Probado en la instalación del PC (`play_disc` resuelve).
+
+18. **DOA3: versión europea y trajes solo de chicas** (peticiones del
+    usuario). `isos/DOA3.EUR.iso` (Europe 3.2: trae español). El port admite
+    varias versiones en un build (`build/recomp-program-eur`,
+    `private/play-disc-eur`, se elige en el launcher): `games/doa3/build.sh`
+    compila todas las `isos/DOA3*.iso` y salta las ya hechas (SHA-256 de la
+    ISO en `private/imported-disc*/receipt.json`). EUR: ~5 min; build 9,3 GB.
+    Trajes: `build_game.sh --no-costumes` y luego `games/doa3/costumes.py`
+    (contenedor), que usa `install_costumes` del port ofreciendo solo los
+    códigos de chicas y borra los de chicos: 113 de 128 huecos (antes 50
+    de chicas). Códigos sacados de las imágenes de muestra de los paquetes
+    y de `loadfile.afs`: `kas` Kasumi, `aya` Ayane, `lei` Lei Fang, `tin`
+    Tina, `hik` Helena (*hika*, Pi Gua), `kor` Hitomi, `gok` Christie, `alp`
+    Alpha-152; chicos: `kte` (karate), `nin` Hayate, `bni` Genra, `sui`
+    Brad… El port no pone trajes en la europea (otro title ID); a petición
+    del usuario se copian a `TDATA/4D53002D` **en prueba** (¿mayúsculas?
+    mirar la carpeta que cree el juego al guardar).
+    Bug arreglado en `check_absolute_paths`: `find -size -1M` solo encaja
+    con archivos vacíos (redondea a MiB), así que nunca avisó de nada; ahora
+    `-size -1024k`, sin lo de CMake.
 
 ### Pendiente
 
@@ -366,5 +386,7 @@ gastar espacio.
 - [x] Recompilar y empaquetar doaxtreme v0.8.0 y doa3 v0.8.0.
 - [x] Imágenes de vf3tb elegidas (sin icono: no hay en
       SteamGridDB). urban-reign: las primeras candidatas.
+- [ ] DOA3 europea: ¿carga los trajes de `TDATA/4D53002D`? ¿Aguanta Kasumi
+      32 trajes extra? (prueba del usuario).
 - [ ] DOA4: quitar el arreglo del puerto 1000 cuando salga la 0.3.8 (ya se
       salta solo por versión; probar en la Deck).
