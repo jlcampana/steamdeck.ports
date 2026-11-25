@@ -320,7 +320,7 @@ choose_games() {
         done
         # Ancho: id + fila + casilla y márgenes de whiptail; no más que la terminal
         cols="$(tput cols 2>/dev/null || echo 80)"
-        width=$(( wid + wrow + 16 ))
+        width=$(( wid + wrow + 26 ))   # +10 de holgura sobre lo justo
         (( width < ${#text} + 6 )) && width=$(( ${#text} + 6 ))
         (( width > cols - 2 )) && width=$(( cols - 2 ))
         out="$(whiptail --title "Build y paquete para la Deck" --separate-output \
