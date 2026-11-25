@@ -293,6 +293,10 @@ gastar espacio.
     paquete. Con `update.sh` en marcha: no se tocan los scripts que están
     corriendo y los demás se reescriben con un archivo nuevo (`os.replace`),
     así quien ya los leyó sigue con el viejo.
+14. doa3 v0.8.1 compilado (4,4 GB). Novedad del port: el build descarga trajes
+    de mods (usagiZ: 32 instalados; Gultigargar viene en RAR y se saltó por
+    falta de `bsdtar`). `libarchive-tools` añadido a la imagen de build. El
+    port reintenta los paquetes de trajes fallidos en el siguiente build.
 
 ### Pendiente
 
