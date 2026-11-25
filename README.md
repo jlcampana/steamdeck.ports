@@ -32,6 +32,7 @@ La lista de juegos que usa `update.sh` está en [`ports.tsv`](ports.tsv);
 ```
 update.sh            descarga la última release de cada port y la descomprime
 clean-old-builds.sh  borra los builds anteriores (games/<id>/build.old)
+clean-builds.sh      borra build.old y también los build/ ya empaquetados
 ports.tsv            id, repo de GitHub y regex del archivo de release a descargar
 ports.db             SQLite con el histórico de versiones (no va a git)
 latest/<id>/         archivo de release descargado, tal cual (no va a git)
@@ -73,6 +74,12 @@ empaqueta solo lo que ha cambiado).
 Los builds anteriores que quedan al cambiar de versión (`games/<id>/build.old/`)
 se borran con **`./clean-old-builds.sh`** (`-n` para ver cuánto ocupan, `-y`
 para no preguntar) cuando la versión nueva funcione en la Deck.
+
+Para liberar espacio, **`./clean-builds.sh`** borra además los
+`games/<id>/build/` que ya tengan paquete **de la misma versión** en el
+destino (`DEST` de `local.conf`); los que no, los salta y avisa (`-f` los
+borra igualmente). Se rehacen con su `build.sh`. `clean-old-builds.sh` es
+`clean-builds.sh --old-only`.
 
 Todos los scripts tienen ayuda con **`-h` o `--help`** (es la cabecera de
 comentarios de cada script; `tools/help.sh`).

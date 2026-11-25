@@ -261,6 +261,11 @@ gastar espacio.
    imagen (vf3tb no tiene icono) y `set -e` cortaba el empaquetado tras
    comprimir, sin README (mismo patrón que el punto 12 del 2026-11-22). El
    instalador ya aceptaba que no hubiera icono (probado).
+8. `clean-builds.sh` (raíz, petición del usuario: script aparte para no
+   recordar un parámetro): borra `build.old/` y los `build/` con paquete
+   terminado de la misma versión en `DEST` (`<id>.tar.zst` + `.sha256`, sin
+   `.part`, y `VERSION` de su `game.conf`); `-f` borra también los demás.
+   `clean-old-builds.sh` hace `exec clean-builds.sh --old-only`.
 
 ### Pendiente
 
