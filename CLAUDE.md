@@ -257,6 +257,10 @@ gastar espacio.
    update como `.pkg`. Build ~2 min 15 s, 16 GB; probado desde otra ruta con
    `DOD3_LAUNCHER=0` (Vulkan, dibuja). Enlaces del instalador relativos.
 6. Imágenes elegidas por el usuario para los tres.
+7. Bug arreglado en `tools/package.sh`: `art_file` devolvía 1 si faltaba una
+   imagen (vf3tb no tiene icono) y `set -e` cortaba el empaquetado tras
+   comprimir, sin README (mismo patrón que el punto 12 del 2026-11-22). El
+   instalador ya aceptaba que no hubiera icono (probado).
 
 ### Pendiente
 

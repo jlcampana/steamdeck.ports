@@ -61,7 +61,7 @@ EXCLUDES=(
 )
 
 # Imagen de art/ de un tipo (png o jpg), o vacío.
-art_file() { local f; for f in "$1/art/$2".{png,jpg}; do [[ -f "$f" ]] && { basename "$f"; return; }; done; }
+art_file() { local f; for f in "$1/art/$2".{png,jpg}; do [[ -f "$f" ]] && { basename "$f"; return; }; done; return 0; }
 
 # README.md del paquete a partir de tools/deck/README.md.in.
 write_readme() {
