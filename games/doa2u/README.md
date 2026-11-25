@@ -41,7 +41,8 @@ Se compila en Ubuntu 24.04 (Docker en el PC). Requiere Python 3.12+:
 - Extras opcionales del repo: voces de golpe y banda sonora importadas de
   DOA3/DOA4 (`tools/import_doa4_voices.py`, `tools/import_soundtrack.py`),
   Xbox Live sobre rollback netcode.
-- Añadir `launcher.sh` a Steam como juego no de Steam.
+- Añadir `launcher.sh` a Steam como juego no de Steam. Con un mando para dos
+  puertos, desactivar Steam Input en ese acceso.
 
 Docs del repo: `docs/building.md`.
 

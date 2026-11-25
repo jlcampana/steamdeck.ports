@@ -73,7 +73,14 @@ proyecto [`.claude/skills/add-game/SKILL.md`](.claude/skills/add-game/SKILL.md):
 - **doa3 ≥ 0.8.1** guarda en `private/disc-path.txt` la ruta absoluta del
   disco; `steamdeck.sh` la rehace al arrancar (ver 2026-11-25, punto 17). Si
   algún aviso de `check_absolute_paths` sale en un build, hay que mirarlo.
-  doa3 0.8.1 trae además un `build_steamdeck.sh` (sin revisar todavía).
+- `build_steamdeck.sh` de doa3 (revisado en la 0.8.1) **no es una versión
+  para la Deck**: compila **en** la Deck (instala distrobox en `~/.local`,
+  crea un Ubuntu 24.04 `doa3-build` que comparte `$HOME`, `install_deps.sh` +
+  `build_game.sh`; ISO y juego dentro de `$HOME`). Es lo mismo que hacemos en
+  el PC con podman, pero gastando en la Deck la imagen, las dependencias, el
+  disco extraído y el tiempo de compilar. No sustituye a nuestro paquete.
+  Como upstream compila y juega en la misma ruta, no le afectan las rutas
+  absolutas (RUNPATH, `disc-path.txt`), que es lo que arregla `steamdeck.sh`.
 
 - **DOA4 solo publica prereleases** (`alpha-v…`): `update.sh` usa la release
   más reciente con el archivo si no hay «latest». Es solo Windows → Proton.
