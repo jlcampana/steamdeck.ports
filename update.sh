@@ -24,7 +24,9 @@
 # y lo empaqueta siempre: sirve también para regenerar paquetes perdidos.
 # Usa whiptail si está; si no (o con UPDATE_MENU=text), una lista numerada.
 #
-# GITHUB_TOKEN (opcional) evita el límite de 60 peticiones/hora de la API.
+# GITHUB_TOKEN (opcional) evita el límite de 60 peticiones/hora de la API sin
+# autenticar; si no está y gh tiene sesión, se usa el token de gh. Antes de
+# empezar comprueba que quedan peticiones y, si no, dice cuándo se liberan.
 set -euo pipefail
 
 ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
@@ -77,10 +79,33 @@ SQL
 
 sql_quote() { printf "'%s'" "${1//\'/\'\'}"; }
 
+# Sin GITHUB_TOKEN, el de gh si tiene sesión (5000 peticiones/hora, no 60).
+if [[ -z "${GITHUB_TOKEN:-}" ]] && command -v gh >/dev/null; then
+    GITHUB_TOKEN="$(gh auth token 2>/dev/null || true)"
+fi
+
 api() {
     local auth=()
     [[ -n "${GITHUB_TOKEN:-}" ]] && auth=(-H "Authorization: Bearer $GITHUB_TOKEN")
     curl -fsSL "${auth[@]}" -H "Accept: application/vnd.github+json" "https://api.github.com/$1"
+}
+
+# Peticiones que quedan en la API (la consulta no gasta ninguna). Cada juego
+# gasta 1 o 2: si no llegan, se para con un aviso claro en vez de dar cada
+# juego por «sin release».
+check_rate_limit() {
+    local need="$1" json remaining limit reset
+    json="$(api rate_limit 2>/dev/null)" || return 0   # sin respuesta: se intenta igual
+    remaining="$(jq -r '.resources.core.remaining' <<<"$json")"
+    limit="$(jq -r '.resources.core.limit' <<<"$json")"
+    reset="$(jq -r '.resources.core.reset' <<<"$json")"
+    (( remaining >= need )) && return 0
+    echo "Límite de la API de GitHub agotado: quedan $remaining de $limit peticiones/hora y hacen falta ~$need." >&2
+    echo "Se libera a las $(date -d "@$reset" +%H:%M)." >&2
+    if [[ -z "${GITHUB_TOKEN:-}" ]]; then
+        echo "Con token son 5000/hora: inicia sesión con 'gh auth login' o exporta GITHUB_TOKEN." >&2
+    fi
+    exit 1
 }
 
 # JSON de la release a descargar: la marcada como "latest" si tiene un archivo
@@ -120,6 +145,14 @@ extract() {
     mv "$src" "$dest"
     rm -rf "$tmp"
 }
+
+n_games=0
+while IFS=$'\t' read -r id _; do
+    [[ -z "$id" || "$id" == \#* ]] && continue
+    if (( ${#ONLY[@]} )) && [[ ! " ${ONLY[*]} " == *" $id "* ]]; then continue; fi
+    n_games=$((n_games + 1))
+done < "$ROOT/ports.tsv"
+check_rate_limit $(( n_games * 2 ))
 
 updated=0
 new_versions=()   # "id (antes -> ahora)"

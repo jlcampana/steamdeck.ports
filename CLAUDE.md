@@ -281,6 +281,11 @@ gastar espacio.
     `build/` (tras `clean-builds.sh`) salía como atrasado y `--build` lo
     habría recompilado; ahora el paquete al día basta. Por defecto solo van
     marcados los UPDATE (petición del usuario).
+12. `update.sh` daba 403 en todo al usuario: sin token, la API de GitHub
+    permite 60 peticiones/hora y se agotaron con varias pruebas. Ahora usa
+    `GITHUB_TOKEN` (entorno o `local.conf`) o el de `gh auth token`, y
+    comprueba el límite antes (`/rate_limit` no gasta). El token **no** va
+    en el script: el repo es público.
 
 ### Pendiente
 

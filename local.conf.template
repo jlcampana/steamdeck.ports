@@ -1,9 +1,13 @@
 # Plantilla de local.conf. Cópiala y rellénala:
 #   cp local.conf.template local.conf
-# local.conf no va a git. La leen tools/package.sh y tools/fetch-art.sh.
+# local.conf no va a git. La leen update.sh, tools/package.sh y tools/fetch-art.sh.
 
 # Carpeta donde tools/package.sh deja los paquetes para la Deck (por defecto dist/)
 DEST="/ruta/a/la/carpeta/de/paquetes"
 
 # API key de SteamGridDB (gratis): https://www.steamgriddb.com/profile/preferences/api
 STEAMGRIDDB_API_KEY="tu_api_key_de_steamgriddb"
+
+# Token de GitHub para update.sh (opcional): sin token, la API permite 60
+# peticiones/hora. Si no se pone y gh tiene sesión, update.sh usa el de gh.
+# GITHUB_TOKEN="ghp_..."

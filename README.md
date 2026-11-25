@@ -153,8 +153,11 @@ termina con error.
   Si el archivo tiene una sola carpeta raíz, la aplana. Escribe la versión en
   `games/<id>/latest/.release-tag`.
 - Si la versión instalada ya es la última, no hace nada.
-- Sin token, la API de GitHub permite 60 peticiones/hora. Para más:
-  `GITHUB_TOKEN=$(gh auth token) ./update.sh`.
+- Sin token, la API de GitHub permite 60 peticiones/hora (cada juego gasta 1
+  o 2). `update.sh` usa `GITHUB_TOKEN` (del entorno o de `local.conf`) o, si
+  no hay, el token de `gh` si tiene sesión: 5000/hora. Antes de empezar
+  comprueba cuántas quedan y, si no llegan, para y dice a qué hora se liberan
+  (antes daba cada juego por «sin release» con un 403).
 
 Dependencias: `curl`, `jq`, `sqlite3`, `unzip`, `tar`, `sha256sum`.
 
