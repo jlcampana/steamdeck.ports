@@ -146,12 +146,15 @@ check_absolute_paths() {
 # Crea build/steamdeck.sh, el punto de entrada común de todos los juegos
 # Linux en la Deck: arranca $1 (launcher.sh, nocturnerecomp…) añadiendo a
 # LD_LIBRARY_PATH, con rutas relativas a la carpeta del juego, las carpetas
-# donde el build dejó sus .so (SDL3). Los ejecutables compilados en el
+# donde el build dejó sus .so (SDL3). Los argumentos tras $1 se pasan siempre
+# al ejecutable (p. ej. urban-reign --game). Los ejecutables compilados en el
 # contenedor tienen RUNPATH absoluto a la ruta de este PC; LD_LIBRARY_PATH se
 # consulta antes que RUNPATH, así que el juego funciona desde cualquier ruta.
 # No se parchean los binarios porque run_game.py comprueba su SHA-256.
 write_steamdeck_launcher() {
-    local entry="$1" dirs=() d
+    local entry="$1" dirs=() d args=""
+    shift
+    if (( $# )); then args="$(printf ' %q' "$@")"; fi
     while IFS= read -r d; do dirs+=("$d"); done < <(
         find "$BUILD" -path "$BUILD/private/venv" -prune -o -type f -regextype posix-extended \
                 -regex '.*/[^/]+\.so(\.[0-9]+)*' -print \
@@ -166,10 +169,10 @@ write_steamdeck_launcher() {
         echo ')'
         echo 'export LD_LIBRARY_PATH="$(IFS=:; echo "${LIBS[*]}")${LD_LIBRARY_PATH:+:$LD_LIBRARY_PATH}"'
         echo 'cd "$HERE"'
-        printf 'exec "$HERE/%s" "$@"\n' "$entry"
+        printf 'exec "$HERE/%s"%s "$@"\n' "$entry" "$args"
     } > "$BUILD/steamdeck.sh"
     chmod +x "$BUILD/steamdeck.sh"
-    log "Creado build/steamdeck.sh -> $entry (${#dirs[@]} carpetas de librerías)"
+    log "Creado build/steamdeck.sh -> $entry$args (${#dirs[@]} carpetas de librerías)"
 }
 
 finish_build() {

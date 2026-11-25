@@ -1,7 +1,8 @@
 # steamdeck.ports
 
 Scripts para descargar, preparar y empaquetar ports nativos (recompilaciones
-estáticas) de juegos de Xbox / Xbox 360 para jugarlos en una Steam Deck.
+estáticas) de juegos de Xbox / Xbox 360 (y algunos de PS2, PS3 y
+recreativa) para jugarlos en una Steam Deck.
 
 El proyecto **no incluye ningún archivo de juego**. Las ISOs y paquetes se
 aportan desde copias propias y quedan fuera de git (`isos/`).
@@ -16,6 +17,9 @@ aportan desde copias propias y quedan fuera de git (`isos/`).
 | `doa1u`            | Dead or Alive 1 Ultimate | [vini1264/DOA1U-XBERecomp](https://github.com/vini1264/DOA1U-XBERecomp/releases) | `DOA1U-XBERecomp.zip` | Windows → **Proton** | `isos/DOA2U.iso` (*) |
 | `castlevania-son`  | Castlevania: Symphony of the Night (XBLA) | [birabittoh/NocturneRecomp](https://github.com/birabittoh/NocturneRecomp/releases) | `nocturnerecomp-<v>-linux-amd64.tar.gz` | Linux nativo (binario) | `isos/Castlevania SON/` (paquetes STFS) |
 | `doa4`             | Dead or Alive 4 Online | [dwreckgg/doa4-online](https://github.com/dwreckgg/doa4-online/releases) | `DOA4-alpha-v<v>-win64.zip` (solo prereleases) | Windows → **Proton** (+ arreglo del puerto 1000 hasta 0.3.7) | `isos/DOA4.iso` |
+| `drakengard3`      | Drakengard 3 (PS3) | [soyjxck/dod3-recomp](https://github.com/soyjxck/dod3-recomp/releases) | `dod3-recomp-<v>-linux-x86_64.tar.gz` (solo prereleases) | Linux nativo (binario; instala el juego en el PC) | `isos/Drakengard3.iso` (descifrada) + update 1.01 `.pkg` |
+| `vf3tb`            | Virtua Fighter 3 Team Battle (arcade Model 3) | [mr-finster/vf3-recomp](https://github.com/mr-finster/vf3-recomp/releases) | `VirtuaFighter3Recomp-deck.tar.gz` (**versión para Steam Deck**) | Linux nativo (binario) | `isos/VF33tb.zip` (set de MAME vf3tb completo) |
+| `urban-reign`      | Urban Reign (PS2) | [thiagordsfx/urban-reign-recomp](https://github.com/thiagordsfx/urban-reign-recomp/releases) | `UrbanReignPC-<v>-linux-x86_64.tar.gz` | Linux nativo (binario) | `isos/UrbanReign.chd` (→ `.iso`) |
 
 (*) DOA1U no tiene ISO propia: el disco de DOA2U trae los dos juegos
 (`Doa1.xbe` y `DOA2.xbe` en la raíz, comprobado con `extract-xiso -l`).
@@ -179,14 +183,19 @@ games/doa3/build.sh -f         # build limpio
 | doa3 | compila en Ubuntu 24.04 (podman) | ~6-9 min | 4,4 GB |
 | doaxtreme | compila en Ubuntu 24.04 (podman) | ~6-7 min | 4,4 GB |
 | doa2u | crea `private/venv` y compila en Ubuntu 24.04 (podman) | ~12 min | 4,9 GB |
+| vf3tb | copia `isos/VF33tb.zip` a `roms/vf3tb.zip`, crea `portable.txt` | segundos | 87 MB |
+| urban-reign | convierte `isos/UrbanReign.chd` a `game/UrbanReign.iso` (`chdman`) | ~1 min | 3,8 GB |
+| drakengard3 | `dod3 --install <iso> <update> [DLC…]` en el PC (instala en `game/`) | pendiente | ~16 GB |
 
 Casi todo el tamaño de los DOA es el disco extraído (`private/`).
 
 ### `build/steamdeck.sh`: punto de entrada común en la Deck
 
-Todos los juegos Linux (doa3, doa2u, doaxtreme, castlevania-son) tienen
-`build/steamdeck.sh`, así que en la Deck se añaden a Steam igual. En
-castlevania-son solo lanza `nocturnerecomp`. En los DOA hace además esto:
+Todos los juegos Linux (doa3, doa2u, doaxtreme, castlevania-son,
+drakengard3, vf3tb, urban-reign) tienen `build/steamdeck.sh`, así que en la
+Deck se añaden a Steam igual. En los binarios listos solo lanza el ejecutable
+desde su carpeta (`write_steamdeck_launcher <ejecutable> [args…]`; p. ej.
+`urban-reign --game`). En los DOA hace además esto:
 
 
 Los ejecutables compilados en el contenedor guardan un RUNPATH absoluto a la
@@ -360,6 +369,24 @@ Un `portable.txt` vacío junto al ejecutable guarda partidas, opciones y caché
 al lado del juego en vez de en la carpeta del usuario. Las rutas se pueden
 cambiar en `nocturnerecomp.toml` (`game_data_root`, `user_data_root`,
 `cache_root`, `mods_data_root`…). Ajustes con F4.
+
+### Drakengard 3, VF3 Team Battle y Urban Reign (Linux nativo)
+
+Los tres traen el binario Linux listo, compilado en el Steam Runtime de
+Valve, y no usan contenedor. Detalles en `games/<id>/README.md`.
+
+- **drakengard3:** el ejecutable `dod3` trae su instalador, que también va
+  sin interfaz (`dod3 --install <disco> <update.pkg> [DLC.pkg…]`) y deja el
+  juego en `game/` junto al ejecutable. Exige el disco USA (BLUS31197) en ISO
+  **descifrada** (lo comprueba con el SHA-256 del `EBOOT.BIN`) y la
+  actualización 1.01 en `.pkg`. Los enlaces que crea en Linux son relativos.
+  Usa el SDL2 del sistema (SteamOS lo trae) y Vulkan 1.3.
+- **vf3tb:** se usa el paquete **específico para Steam Deck** de la release.
+  No hay disco: lee el set de MAME de `roms/` y recompila el programa de la
+  placa en cada arranque.
+- **urban-reign:** el juego quiere una `.iso` en `game/`; el CHD se convierte
+  con `chdman extractdvd`. `steamdeck.sh` lanza `urban-reign --game` (sin el
+  launcher de Python + GTK + WebKit, que SteamOS no trae).
 
 ## Estado
 

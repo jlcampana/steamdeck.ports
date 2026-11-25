@@ -35,3 +35,21 @@
 - Nombre: DOA4
 - Releases: https://github.com/dwreckgg/doa4-online
 - SteamGridDB: https://www.steamgriddb.com/game/5246968
+
+## Drakengard 3
+
+- Nombre: Drakengard3
+- Releases: https://github.com/soyjxck/dod3-recomp/releases
+- SteamGridDB: https://www.steamgriddb.com/game/35049
+
+## VF3 Team Battle
+
+- Nombre: VF3tb
+- Releases: https://github.com/mr-finster/vf3-recomp/releases
+- SteamGridDB: https://www.steamgriddb.com/game/36788
+
+## Urban Reign
+
+- Nombre: UrbanReign
+- Releases: https://github.com/thiagordsfx/urban-reign-recomp/releases
+- SteamGridDB: https://www.steamgriddb.com/game/4612

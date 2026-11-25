@@ -20,6 +20,7 @@ PRINT=0
 declare -A PKG=(
     [curl]=curl [jq]=jq [sqlite3]=sqlite3 [unzip]=unzip [tar]=tar
     [python3]=python3 [sha256sum]=coreutils [git]=git
+    [chdman]=mame-tools  # .chd -> .iso (Urban Reign)
 )
 missing=()
 for cmd in "${!PKG[@]}"; do

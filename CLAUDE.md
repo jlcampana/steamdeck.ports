@@ -26,7 +26,7 @@ juegos de Xbox/Xbox 360:
 
 - Idioma: español en docs, mensajes de scripts y commits.
 - Ids de juego (carpeta `games/<id>`): `doaxtreme`, `doa3`, `doa2u`, `doa1u`,
-  `castlevania-son`, `doa4`.
+  `castlevania-son`, `doa4`, `drakengard3`, `vf3tb`, `urban-reign`.
 - Nunca subir archivos de juego: `isos/`, `latest/`, `ports.db`,
   `games/*/latest/`, `games/*/build/` están en `.gitignore`.
 - Los assets de Castlevania SON los extrae el usuario a mano en
@@ -74,6 +74,23 @@ proyecto [`.claude/skills/add-game/SKILL.md`](.claude/skills/add-game/SKILL.md):
   `net.ipv4.ip_unprivileged_port_start=1000`. Ese script también escribe
   `doa4_game_files`/`doa4_user_data` (rutas `Z:/…`) en `dead_or_alive_4.toml`
   para que no salga la pantalla de configuración.
+
+- **Drakengard 3** (PS3, `drakengard3`): binario Linux listo (SDL2 del
+  sistema, Vulkan 1.3). Solo prereleases. Pide la ISO USA **descifrada**
+  (`isos/Drakengard3.iso`: su `EBOOT.BIN` coincide con el SHA-256 de
+  `src/install/iso.cpp`) y la update 1.01
+  (`UP0082-BLUS31197_00-DOD3PATCH0000000-A0101-V0101-PE.pkg`); DLC opcionales.
+  `dod3 --install` va sin interfaz e instala junto al ejecutable; en Linux
+  sus enlaces (`game/BLES00000DATA/…`) son relativos.
+- **VF3 Team Battle** (`vf3tb`): la release trae un paquete **para Steam
+  Deck** (`-deck.tar.gz`, compilado en el Steam Runtime) y es el que se usa.
+  `isos/VF33tb.zip` es el set de MAME vf3tb **completo** (incluye las ROM de
+  vf3), que funciona sin `vf3.zip`. `VF3_HIDDEN=1 VF3_QUIT_AFTER=<frames>`
+  sirve para probarlo sin ventana.
+- **Urban Reign** (PS2, `urban-reign`): el juego quiere una `.iso` en `game/`;
+  `isos/UrbanReign.chd` es un CHD de DVD → `chdman extractdvd` (`mame-tools`).
+  `steamdeck.sh` lanza `urban-reign --game`: el launcher (Python + GTK +
+  WebKit) no hace falta y SteamOS no lo trae.
 
 ## Entorno del PC de build
 
@@ -217,6 +234,24 @@ gastar espacio.
     avisa de archivos de release con ese nombre. Ninguno de los 6 repos la
     tiene ahora.
 
+### 2026-11-25
+
+1. `/add-game` con tres juegos nuevos de `ports.md` (PS3, recreativa y PS2;
+   el proyecto ya no es solo Xbox): `drakengard3`, `vf3tb`, `urban-reign`.
+   Los tres traen binario Linux listo. vf3tb publica versión para Steam Deck
+   (`update.sh` avisó) y se usa esa.
+2. `write_steamdeck_launcher <ejecutable> [args…]`: los argumentos quedan
+   fijos en `steamdeck.sh` (Urban Reign: `--game`). `tools/install.sh`
+   instala `chdman` (`mame-tools`).
+3. vf3tb: build en segundos (87 MB); probado desde otra ruta sin ventana
+   (recompila, Vulkan, sale bien). urban-reign: ~1 min (CHD → ISO), 3,8 GB,
+   paquete 1,5 GB; probado desde otra ruta (intro con Vulkan). Paquete e
+   instalador de los dos probados en el PC con HOME falso.
+4. Lección: con `pipefail`, `unzip -l … | grep -q` falla (grep cierra la
+   tubería antes de que termine unzip). Guardar la salida en una variable.
+5. drakengard3: `build.sh` escrito; falta la update 1.01 (`.pkg`), que el
+   usuario va a dejar en `isos/`.
+
 ### Pendiente
 
 - [x] `tools/install.sh`.
@@ -236,5 +271,8 @@ gastar espacio.
       la comprobación del runner en `run_game.py`.
 - [x] DOA4 (`/add-game`).
 - [x] Recompilar y empaquetar doaxtreme v0.8.0 y doa3 v0.8.0.
+- [ ] drakengard3: build, prueba y paquete cuando esté la update 1.01.
+- [x] Imágenes de vf3tb elegidas (sin icono: no hay en
+      SteamGridDB). urban-reign: las primeras candidatas.
 - [ ] DOA4: quitar el arreglo del puerto 1000 cuando salga la 0.3.8 (ya se
       salta solo por versión; probar en la Deck).
