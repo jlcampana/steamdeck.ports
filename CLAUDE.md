@@ -416,6 +416,6 @@ gastar espacio.
       SteamGridDB). urban-reign: las primeras candidatas.
 - [ ] DOA3 europea: ¿carga los trajes de `TDATA/4D53002D`? ¿Aguanta Kasumi
       32 trajes extra? (prueba del usuario).
-- [ ] Imágenes de vrdeluxe y soulcalibur: elegir (`games/<id>/art/candidatas/index.html`).
+- [ ] Imágenes de vrdeluxe: elegir (soulcalibur hecho) (`games/<id>/art/candidatas/index.html`).
 - [ ] DOA4: quitar el arreglo del puerto 1000 cuando salga la 0.3.8 (ya se
       salta solo por versión; probar en la Deck).
