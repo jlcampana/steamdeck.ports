@@ -41,8 +41,9 @@ Se compila en Ubuntu 24.04 (Docker en el PC). Requiere Python 3.12+ con `venv`:
   (`private/play-disc/.recomp-storage/partition1/TDATA/54430001`), con un
   máximo de 128. Solo los de las chicas (`costumes.py`, petición del
   usuario): caben los 113. En la europea el port no pone trajes; se copian
-  a `TDATA/4D53002D`, pero el juego **no los enseña** (los abre, según el
-  log, pero no salen en la selección; probado por el usuario).
+  a `TDATA/4D53002D` y el juego **no los enseña** (los abre, según el log,
+  pero no salen en la selección; probado por el usuario), así que ya no se
+  copian y `costumes.py` quita los que hubiera.
 - **Elegir los trajes:** el juego solo enseña unos pocos trajes extra por
   personaje (¿9?; en la USA no salían todos). `games/doa3/pick-costumes.py`
   descarga los paquetes a `games/doa3/costume-packs/` (fuera de git) y abre

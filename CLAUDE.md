@@ -426,8 +426,8 @@ gastar espacio.
 - [x] Imágenes de vf3tb elegidas (sin icono: no hay en
       SteamGridDB). urban-reign: las primeras candidatas.
 - [ ] DOA3: el usuario elige los trajes (`games/doa3/pick-costumes.py`),
-      luego `games/doa3/build.sh` + `tools/package.sh doa3`. ¿Quitar los
-      trajes de la europea, que no los enseña?
+      luego `games/doa3/build.sh` + `tools/package.sh doa3`. La europea ya
+      no lleva trajes (decisión del usuario).
 - [x] Imágenes de vrdeluxe y soulcalibur elegidas por el usuario.
 - [ ] DOA4: quitar el arreglo del puerto 1000 cuando salga la 0.3.8 (ya se
       salta solo por versión; probar en la Deck).
