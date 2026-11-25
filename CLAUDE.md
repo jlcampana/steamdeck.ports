@@ -31,6 +31,9 @@ juegos de Xbox/Xbox 360:
   `games/*/latest/`, `games/*/build/` están en `.gitignore`.
 - Los assets de Castlevania SON los extrae el usuario a mano en
   `isos/Castlevania SON/`.
+- **Git:** al completar cada hito (un juego añadido, un arreglo, una
+  herramienta nueva…), hacer commit **y push** sin preguntar (petición del
+  usuario, 2026-11-25).
 
 - **Versión específica para Steam Deck:** al añadir un juego o al buscar una
   versión nueva, comprobar si, además de la de Linux (o Windows), el port
@@ -249,8 +252,11 @@ gastar espacio.
    instalador de los dos probados en el PC con HOME falso.
 4. Lección: con `pipefail`, `unzip -l … | grep -q` falla (grep cierra la
    tubería antes de que termine unzip). Guardar la salida en una variable.
-5. drakengard3: `build.sh` escrito; falta la update 1.01 (`.pkg`), que el
-   usuario va a dejar en `isos/`.
+5. drakengard3: el usuario dejó la update 1.01 (`.pkg`) en `isos/`. Un repack
+   «Gnarly Repacks» (FreeArc, para RPCS3) no valía: dod3 solo acepta la
+   update como `.pkg`. Build ~2 min 15 s, 16 GB; probado desde otra ruta con
+   `DOD3_LAUNCHER=0` (Vulkan, dibuja). Enlaces del instalador relativos.
+6. Imágenes elegidas por el usuario para los tres.
 
 ### Pendiente
 
@@ -271,7 +277,6 @@ gastar espacio.
       la comprobación del runner en `run_game.py`.
 - [x] DOA4 (`/add-game`).
 - [x] Recompilar y empaquetar doaxtreme v0.8.0 y doa3 v0.8.0.
-- [ ] drakengard3: build, prueba y paquete cuando esté la update 1.01.
 - [x] Imágenes de vf3tb elegidas (sin icono: no hay en
       SteamGridDB). urban-reign: las primeras candidatas.
 - [ ] DOA4: quitar el arreglo del puerto 1000 cuando salga la 0.3.8 (ya se

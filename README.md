@@ -185,7 +185,7 @@ games/doa3/build.sh -f         # build limpio
 | doa2u | crea `private/venv` y compila en Ubuntu 24.04 (podman) | ~12 min | 4,9 GB |
 | vf3tb | copia `isos/VF33tb.zip` a `roms/vf3tb.zip`, crea `portable.txt` | segundos | 87 MB |
 | urban-reign | convierte `isos/UrbanReign.chd` a `game/UrbanReign.iso` (`chdman`) | ~1 min | 3,8 GB |
-| drakengard3 | `dod3 --install <iso> <update> [DLC…]` en el PC (instala en `game/`) | pendiente | ~16 GB |
+| drakengard3 | `dod3 --install <iso> <update> [DLC…]` en el PC (instala en `game/`) | ~2 min | 16 GB |
 
 Casi todo el tamaño de los DOA es el disco extraído (`private/`).
 
