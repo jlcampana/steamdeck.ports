@@ -162,9 +162,20 @@ check_absolute_paths() {
 # contenedor tienen RUNPATH absoluto a la ruta de este PC; LD_LIBRARY_PATH se
 # consulta antes que RUNPATH, así que el juego funciona desde cualquier ruta.
 # No se parchean los binarios porque run_game.py comprueba su SHA-256.
+# Si el port dejó private/disc-path.txt (ruta absoluta del disco, doa3 0.8.1),
+# steamdeck.sh lo reescribe al arrancar con la ruta de la instalación.
 write_steamdeck_launcher() {
-    local entry="$1" dirs=() d args=""
+    local entry="$1" dirs=() d args="" disc_rel="" disc
     shift
+    # doa3 >= 0.8.1: private/disc-path.txt con la ruta absoluta del disco.
+    if [[ -f "$BUILD/private/disc-path.txt" ]]; then
+        disc="$(head -n1 "$BUILD/private/disc-path.txt")"
+        if [[ "$disc" == "$BUILD"/* ]]; then
+            disc_rel="${disc#"$BUILD"/}"
+        else
+            log "AVISO: private/disc-path.txt apunta fuera del build: $disc"
+        fi
+    fi
     if (( $# )); then args="$(printf ' %q' "$@")"; fi
     while IFS= read -r d; do dirs+=("$d"); done < <(
         find "$BUILD" -path "$BUILD/private/venv" -prune -o -type f -regextype posix-extended \
@@ -179,6 +190,11 @@ write_steamdeck_launcher() {
         for d in "${dirs[@]}"; do printf '    "$HERE/%s"\n' "$d"; done
         echo ')'
         echo 'export LD_LIBRARY_PATH="$(IFS=:; echo "${LIBS[*]}")${LD_LIBRARY_PATH:+:$LD_LIBRARY_PATH}"'
+        if [[ -n "$disc_rel" ]]; then
+            echo '# El port guarda aquí la ruta absoluta del disco (la del PC de build);'
+            echo '# run_game.py falla sin ella. Se rehace con la ruta de esta instalación.'
+            printf 'echo "$HERE/%s" > "$HERE/private/disc-path.txt"\n' "$disc_rel"
+        fi
         echo 'cd "$HERE"'
         printf 'exec "$HERE/%s"%s "$@"\n' "$entry" "$args"
     } > "$BUILD/steamdeck.sh"

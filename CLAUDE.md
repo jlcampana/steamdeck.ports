@@ -70,6 +70,11 @@ proyecto [`.claude/skills/add-game/SKILL.md`](.claude/skills/add-game/SKILL.md):
   `assets/xbla-world` y `assets/xbla-jp`. El title update (`addon/TU_…`) **no
   hace falta**: sus cambios están portados en `src/hooks/tu_hooks.cpp`.
 
+- **doa3 ≥ 0.8.1** guarda en `private/disc-path.txt` la ruta absoluta del
+  disco; `steamdeck.sh` la rehace al arrancar (ver 2026-11-25, punto 17). Si
+  algún aviso de `check_absolute_paths` sale en un build, hay que mirarlo.
+  doa3 0.8.1 trae además un `build_steamdeck.sh` (sin revisar todavía).
+
 - **DOA4 solo publica prereleases** (`alpha-v…`): `update.sh` usa la release
   más reciente con el archivo si no hay «latest». Es solo Windows → Proton.
   Hasta alpha-v0.3.7 se congela al arrancar en Proton (puerto UDP 1000, issue
@@ -323,6 +328,15 @@ gastar espacio.
     No arrancaba: una carpeta vacía `~/.var/app/com.valvesoftware.Steam/Ports`
     chocaba con el enlace `~/Ports` del permiso `filesystems` (bwrap);
     el usuario la borró.
+
+17. **DOA3 desde Steam: el launcher se abría pero «Start» no hacía nada.**
+    Novedad de doa3 0.8.1: `build_game.py` escribe `private/disc-path.txt`
+    con la ruta **absoluta** del disco (la del PC de build) y `run_game.py`
+    la resuelve con `strict=True` antes de lanzar el runner → excepción sin
+    log (no llega a crear `private/play-logs`). `check_absolute_paths` ya lo
+    avisaba en el build. Ahora `write_steamdeck_launcher` lo detecta y
+    `steamdeck.sh` reescribe ese archivo al arrancar con la ruta de la
+    instalación. Probado en la instalación del PC (`play_disc` resuelve).
 
 ### Pendiente
 
