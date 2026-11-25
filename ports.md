@@ -59,3 +59,9 @@
 - Nombre: VirtuaRacingDeluxe
 - Releases: https://github.com/PokaMilkTea/VirtuaRacingDeluxeEnhanced/releases
 - SteamGridDB: https://www.steamgriddb.com/game/38865
+
+## Soulcalibur
+
+- Nombre: SoulCalibur
+- Releases: https://github.com/enrique363/voldorium/releases
+- SteamGridDB: https://www.steamgriddb.com/game/35327

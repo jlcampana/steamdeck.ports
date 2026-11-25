@@ -26,7 +26,8 @@ juegos de Xbox/Xbox 360:
 
 - Idioma: español en docs, mensajes de scripts y commits.
 - Ids de juego (carpeta `games/<id>`): `doaxtreme`, `doa3`, `doa2u`, `doa1u`,
-  `castlevania-son`, `doa4`, `drakengard3`, `vf3tb`, `urban-reign`.
+  `castlevania-son`, `doa4`, `drakengard3`, `vf3tb`, `urban-reign`,
+  `vrdeluxe`, `soulcalibur`.
 - Nunca subir archivos de juego: `isos/`, `latest/`, `ports.db`,
   `games/*/latest/`, `games/*/build/` están en `.gitignore`.
 - Los assets de Castlevania SON los extrae el usuario a mano en
@@ -106,6 +107,12 @@ proyecto [`.claude/skills/add-game/SKILL.md`](.claude/skills/add-game/SKILL.md):
   `isos/UrbanReign.chd` es un CHD de DVD → `chdman extractdvd` (`mame-tools`).
   `steamdeck.sh` lanza `urban-reign --game`: el launcher (Python + GTK +
   WebKit) no hace falta y SteamOS no lo trae.
+- **Virtua Racing Deluxe** (32X, `vrdeluxe`): PicoDrive + gráficos HLE. Solo
+  publica binarios de Windows/macOS: se compila el **código fuente** de la
+  release (`@source` en `ports.tsv`, nuevo en `update.sh`) con su `Makefile`
+  (SDL2 + GL + zlib, añadidos a la imagen). `vrde` sin argumentos juega el
+  primer `.32x` de su carpeta; `vrde.ini`/`vrde.mds` en la carpeta actual.
+  `vrde -d N -p frame:teclas` sirve para probarlo sin ventana.
 
 ## Entorno del PC de build
 
@@ -365,6 +372,14 @@ gastar espacio.
     con archivos vacíos (redondea a MiB), así que nunca avisó de nada; ahora
     `-size -1024k`, sin lo de CMake.
 
+19. `/add-game` con dos juegos nuevos de `ports.md`: Virtua Racing Deluxe y
+    Soulcalibur (uno detrás de otro, petición del usuario). `update.sh`:
+    regex `@source` = tarball del código de la última release (sin tamaño
+    ni SHA-256 de GitHub). **vrdeluxe:** ROM USA (SHA-1 correcto); build en
+    contenedor ~1 min, 7,1 MB (solo `vrde`, ROM y licencias); paquete
+    2,8 MB; probado desde otra ruta con `vrde -d 1500` (llega a la selección
+    de coche). Instalador probado con HOME falso.
+
 ### Pendiente
 
 - [x] `tools/install.sh`.
@@ -388,5 +403,6 @@ gastar espacio.
       SteamGridDB). urban-reign: las primeras candidatas.
 - [ ] DOA3 europea: ¿carga los trajes de `TDATA/4D53002D`? ¿Aguanta Kasumi
       32 trajes extra? (prueba del usuario).
+- [ ] Imágenes de vrdeluxe: elegir (`games/vrdeluxe/art/candidatas/index.html`).
 - [ ] DOA4: quitar el arreglo del puerto 1000 cuando salga la 0.3.8 (ya se
       salta solo por versión; probar en la Deck).

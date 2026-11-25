@@ -24,6 +24,9 @@
 # y lo empaqueta siempre: sirve también para regenerar paquetes perdidos.
 # Usa whiptail si está; si no (o con UPDATE_MENU=text), una lista numerada.
 #
+# En ports.tsv, la regex «@source» descarga el código fuente de la última
+# release (para ports sin binario de Linux que se compilan en build.sh).
+#
 # GITHUB_TOKEN (opcional) evita el límite de 60 peticiones/hora de la API sin
 # autenticar; si no está y gh tiene sesión, se usa el token de gh. Antes de
 # empezar comprueba que quedan peticiones y, si no, dice cuándo se liberan.
@@ -113,6 +116,11 @@ check_rate_limit() {
 # doa4), la más reciente, sin contar borradores, que lo tenga.
 release_json() {
     local repo="$1" regex="$2" json
+    # @source: el código fuente de la última release (sin mirar sus archivos)
+    if [[ "$regex" == "@source" ]]; then
+        api "repos/$repo/releases/latest"
+        return
+    fi
     if json="$(api "repos/$repo/releases/latest" 2>/dev/null)" \
         && jq -e --arg re "$regex" 'any(.assets[]; .name | test($re))' <<<"$json" >/dev/null; then
         echo "$json"
@@ -167,7 +175,13 @@ while IFS=$'\t' read -r id repo regex; do
     json="$(release_json "$repo" "$regex")" || { echo "  No hay ninguna release con un archivo que cumpla /$regex/" >&2; continue; }
     tag="$(jq -r .tag_name <<<"$json")"
     published="$(jq -r .published_at <<<"$json")"
-    asset_json="$(jq -c --arg re "$regex" '[.assets[] | select(.name | test($re))] | first // empty' <<<"$json")"
+    if [[ "$regex" == "@source" ]]; then
+        # Tarball del código de la etiqueta: GitHub no da tamaño ni SHA-256.
+        asset_json="$(jq -c --arg n "${repo#*/}" '{name: ($n + "-" + .tag_name + ".tar.gz"),
+            browser_download_url: .tarball_url, size: 0, digest: ""}' <<<"$json")"
+    else
+        asset_json="$(jq -c --arg re "$regex" '[.assets[] | select(.name | test($re))] | first // empty' <<<"$json")"
+    fi
     if [[ -z "$asset_json" ]]; then echo "  Ningún archivo coincide con /$regex/ en $tag" >&2; continue; fi
     while IFS= read -r deck; do
         [[ -n "$deck" ]] || continue
@@ -184,12 +198,12 @@ while IFS=$'\t' read -r id repo regex; do
         echo "  Al día ($tag)"
         continue
     fi
-    echo "  ${current:-(ninguna)} -> $tag  [$name, $((size / 1024 / 1024)) MB]"
+    echo "  ${current:-(ninguna)} -> $tag  [$name$( (( size )) && echo ", $((size / 1024 / 1024)) MB")]"
 
     dldir="$ROOT/latest/$id"
     mkdir -p "$dldir"
     file="$dldir/$name"
-    if [[ ! -f "$file" || "$(stat -c %s "$file")" != "$size" ]]; then
+    if [[ ! -f "$file" ]] || (( size && $(stat -c %s "$file") != size )); then
         curl -fL --progress-bar -o "$file.part" "$url"
         mv "$file.part" "$file"
     fi

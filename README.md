@@ -20,6 +20,7 @@ aportan desde copias propias y quedan fuera de git (`isos/`).
 | `drakengard3`      | Drakengard 3 (PS3) | [soyjxck/dod3-recomp](https://github.com/soyjxck/dod3-recomp/releases) | `dod3-recomp-<v>-linux-x86_64.tar.gz` (solo prereleases) | Linux nativo (binario; instala el juego en el PC) | `isos/Drakengard3.iso` (descifrada) + update 1.01 `.pkg` |
 | `vf3tb`            | Virtua Fighter 3 Team Battle (arcade Model 3) | [mr-finster/vf3-recomp](https://github.com/mr-finster/vf3-recomp/releases) | `VirtuaFighter3Recomp-deck.tar.gz` (**versión para Steam Deck**) | Linux nativo (binario) | `isos/VF33tb.zip` (set de MAME vf3tb completo) |
 | `urban-reign`      | Urban Reign (PS2) | [thiagordsfx/urban-reign-recomp](https://github.com/thiagordsfx/urban-reign-recomp/releases) | `UrbanReignPC-<v>-linux-x86_64.tar.gz` | Linux nativo (binario) | `isos/UrbanReign.chd` (→ `.iso`) |
+| `vrdeluxe`         | Virtua Racing Deluxe Enhanced (32X) | [PokaMilkTea/VirtuaRacingDeluxeEnhanced](https://github.com/PokaMilkTea/VirtuaRacingDeluxeEnhanced/releases) | código fuente de la release (`@source`) | Linux nativo (compilar) | `isos/VirtuaRacingDeluxe.32x` (ROM USA) |
 
 (*) DOA1U no tiene ISO propia: el disco de DOA2U trae los dos juegos
 (`Doa1.xbe` y `DOA2.xbe` en la raíz, comprobado con `extract-xiso -l`).
@@ -222,13 +223,14 @@ games/doa3/build.sh -f         # build limpio
 | vf3tb | copia `isos/VF33tb.zip` a `roms/vf3tb.zip`, crea `portable.txt` | segundos | 87 MB |
 | urban-reign | convierte `isos/UrbanReign.chd` a `game/UrbanReign.iso` (`chdman`) | ~1 min | 3,8 GB |
 | drakengard3 | `dod3 --install <iso> <update> [DLC…]` en el PC (instala en `game/`) | ~2 min | 16 GB |
+| vrdeluxe | compila `vrde` en Ubuntu 24.04 (podman) y copia la ROM al lado | ~1 min | 7 MB |
 
 Casi todo el tamaño de los DOA es el disco extraído (`private/`).
 
 ### `build/steamdeck.sh`: punto de entrada común en la Deck
 
 Todos los juegos Linux (doa3, doa2u, doaxtreme, castlevania-son,
-drakengard3, vf3tb, urban-reign) tienen `build/steamdeck.sh`, así que en la
+drakengard3, vf3tb, urban-reign, vrdeluxe) tienen `build/steamdeck.sh`, así que en la
 Deck se añaden a Steam igual. En los binarios listos solo lanza el ejecutable
 desde su carpeta (`write_steamdeck_launcher <ejecutable> [args…]`; p. ej.
 `urban-reign --game`). En los DOA hace además esto:
