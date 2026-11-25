@@ -297,6 +297,15 @@ gastar espacio.
     de mods (usagiZ: 32 instalados; Gultigargar viene en RAR y se saltó por
     falta de `bsdtar`). `libarchive-tools` añadido a la imagen de build. El
     port reintenta los paquetes de trajes fallidos en el siguiente build.
+15. **Error mío:** editar `update.sh` (con `open(…, 'w')`, que reescribe el
+    mismo archivo) mientras el usuario lo tenía en marcha hizo que el
+    proceso, al volver de los builds, leyera la versión nueva a medias:
+    «error de sintaxis cerca de `}'» en el resumen final. Los builds y
+    paquetes (doa3 v0.8.1, DOA4 alpha-v0.3.8) ya estaban terminados y bien.
+    **Regla:** antes de editar un script, mirar si se está ejecutando
+    (`pgrep -af`). Si lo está, esperar; o, si no hay más remedio, escribir
+    un archivo nuevo y reemplazar (`os.replace`, `mv`, `sed -i`): el
+    proceso sigue leyendo el archivo viejo, que sigue abierto.
 
 ### Pendiente
 
