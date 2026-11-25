@@ -9,6 +9,7 @@
 #     steam-art.py               pone las imágenes en la ficha de Steam
 #     post-install.sh            paso propio del juego (games/<id>/deck-post-install.sh), si lo hay
 #     game.conf                  id, nombre, ejecutable, Proton, versión, tamaño
+#                                y PC_GAMES (de local.conf: dónde instalar en un PC)
 #     art/                       imágenes (games/<id>/art, si hay)
 #
 #     README.md                  cómo instalarlo en la Deck (tools/deck/README.md.in)
@@ -141,8 +142,8 @@ package() {
 
     {
         echo "# Generado por tools/package.sh"
-        printf 'ID=%q\nNAME=%q\nEXEC=%q\nPROTON=%q\nVERSION=%q\nSIZE_KB=%q\n' \
-            "$id" "$NAME" "$EXEC" "${PROTON:-0}" "$version" "$size_kb"
+        printf 'ID=%q\nNAME=%q\nEXEC=%q\nPROTON=%q\nVERSION=%q\nSIZE_KB=%q\nPC_GAMES=%q\n' \
+            "$id" "$NAME" "$EXEC" "${PROTON:-0}" "$version" "$size_kb" "${PC_GAMES:-}"
     } > "$out/game.conf"
     install -m 755 "$ROOT/tools/deck/instalar.sh" "$out/instalar.sh"
     install -m 755 "$ROOT/tools/deck/steam-art.py" "$out/steam-art.py"

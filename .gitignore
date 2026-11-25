@@ -27,3 +27,4 @@ local.conf
 
 # Imágenes de Steam (tools/fetch-art.sh o a mano)
 games/*/art/
+__pycache__/

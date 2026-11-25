@@ -54,6 +54,14 @@ ejecuta `./instalar.sh`.
 
 Se guardan dentro de la carpeta del juego: @SAVES@.
 
+## En un PC con Linux
+
+`./instalar.sh` funciona también en un PC (no SteamOS): instala en la carpeta
+de juegos del PC (`PC_GAMES`, o `~/Games` si no existe; o la que se le pase
+como argumento) y lo añade a Steam **con Steam cerrado** (si es de Windows,
+ya con Proton). Si usas el Steam de Flatpak y no tiene permiso para esa
+carpeta, el instalador te da el comando `flatpak override` que hace falta.
+
 ## Actualizar a una versión nueva
 
 Ejecuta el instalador del paquete nuevo y elige el mismo destino. La

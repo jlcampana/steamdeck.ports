@@ -304,6 +304,29 @@ una terminal y el instalador:
 
 Sin teclado físico: Steam + X abre el teclado en pantalla.
 
+### En un PC con Linux
+
+El mismo paquete se instala también en el PC, para probar los juegos fuera
+de la Deck: `./instalar.sh` (o el `.desktop`). Si no es SteamOS:
+
+- Instala en `PC_GAMES` (de `local.conf`, va en el `game.conf` del paquete)
+  si esa carpeta existe en el PC; si no, en `~/Games`. Un argumento manda
+  (`./instalar.sh /otra/carpeta`).
+- Lo añade a Steam escribiendo `shortcuts.vdf` (`steam-art.py add`; guarda
+  `shortcuts.vdf.bak`). **Steam tiene que estar cerrado**, porque al salir
+  reescribe el archivo: si está abierto, el instalador espera a que lo cierres
+  (o «n» para saltarlo). Sirve el Steam normal y el de Flatpak.
+- Juegos de Windows: deja elegido en Steam el GE-Proton más reciente de
+  `compatibilitytools.d` (o `proton_experimental`), en `config/config.vdf`
+  (`CompatToolMapping`; guarda `config.vdf.bak`).
+- Juegos Linux: también al menú de aplicaciones
+  (`~/.local/share/applications/steamdeck-ports-<id>.desktop`).
+- Steam de Flatpak: solo ve las carpetas que tiene permitidas
+  (`/run/media` sí, `~/Games` no). Si no ve el destino, el instalador da el
+  comando (`flatpak override --user --filesystem=<carpeta>
+  com.valvesoftware.Steam`). El Flatpak trae las librerías que usan los
+  juegos Linux (SDL2/3, shaderc, Vulkan).
+
 ### Imágenes (SteamGridDB)
 
 ```

@@ -307,6 +307,23 @@ gastar espacio.
     un archivo nuevo y reemplazar (`os.replace`, `mv`, `sed -i`): el
     proceso sigue leyendo el archivo viejo, que sigue abierto.
 
+16. **Instalar en el PC** (petición del usuario: probar los juegos también
+    aquí, y en su Steam). `instalar.sh` detecta si no es SteamOS: destino
+    `PC_GAMES` (`local.conf` → `game.conf` del paquete;
+    `/run/media/pandi/Stuff/games`) o `~/Games` si no existe; añade a Steam
+    escribiendo `shortcuts.vdf` (`steam-art.py add`, con Steam cerrado y
+    copia `.bak`) y, si es de Windows, el GE-Proton más reciente en
+    `config.vdf` (`steam-art.py proton`; leer y reescribir el `config.vdf`
+    real da el mismo archivo byte a byte). Los Linux van además al menú.
+    Steam del usuario: **Flatpak** (`~/.var/app/com.valvesoftware.Steam`),
+    ve `/run/media`, no `~/Games` (el instalador da el `flatpak override`).
+    Su runtime trae SDL2/SDL3/shaderc/Vulkan/python3: los juegos Linux van
+    sin `flatpak-spawn`. Los appid de Steam actual no siguen la fórmula
+    crc32: Steam usa el que hay en `shortcuts.vdf`, así que el nuestro vale.
+    No arrancaba: una carpeta vacía `~/.var/app/com.valvesoftware.Steam/Ports`
+    chocaba con el enlace `~/Ports` del permiso `filesystems` (bwrap);
+    el usuario la borró.
+
 ### Pendiente
 
 - [x] `tools/install.sh`.
