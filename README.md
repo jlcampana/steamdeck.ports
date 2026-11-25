@@ -69,7 +69,8 @@ isos/                ISOs y paquetes de los juegos (no va a git)
    en `Instalar <juego>.desktop` (ver [Distribución](#distribución-a-la-steam-deck)).
 
 Los pasos 2, 3 y 5 de una vez: **`./update.sh --build`** (descarga, compila y
-empaqueta solo lo que ha cambiado).
+empaqueta solo lo que ha cambiado), o `./update.sh` a secas desde una terminal,
+que al final pregunta en un menú qué juegos compilar y empaquetar.
 
 Los builds anteriores que quedan al cambiar de versión (`games/<id>/build.old/`)
 se borran con **`./clean-old-builds.sh`** (`-n` para ver cuánto ocupan, `-y`
@@ -98,6 +99,7 @@ prueba y lo documenta.
 ./update.sh doa3 doa2u # solo esos
 ./update.sh -f doa3    # vuelve a descargar y descomprimir aunque esté al día
 ./update.sh --build    # además compila y empaqueta lo que se haya quedado atrás
+./update.sh -M         # sin el menú de builds del final
 ./update.sh --help     # ayuda
 ```
 
@@ -108,6 +110,24 @@ Versiones nuevas: doa3 (v0.7.1 -> v0.8.0)
 Builds atrasados: doa3 (v0.7.1 -> v0.8.0)
 Paquetes atrasados (/run/media/pandi/tmp): doa3 (v0.7.1 -> v0.8.0)
 Para generarlos: ./update.sh --build [id …]  (o games/<id>/build.sh y tools/package.sh <id>)
+```
+
+Después, si se ejecuta desde una terminal y sin `--build`, sale un **menú de
+builds** con todos los juegos (nombre, versión y estado del build y del
+paquete), con los atrasados ya marcados; se puede marcar cualquier otro. De
+cada juego elegido ejecuta `build.sh` si su `build/` no es de esa versión y
+**siempre** `tools/package.sh`: así se regeneran los paquetes si se pierde el
+disco de destino (con `build/` borrado, lo recompila). Usa `whiptail` si está
+y si no una lista numerada (`UPDATE_MENU=text` la fuerza). `-m` lo saca sin
+terminal (lee la respuesta de stdin) y `-M` lo quita.
+
+```
+Build y paquete para la Deck (paquetes en /run/media/pandi/tmp):
+   1) [x] Dead or Alive Xtreme Beach Volleyball    v0.8.0       sin paquete al día
+   2) [x] Dead or Alive 3                          v0.8.1       build: v0.8.0, paquete: no
+   …
+   9) [ ] Urban Reign                              v1.4.1       al día
+Números separados por espacios, 'a' = todos, Intro = los marcados [x], 'n' = ninguno:
 ```
 
 Si una release trae un archivo específico para Steam Deck o SteamOS (en el

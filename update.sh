@@ -3,17 +3,26 @@
 # descomprime en games/<id>/latest/. Si el repo no tiene release "latest" (solo
 # prereleases), usa la más reciente. Las versiones se registran en ports.db.
 #
-# Uso: ./update.sh [-f] [-b] [id ...]
-#   -f, --force   fuerza la descarga aunque la versión ya esté instalada
-#   -b, --build   después, ejecuta games/<id>/build.sh y tools/package.sh de los
-#                 juegos cuyo build/ o paquete no esté en la versión descargada
-#   -h, --help    muestra esta ayuda
-#   id            limita la actualización a esos juegos (por defecto, todos)
+# Uso: ./update.sh [-f] [-b | -m | -M] [id ...]
+#   -f, --force    fuerza la descarga aunque la versión ya esté instalada
+#   -b, --build    después, ejecuta games/<id>/build.sh y tools/package.sh de los
+#                  juegos cuyo build/ o paquete no esté en la versión descargada
+#   -m, --menu     menú de builds aunque no haya terminal (por defecto sale
+#                  solo si stdin y stdout son una terminal)
+#   -M, --no-menu  sin menú de builds
+#   -h, --help     muestra esta ayuda
+#   id             limita la actualización a esos juegos (por defecto, todos)
 #
 # Al final resume qué versiones se han descargado y qué builds y paquetes para
 # la Deck (DEST de local.conf o dist/) se han quedado atrás. También avisa si
 # una release trae un archivo específico para Steam Deck / SteamOS (podría
 # servir en vez de la versión de Linux o de Windows que se usa ahora).
+#
+# Menú de builds (desde una terminal, sin --build): lista todos los juegos con
+# su nombre, versión y estado, con los atrasados ya marcados. De cada juego
+# elegido compila lo que haga falta (build.sh si build/ no es de esa versión)
+# y lo empaqueta siempre: sirve también para regenerar paquetes perdidos.
+# Usa whiptail si está; si no (o con UPDATE_MENU=text), una lista numerada.
 #
 # GITHUB_TOKEN (opcional) evita el límite de 60 peticiones/hora de la API.
 set -euo pipefail
@@ -25,10 +34,13 @@ show_help_if_asked "$0" "$@"
 DB="$ROOT/ports.db"
 FORCE=0
 BUILD=0
+MENU=auto
 while [[ "${1:-}" == -* ]]; do
     case "$1" in
         -f|--force) FORCE=1 ;;
         -b|--build) BUILD=1 ;;
+        -m|--menu) MENU=1 ;;
+        -M|--no-menu) MENU=0 ;;
         *) echo "Opción desconocida: $1 (ver ./update.sh --help)" >&2; exit 2 ;;
     esac
     shift
@@ -175,6 +187,7 @@ pkg_tag_of() {   # VERSION del game.conf de un paquete (escrito con printf %q)
     local v
     v="$(sed -n 's/^VERSION=//p' "$1" 2>/dev/null)"
     [[ -n "$v" ]] && eval "printf '%s' $v"
+    return 0   # sin paquete: vacío (con set -e, un [[ ]] falso al final cortaría)
 }
 
 # Qué builds y paquetes no están en la versión de latest/
@@ -209,7 +222,7 @@ summary() {
     (( ${#stale_packages[@]} )) && echo "Paquetes atrasados ($DEST): $(join_by ', ' "${stale_packages[@]}")"
     if (( ${#stale_builds[@]} + ${#stale_packages[@]} == 0 )); then
         echo "Builds y paquetes al día."
-    elif (( ! BUILD )); then
+    elif (( ! BUILD )) && [[ "$MENU" != 1 ]]; then
         echo "Para generarlos: ./update.sh --build [id …]  (o games/<id>/build.sh y tools/package.sh <id>)"
     fi
     return 0
@@ -217,29 +230,128 @@ summary() {
 
 summary
 
+# --- Build y paquete de una lista de juegos ---------------------------------
+# build.sh solo si build/ no es de la versión de latest/; paquete si está
+# atrasado o, con $1 = 1, siempre (regenerar uno perdido).
+failed=()
+build_and_package() {
+    local always="$1" id latest built packaged
+    shift
+    for id in "$@"; do
+        latest="$(tag_of "$ROOT/games/$id/latest/.release-tag")"
+        built="$(tag_of "$ROOT/games/$id/build/.release-tag")"
+        if [[ -z "$latest" ]]; then
+            echo "== $id: no hay games/$id/latest (./update.sh $id)" >&2
+            failed+=("$id (sin descarga)"); continue
+        fi
+        if [[ "$built" != "$latest" ]]; then
+            echo
+            echo "== Build de $id ($latest)"
+            "$ROOT/games/$id/build.sh" || { failed+=("$id (build)"); continue; }
+        fi
+        packaged="$(pkg_tag_of "$DEST/$id/game.conf")"
+        if (( always )) || [[ "$packaged" != "$latest" ]]; then
+            echo
+            echo "== Paquete de $id ($latest)"
+            "$ROOT/tools/package.sh" "$id" || failed+=("$id (paquete)")
+        fi
+    done
+}
+
+# Nombre del juego (NAME de games/<id>/game.conf) o el id.
+game_name() {
+    local n
+    n="$( [[ -f "$ROOT/games/$1/game.conf" ]] && source "$ROOT/games/$1/game.conf" && echo "${NAME:-}")" || true
+    echo "${n:-$1}"
+}
+
+# Menú: elige juegos (todos los de ports.tsv con descarga). Deja los ids en
+# $chosen. Devuelve 1 si se cancela.
+chosen=()
+choose_games() {
+    local id latest built packaged state mark all=() names=() states=() marks=()
+    while IFS=$'\t' read -r id _; do
+        [[ -z "$id" || "$id" == \#* ]] && continue
+        latest="$(tag_of "$ROOT/games/$id/latest/.release-tag")"
+        [[ -n "$latest" ]] || continue
+        built="$(tag_of "$ROOT/games/$id/build/.release-tag")"
+        packaged="$(pkg_tag_of "$DEST/$id/game.conf")"
+        mark=0
+        if [[ "$built" == "$latest" && "$packaged" == "$latest" ]]; then
+            state="al día"
+        else
+            mark=1
+            state="build: ${built:-no}, paquete: ${packaged:-no}"
+            [[ "$built" == "$latest" ]] && state="sin paquete al día"
+            [[ "$packaged" == "$latest" ]] && state="build: ${built:-no}"
+        fi
+        all+=("$id"); names+=("$(game_name "$id")"); states+=("$state"); marks+=("$mark")
+    done < "$ROOT/ports.tsv"
+    (( ${#all[@]} )) || return 1
+
+    local i
+    if [[ "${UPDATE_MENU:-}" != text ]] && command -v whiptail >/dev/null; then
+        local items=() out
+        for i in "${!all[@]}"; do
+            items+=("${all[$i]}" "$(printf '%-40.40s %-20.20s %s' "${names[$i]}" \
+                "$(tag_of "$ROOT/games/${all[$i]}/latest/.release-tag")" "${states[$i]}")")
+            (( marks[i] )) && items+=(ON) || items+=(OFF)
+        done
+        out="$(whiptail --title "Build y paquete para la Deck" --separate-output \
+            --checklist "Espacio marca/desmarca, Intro acepta. Paquetes en: $DEST" \
+            $(( ${#all[@]} + 8 )) 110 "${#all[@]}" "${items[@]}" 3>&1 1>&2 2>&3)" || return 1
+        mapfile -t chosen <<<"$out"
+        [[ -n "${chosen[0]:-}" ]] || chosen=()
+        return 0
+    fi
+
+    echo
+    echo "Build y paquete para la Deck (paquetes en $DEST):"
+    for i in "${!all[@]}"; do
+        printf '  %2d) [%s] %-40.40s %-20.20s %s\n' $((i + 1)) "$( (( marks[i] )) && echo x || echo ' ')" \
+            "${names[$i]}" "$(tag_of "$ROOT/games/${all[$i]}/latest/.release-tag")" "${states[$i]}"
+    done
+    local answer n
+    read -rp "Números separados por espacios, 'a' = todos, Intro = los marcados [x], 'n' = ninguno: " answer || return 1
+    chosen=()
+    case "$answer" in
+        "") for i in "${!all[@]}"; do (( marks[i] )) && chosen+=("${all[$i]}"); done ;;
+        n|N) ;;
+        a|A) chosen=("${all[@]}") ;;
+        *) for n in $answer; do
+               [[ "$n" =~ ^[0-9]+$ ]] && (( n >= 1 && n <= ${#all[@]} )) \
+                   || { echo "Número no válido: $n" >&2; return 1; }
+               chosen+=("${all[$((n - 1))]}")
+           done ;;
+    esac
+    return 0
+}
+
 # --- --build: compila y empaqueta lo atrasado -------------------------------
 if (( BUILD )); then
-    failed=()
-    for entry in "${stale_builds[@]}"; do
+    todo=()
+    for entry in "${stale_builds[@]}" "${stale_packages[@]}"; do
         id="${entry%% *}"
-        echo
-        echo "== Build de $id"
-        "$ROOT/games/$id/build.sh" || { failed+=("$id (build)"); continue; }
+        [[ " ${todo[*]} " == *" $id "* ]] || todo+=("$id")
     done
-    check_stale
-    for entry in "${stale_packages[@]}"; do
-        id="${entry%% *}"
-        # Sin build terminado de esa versión no se empaqueta
-        [[ " ${failed[*]} " == *" $id (build)"* ]] && continue
-        [[ -f "$ROOT/games/$id/build/.release-tag" ]] || continue
-        echo
-        echo "== Paquete de $id"
-        "$ROOT/tools/package.sh" "$id" || failed+=("$id (paquete)")
-    done
-    new_versions=(); deck_assets=()
-    summary
-    if (( ${#failed[@]} )); then
-        echo "Fallos: $(join_by ', ' "${failed[@]}")" >&2
-        exit 1
+    build_and_package 0 "${todo[@]}"
+elif [[ "$MENU" == 1 || ( "$MENU" == auto && -t 0 && -t 1 ) ]]; then
+    if choose_games && (( ${#chosen[@]} )); then
+        echo "Elegidos: ${chosen[*]}"
+        build_and_package 1 "${chosen[@]}"
+    else
+        echo "Sin builds."
+        exit 0
     fi
+else
+    exit 0
+fi
+
+# Resumen después de compilar y empaquetar
+ids=(); while IFS=$'\t' read -r id _; do [[ -z "$id" || "$id" == \#* ]] || ids+=("$id"); done < "$ROOT/ports.tsv"
+new_versions=(); deck_assets=()
+summary
+if (( ${#failed[@]} )); then
+    echo "Fallos: $(join_by ', ' "${failed[@]}")" >&2
+    exit 1
 fi

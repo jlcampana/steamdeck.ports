@@ -266,6 +266,16 @@ gastar espacio.
    terminado de la misma versión en `DEST` (`<id>.tar.zst` + `.sha256`, sin
    `.part`, y `VERSION` de su `game.conf`); `-f` borra también los demás.
    `clean-old-builds.sh` hace `exec clean-builds.sh --old-only`.
+9. Empaquetados en `DEST` los tres nuevos (~6 min; vf3tb 74 MB, urban-reign
+   1,5 GB, drakengard3 15 GB).
+10. `update.sh`: menú de builds al final (petición del usuario), desde una
+    terminal y sin `--build`: todos los juegos con nombre, versión y estado,
+    los atrasados marcados; de cada elegido, `build.sh` si hace falta y
+    siempre `package.sh` (regenerar paquetes si se pierde el disco de
+    destino). whiptail o lista numerada (`UPDATE_MENU=text`); `-m`/`-M`.
+    Bug arreglado de paso: `pkg_tag_of` devolvía 1 sin paquete en `DEST` y
+    `set -e` cortaba el resumen (justo con el destino vacío). Probado con un
+    `DEST` vacío. Llegaron doa3 v0.8.1 y DOA4 alpha-v0.3.8 (sin compilar).
 
 ### Pendiente
 
