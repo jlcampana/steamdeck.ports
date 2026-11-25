@@ -287,7 +287,7 @@ choose_games() {
         if [[ "$packaged" == "$latest" ]]; then
             state="al día"
         elif [[ -n "$old" && "$old" != "$latest" ]]; then
-            mark=1; state="UPDATE $old -> $latest"
+            mark=1; state="UPDATE desde $old"
         elif [[ "$built" == "$latest" ]]; then
             state="falta el paquete"
         else
@@ -297,17 +297,35 @@ choose_games() {
     done < "$ROOT/ports.tsv"
     (( ${#all[@]} )) || return 1
 
-    local i
+    # Columnas al ancho del contenido: nombre, versión, estado
+    local i rows=() wn=0 wv=0 wid=0 wrow=0 v
+    for i in "${!all[@]}"; do
+        (( ${#names[$i]} > wn )) && wn=${#names[$i]}
+        v="$(tag_of "$ROOT/games/${all[$i]}/latest/.release-tag")"
+        (( ${#v} > wv )) && wv=${#v}
+        (( ${#all[$i]} > wid )) && wid=${#all[$i]}
+    done
+    for i in "${!all[@]}"; do
+        rows+=("$(printf "%-${wn}s  %-${wv}s  %s" "${names[$i]}" \
+            "$(tag_of "$ROOT/games/${all[$i]}/latest/.release-tag")" "${states[$i]}")")
+        (( ${#rows[$i]} > wrow )) && wrow=${#rows[$i]}
+    done
+
     if [[ "${UPDATE_MENU:-}" != text ]] && command -v whiptail >/dev/null; then
-        local items=() out
+        local items=() out cols width text
+        text="Espacio marca/desmarca, Intro acepta. Paquetes en: $DEST"
         for i in "${!all[@]}"; do
-            items+=("${all[$i]}" "$(printf '%-40.40s %-20.20s %s' "${names[$i]}" \
-                "$(tag_of "$ROOT/games/${all[$i]}/latest/.release-tag")" "${states[$i]}")")
+            items+=("${all[$i]}" "${rows[$i]}")
             (( marks[i] )) && items+=(ON) || items+=(OFF)
         done
+        # Ancho: id + fila + casilla y márgenes de whiptail; no más que la terminal
+        cols="$(tput cols 2>/dev/null || echo 80)"
+        width=$(( wid + wrow + 16 ))
+        (( width < ${#text} + 6 )) && width=$(( ${#text} + 6 ))
+        (( width > cols - 2 )) && width=$(( cols - 2 ))
         out="$(whiptail --title "Build y paquete para la Deck" --separate-output \
-            --checklist "Espacio marca/desmarca, Intro acepta. Paquetes en: $DEST" \
-            $(( ${#all[@]} + 8 )) 110 "${#all[@]}" "${items[@]}" 3>&1 1>&2 2>&3)" || return 1
+            --checklist "$text" \
+            $(( ${#all[@]} + 8 )) "$width" "${#all[@]}" "${items[@]}" 3>&1 1>&2 2>&3)" || return 1
         mapfile -t chosen <<<"$out"
         [[ -n "${chosen[0]:-}" ]] || chosen=()
         return 0
@@ -316,8 +334,7 @@ choose_games() {
     echo
     echo "Build y paquete para la Deck (paquetes en $DEST):"
     for i in "${!all[@]}"; do
-        printf '  %2d) [%s] %-40.40s %-20.20s %s\n' $((i + 1)) "$( (( marks[i] )) && echo x || echo ' ')" \
-            "${names[$i]}" "$(tag_of "$ROOT/games/${all[$i]}/latest/.release-tag")" "${states[$i]}"
+        printf '  %2d) [%s] %s\n' $((i + 1)) "$( (( marks[i] )) && echo x || echo ' ')" "${rows[$i]}"
     done
     local answer n
     read -rp "Números separados por espacios, 'a' = todos, Intro = los marcados [x], 'n' = ninguno: " answer || return 1

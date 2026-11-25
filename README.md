@@ -114,7 +114,7 @@ Para generarlos: ./update.sh --build [id …]  (o games/<id>/build.sh y tools/pa
 
 Después, si se ejecuta desde una terminal y sin `--build`, sale un **menú de
 builds** con todos los juegos (nombre, versión y estado: `al día`,
-`UPDATE vieja -> nueva`, `falta el paquete` o `nuevo`), con **solo los
+`UPDATE desde <vieja>`, `falta el paquete` o `nuevo`), con **solo los
 UPDATE marcados**; se puede marcar cualquier otro. Un juego con paquete de su
 versión está al día aunque su `build/` se haya borrado (`clean-builds.sh`). De
 cada juego elegido ejecuta `build.sh` si su `build/` no es de esa versión y
@@ -125,10 +125,10 @@ terminal (lee la respuesta de stdin) y `-M` lo quita.
 
 ```
 Build y paquete para la Deck (paquetes en /run/media/pandi/tmp):
-   1) [ ] Dead or Alive Xtreme Beach Volleyball    v0.8.0               al día
-   2) [x] Dead or Alive 3                          v0.8.1               UPDATE v0.8.0 -> v0.8.1
+   1) [ ] Dead or Alive Xtreme Beach Volleyball  v0.8.0              al día
+   2) [x] Dead or Alive 3                        v0.8.1              UPDATE desde v0.8.0
    …
-   9) [ ] Urban Reign                              v1.4.1               al día
+   9) [ ] Urban Reign                            v1.4.1              al día
 Números separados por espacios, 'a' = todos, Intro = los marcados [x], 'n' = ninguno:
 ```
 
