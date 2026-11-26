@@ -155,6 +155,37 @@ Fedora (btrfs en `/home`, ~61 GB libres el 2026-11-22), con `docker`,
 `curl`, `gh`. Sin `distrobox`. En btrfs, `cp --reflink=auto` copia ISOs sin
 gastar espacio.
 
+## Probar en la Deck (para agentes)
+
+- **Encontrarla:** SteamOS se anuncia por mDNS como servicio
+  `_steamos-devkit._tcp` (puerto 32000):
+  `avahi-browse -rt _steamos-devkit._tcp` da su nombre `.local` y sus IPs
+  (puede estar a la vez por cable y por Wi-Fi; el cable es mucho más rápido).
+- **Entrar:** usuario `deck`, por SSH con la clave del PC
+  (`ssh-copy-id deck@<ip>` una vez; hace falta que el usuario active `sshd` y
+  ponga contraseña con `passwd` en la Deck). Sin contraseña de `sudo`: lo que
+  sea de root (p. ej. plugins de Decky) lo hace el usuario.
+- **Steam tiene que estar abierto** para `steamos-add-to-steam` (desde SSH,
+  sin Steam: «Cannot run this script from a tty if Steam is not running»).
+  En el modo escritorio se abre desde SSH con
+  `DISPLAY=:0 XDG_RUNTIME_DIR=/run/user/1000 DBUS_SESSION_BUS_ADDRESS=unix:path=/run/user/1000/bus systemd-run --user --collect steam`,
+  y los comandos que lo usan llevan esas mismas variables.
+- **Instalación por red sin interacción** (con `tools/serve.sh` en marcha en
+  el PC): `printf '<nº>\ns\n' | ~/.local/share/steamdeck-ports/steamdeck-ports.sh`
+  (el número del menú y «s» para confirmar si ya estaba instalado). Sin
+  terminal no hay pausas. El juego pequeño para probar es `vf3tb` (77 MB).
+- **Instalador a mano:** bajar `game.conf` y `<id>.tar.zst.sha256` de
+  `<servidor>/<id>/` y `instalar.sh`, `steam-art.py`, `proton-dpi.sh` de
+  `<servidor>/comun/` a una carpeta y ejecutar
+  `PKG_URL=<servidor>/<id>/<id>.tar.zst INSTALAR_SIN_PAUSA=1 bash instalar.sh`.
+  Así se probó también el error de suma (`.sha256` con ceros): la
+  instalación anterior queda intacta.
+- **Ojo con rsync a una carpeta de la Deck:** copia primero las carpetas
+  ocultas del origen; no borres en el destino lo que no sabes de dónde viene
+  mientras copia (el 2026-11-26 se perdieron así 3,7 GB copiados).
+- **Steam y `shortcuts.vdf`:** Steam lo reescribe al salir. Para editarlo a
+  mano, antes `steam -shutdown` y esperar a que no quede proceso `steam`.
+
 ## Registro de trabajo
 
 ### 2026-11-22
