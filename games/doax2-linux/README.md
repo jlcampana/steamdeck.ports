@@ -81,6 +81,12 @@ Windows). En la Deck (2026-11-26) va a 60 FPS de motor pero pinta unos
 `DOAX2_MSAA=off DOAX2_AA=1 %command%`, luego `DOAX2_SHADOWS=0` o
 `DOAX2_FPS=30`.
 
+Las mismas variables pueden ir en `opciones.conf`, junto a `steamdeck.sh`
+(líneas `DOAX2_…=valor`; el instalador lo conserva). Así no hace falta
+cerrar Steam para cambiarlas desde SSH. Las Opciones de lanzamiento de
+Steam mandan sobre el archivo. En la Deck del usuario: `DOAX2_MSAA=off`,
+`DOAX2_AA=1` (2026-11-26).
+
 - Partidas: `userdata/`; fotos: `photos/`; logs: `logs/`. `KEEP` conserva
   `userdata` y `photos`.
 - Se cierra con SIGTERM (lo que hace Steam); SIGINT no le hace nada.

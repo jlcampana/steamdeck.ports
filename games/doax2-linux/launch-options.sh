@@ -15,6 +15,15 @@
 #                           defecto), 8x, 16x
 #   DOAX2_FPS_OVERLAY=0|1   contador de FPS
 # Partidas en userdata/ y fotos en photos/ (dentro de la carpeta del juego).
+# También se pueden poner en opciones.conf, junto a steamdeck.sh (líneas
+# VARIABLE=valor, # para comentarios; el instalador lo conserva). Las de las
+# Opciones de lanzamiento de Steam mandan sobre las del archivo.
+if [[ -f "$HERE/opciones.conf" ]]; then
+    while IFS='=' read -r k v; do
+        k="${k//[[:space:]]/}"; v="${v%%#*}"; v="${v//[[:space:]]/}"
+        [[ "$k" =~ ^DOAX2_[A-Z0-9_]+$ && -z "${!k+x}" ]] && export "$k=$v"
+    done < "$HERE/opciones.conf"
+fi
 tf() { [[ "$1" == 1 ]] && echo true || echo false; }
 FPS="${DOAX2_FPS:-60}"
 N60=0; [[ "$FPS" == 60 ]] && N60=1
