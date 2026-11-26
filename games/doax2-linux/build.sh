@@ -3,7 +3,7 @@
 # solo publica la de Windows y su guía de build es solo para Windows, pero
 # el código y el ReXGlue SDK tienen presets de Linux: aquí se hace lo mismo
 # que sus scripts (setup-sdk, build-sdk, generate-code, configure-game) en
-# Ubuntu 24.04 + clang 23 (contenedor, games/doax2-linux/Dockerfile).
+# Ubuntu 24.04 + clang 20 (contenedor, games/doax2-linux/Dockerfile).
 #
 #   1. latest/ (el -source.zip de la release) -> work/src
 #   2. SDK rexglue/rexglue-sdk en el commit del submódulo de esa versión
@@ -32,7 +32,9 @@ SRC="$WORK/src"
 SDK="$WORK/rexglue-sdk"
 SDK_INSTALL="$SDK/out/install/linux-amd64"
 OUT="$SRC/out/game"
-CC_FLAGS=(-DCMAKE_C_COMPILER=clang-23 -DCMAKE_CXX_COMPILER=clang++-23
+# clang 20, el del preset linux-amd64 del port (DOAX2_CLANG=23 para probar otro)
+CLANG="${DOAX2_CLANG:-20}"
+CC_FLAGS=(-DCMAKE_C_COMPILER=clang-$CLANG -DCMAKE_CXX_COMPILER=clang++-$CLANG
           '-DCMAKE_C_FLAGS=-march=x86-64-v2' '-DCMAKE_CXX_FLAGS=-march=x86-64-v2')
 
 FORCE=0
@@ -92,6 +94,11 @@ fi
 log "SHA-256 de default.xex correcto"
 
 # --- 4 y 5. SDK, codegen y juego (contenedor) ---
+# Con otro compilador, las carpetas de CMake se rehacen desde cero.
+if [[ "$(cat "$WORK/.compilador" 2>/dev/null)" != "clang-$CLANG" ]]; then
+    log "Compilador nuevo (clang-$CLANG): se borran las compilaciones anteriores"
+    rm -rf "$SDK/out/build" "$SDK/out/install" "$SRC/out"
+fi
 log "Compilando SDK, código generado y juego con -j $JOBS"
 CONTAINER_WORKDIR="$SRC" run_in_container bash -c "
     set -euo pipefail
@@ -105,6 +112,7 @@ CONTAINER_WORKDIR="$SRC" run_in_container bash -c "
     fi
     cmake --preset linux-amd64-release -B out/game -DCMAKE_PREFIX_PATH='$SDK_INSTALL' ${CC_FLAGS[*]@Q}
     cmake --build out/game --config Release --parallel $JOBS"
+echo "clang-$CLANG" > "$WORK/.compilador"
 BIN="$(find "$OUT" -type f -name doax2 -perm -u+x | head -1)"
 [[ -n "$BIN" ]] || die "No está el ejecutable doax2 en work/src/out/game"
 

@@ -92,6 +92,19 @@ fi
     || die "game/default.xex no es el de DOA4 (USA, Europe) (Rev 1) (SHA-1 $XEX_SHA1)"
 log "SHA-1 de default.xex correcto"
 
+# Bañadores de DOAX2 (games/doa4-linux/doax2-suits.sh): la caché solo vale
+# con la misma versión de DOA4 con que se hicieron.
+SUITS="$ROOT/games/doa4-linux/work/doax2_suits"
+if [[ -f "$SUITS/manifest.txt" && "$(cat "$SUITS/.release-tag" 2>/dev/null)" == "$(release_tag)" ]]; then
+    log "Copiando los trajes de DOAX2 en user_data/doax2_suits"
+    rm -rf "$BUILD/user_data/doax2_suits"
+    mkdir -p "$BUILD/user_data"
+    cp -a --reflink=auto "$SUITS" "$BUILD/user_data/doax2_suits"
+    rm -f "$BUILD/user_data/doax2_suits/.release-tag"
+else
+    log "Sin trajes de DOAX2 de esta versión (games/doa4-linux/doax2-suits.sh y otro build)"
+fi
+
 check_absolute_paths
 # Ajustes (dead_or_alive_4.toml) y logs/ van junto al ejecutable; partidas y
 # caché de shaders, a user_data/ (si no, a ~/.local/share/dead_or_alive_4).

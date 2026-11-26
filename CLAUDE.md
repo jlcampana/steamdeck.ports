@@ -115,6 +115,10 @@ proyecto [`.claude/skills/add-game/SKILL.md`](.claude/skills/add-game/SKILL.md):
   release). Sin lanzador: `steamdeck.sh` lleva sus opciones
   (`games/doax2-linux/launch-options.sh`, Vulkan, 60 FPS, variables
   `DOAX2_*`). El zip trae `game/README.md`: ojo al copiar el juego.
+- **Bañadores de DOAX2 en DOA4**: doa4-online los construye del disco USA de
+  DOAX2 en `<partidas>/doax2_suits`. Se hacen en el PC con
+  `games/doa4-linux/doax2-suits.sh` (caché en `games/doa4-linux/work/`,
+  por versión de DOA4) y van en los paquetes de doa4 y doa4-linux.
 - **Drakengard 3** (PS3, `drakengard3`): binario Linux listo (SDL2 del
   sistema, Vulkan 1.3). Solo prereleases. Pide la ISO USA **descifrada**
   (`isos/Drakengard3.iso`: su `EBOOT.BIN` coincide con el SHA-256 de
@@ -493,7 +497,16 @@ gastar espacio.
    usuario; 5 de 5). Detalles en `games/doax2-linux/README.md`. Probado y
    descartado: fijar la afinidad de los hilos con menos de 6 CPU (cambio
    en `xthread.cpp` del SDK, revertido). Falta saber si a `doax2` (Proton)
-   le pasa lo mismo.
+   le pasa lo mismo. **A `doax2` (Proton) no le pasa** (prueba del
+   usuario): es cosa del build de Linux. Primera sospecha: clang 23 (el
+   preset del port pide clang 20; Windows usa el clang de VS). La imagen
+   `rexglue-build` trae ahora también clang 20 y `doax2-linux/build.sh` lo
+   usa (`DOAX2_CLANG`; con otro compilador borra las carpetas de CMake).
+7. **Bañadores de DOAX2 en los paquetes de DOA4** (petición del usuario):
+   `games/doa4-linux/doax2-suits.sh` los genera con el propio juego
+   (`DOA4_SETUP_TEST=doax2=…`, interruptor de pruebas del port, y
+   `--doa4_suits_import_pending=true`): 34 trajes, 300 MB, ~40 s. Los
+   `build.sh` de doa4 y doa4-linux los copian a `user_data/doax2_suits`.
 
 ### Pendiente
 

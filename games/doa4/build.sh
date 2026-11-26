@@ -39,5 +39,18 @@ if [[ -f "$BUILD/SHA256SUMS.txt" ]]; then
     log "SHA-256 de dead_or_alive_4.exe y sus DLL correctos"
 fi
 
+# Bañadores de DOAX2 (games/doa4-linux/doax2-suits.sh): la caché solo vale
+# con la misma versión de DOA4 con que se hicieron.
+SUITS="$ROOT/games/doa4-linux/work/doax2_suits"
+if [[ -f "$SUITS/manifest.txt" && "$(cat "$SUITS/.release-tag" 2>/dev/null)" == "$(release_tag)" ]]; then
+    log "Copiando los trajes de DOAX2 en user_data/doax2_suits"
+    rm -rf "$BUILD/user_data/doax2_suits"
+    mkdir -p "$BUILD/user_data"
+    cp -a --reflink=auto "$SUITS" "$BUILD/user_data/doax2_suits"
+    rm -f "$BUILD/user_data/doax2_suits/.release-tag"
+else
+    log "Sin trajes de DOAX2 de esta versión (games/doa4-linux/doax2-suits.sh y otro build)"
+fi
+
 finish_build
 log "En la Deck: instálalo con tools/package.sh (fuerza Proton en Steam)."

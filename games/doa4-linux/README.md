@@ -60,6 +60,11 @@ recompilar todo.
   En Steam sale como «Dead or Alive 4 (Linux)», con las mismas imágenes que
   `doa4`. Notas del paquete: `deck-notes.md`.
 
+## Bañadores de DOAX2
+
+Los genera `doax2-suits.sh` y van en el paquete (también en el de `doa4`):
+ver [doa4](../doa4/README.md#bañadores-de-doax2).
+
 ## Probado en el PC (2026-11-25, alpha-v0.3.8)
 
 - `ldd` desde otra ruta: `librexruntime.so` y `libTracyClient.so` salen de

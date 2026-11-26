@@ -79,6 +79,30 @@ comprueba el `SHA256SUMS.txt` de la release.
 - Requisitos del port: CPU con AVX2 (la Deck lo tiene) y el runtime de VC++
   2015-2022 (Proton trae su implementación).
 
+## Bañadores de DOAX2
+
+El port construye 34 bañadores de *Dead or Alive Xtreme 2* como trajes
+extra a partir del disco **USA** de DOAX2 (`isos/DOAX2.iso` vale). En el
+juego se hace con el menú Esc → Extras → «Import DOAX2 swimsuits...»; aquí
+se hacen una vez en el PC y van en el paquete:
+
+1. `games/doa4-linux/doax2-suits.sh` (necesita `games/doa4-linux/build` y
+   sesión gráfica): arranca una copia reflink del build con
+   `--doa4_suits_import_pending=true` y `DOA4_SETUP_TEST="doax2=<disco>"`
+   (interruptor de pruebas del port: elige el disco sin diálogos), espera a
+   «import: result kImported» en el log y cierra el juego. ~40 s. Caché:
+   `games/doa4-linux/work/doax2_suits` (300 MB, 34 `.tpr` + 34 `.cat` +
+   `manifest.txt`) con `.release-tag` = versión de DOA4.
+2. `build.sh` de `doa4` y `doa4-linux` la copian a
+   `build/user_data/doax2_suits` si es de la misma versión de DOA4.
+
+El conversor da los mismos bytes en Windows y Linux, así que vale para las
+dos variantes. `KEEP_EXCLUDE='*.cat *.tpr manifest.txt'`: al reinstalar
+mandan los trajes del paquete (los de color, `colour_costumes`, los rehace
+el juego). Online: los dos jugadores deberían tener la misma importación
+(ver «Known issues» del port). Con una versión nueva de DOA4, volver a
+ejecutar `doax2-suits.sh` y los dos `build.sh`.
+
 ## Linux nativo: `doa4-linux`
 
 Desde la 0.3.8 el código compila como programa nativo de Linux (sección 12 de
