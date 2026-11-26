@@ -12,7 +12,8 @@
 #     game.conf                  id, nombre, ejecutable, Proton, versión, tamaño,
 #                                PC_GAMES (de local.conf: dónde instalar en un PC)
 #                                y PC_PROTON_DPI (de local.conf: DPI de los juegos
-#                                con Proton en un PC; 192 por defecto, 96 = normal)
+#                                con Proton en un PC; 192 por defecto, 96 = normal;
+#                                PROTON_DPI en games/<id>/game.conf manda sobre él)
 #     art/                       imágenes (games/<id>/art, si hay)
 #
 #     README.md                  cómo instalarlo en la Deck (tools/deck/README.md.in)
@@ -123,7 +124,7 @@ package() {
     [[ -f "$game/build/.release-tag" ]] || (( META_ONLY )) \
         || die "$id: no hay build terminado (games/$id/build.sh)"
     [[ -f "$game/game.conf" ]] || die "$id: falta games/$id/game.conf"
-    local NAME EXEC PROTON STEAMGRIDDB SAVES="la carpeta del juego" KEEP="" KEEP_EXCLUDE=""
+    local NAME EXEC PROTON STEAMGRIDDB SAVES="la carpeta del juego" KEEP="" KEEP_EXCLUDE="" PROTON_DPI=""
     # shellcheck source=/dev/null
     source "$game/game.conf"
     local version out size_kb
@@ -161,7 +162,7 @@ package() {
         echo "# Generado por tools/package.sh"
         printf 'ID=%q\nNAME=%q\nEXEC=%q\nPROTON=%q\nVERSION=%q\nSIZE_KB=%q\nPC_GAMES=%q\nKEEP=%q\nKEEP_EXCLUDE=%q\nPC_PROTON_DPI=%q\n' \
             "$id" "$NAME" "$EXEC" "${PROTON:-0}" "$version" "$size_kb" "${PC_GAMES:-}" "$KEEP" "$KEEP_EXCLUDE" \
-            "${PC_PROTON_DPI:-192}"
+            "${PROTON_DPI:-${PC_PROTON_DPI:-192}}"
     } > "$out/game.conf"
     install -m 755 "$ROOT/tools/deck/instalar.sh" "$out/instalar.sh"
     install -m 755 "$ROOT/tools/deck/steam-art.py" "$out/steam-art.py"

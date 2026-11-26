@@ -509,6 +509,10 @@ gastar espacio.
    (`DOA4_SETUP_TEST=doax2=…`, interruptor de pruebas del port, y
    `--doa4_suits_import_pending=true`): 34 trajes, 300 MB, ~40 s. Los
    `build.sh` de doa4 y doa4-linux los copian a `user_data/doax2_suits`.
+8. **DOAX2 (Proton) se veía mal con 192 DPI** (aviso del usuario).
+   `PROTON_DPI` en `games/<id>/game.conf` manda sobre `PC_PROTON_DPI` de
+   `local.conf`; doax2 lleva 96. En el PC: `.proton-dpi` = 96 y el prefijo
+   puesto a 96 con Steam cerrado.
 
 ### Pendiente
 
