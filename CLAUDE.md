@@ -640,7 +640,8 @@ gastar espacio.
     paquete de las 02:50, anterior al arreglo (mismo cuelgue: «tick
     timeout» en el log, y un `xenia_memory_*` de 4,8 GB en `/dev/shm`,
     borrado). Reempaquetados doax2-linux y doa4-linux; doax2-linux
-    reinstalado en la Deck por red (partidas copiadas; `.old` sin borrar).
+    y doa4-linux reinstalados en la Deck por red (partidas copiadas;
+    `.old` sin borrar).
 14. DOA1U en Linux (petición del usuario): **no viable por ahora**. El
     recompilador (TGP482/XboxXBE-Recomp) es solo Windows: D3D12, XAudio2,
     kernel de la Xbox sobre Win32 y el código del juego compilado en el
