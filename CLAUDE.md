@@ -690,8 +690,7 @@ gastar espacio.
     binario listo, build ~20 s (1,4 GB), paquete 915 MB; probado desde otra
     ruta (`--play`: Vulkan, ~57 FPS, disco de la nueva ruta; capturas del
     launcher: disco verificado) e instalador con HOME falso (reinstalar
-    conserva `user/`). Imágenes: candidatas bajadas, falta que elija el
-    usuario.
+    conserva `user/`). Imágenes elegidas por el usuario.
 
 ### Pendiente
 
