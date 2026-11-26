@@ -502,6 +502,8 @@ gastar espacio.
    preset del port pide clang 20; Windows usa el clang de VS). La imagen
    `rexglue-build` trae ahora también clang 20 y `doax2-linux/build.sh` lo
    usa (`DOAX2_CLANG`; con otro compilador borra las carpetas de CMake).
+   **Con clang 20 se cuelga igual**, y también a 30 FPS. Se queda clang 20
+   (el del port).
 7. **Bañadores de DOAX2 en los paquetes de DOA4** (petición del usuario):
    `games/doa4-linux/doax2-suits.sh` los genera con el propio juego
    (`DOA4_SETUP_TEST=doax2=…`, interruptor de pruebas del port, y
@@ -535,8 +537,8 @@ gastar espacio.
 - [x] Imágenes de vrdeluxe y soulcalibur elegidas por el usuario.
 - [ ] doa4-linux: probarlo en la Deck (¿se congela al arrancar con 8
       hilos?) y, si va bien, decidir si sustituye a la de Proton.
-- [ ] doax2-linux: se cuelga al pulsar Start (ver 2026-11-26, punto 6).
-      Probar `doax2` (Proton) en el PC para saber si es cosa de Linux.
+- [ ] doax2-linux: se cuelga al pulsar Start (ver 2026-11-26, punto 6);
+      `doax2` (Proton) va bien. Sin arreglo.
 - [ ] doax2: elegir imágenes (`tools/fetch-art.sh` bajó candidatas) y
       probar las dos versiones jugando (en el PC y en la Deck).
 - [ ] DOA4: quitar el arreglo del puerto 1000 cuando salga la 0.3.8 (ya se

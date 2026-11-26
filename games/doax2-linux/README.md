@@ -92,8 +92,12 @@ p. ej. `DOAX2_FPS=30 %command%`.
   de fibra (`SwitchToFiber`, `swapcontext`) y dos hilos del juego siguen
   ocupados. Descartado: la afinidad de los hilos (repartir los 6 núcleos de
   la 360 entre las 4 CPU no lo cambia) y el parche del port (no toca las
-  fibras de Linux). Por probar: si a `doax2` (Proton) le pasa lo mismo
-  (incidencia #18 del port: «crashes at press start screen», en Windows).
+  fibras de Linux), el compilador (igual con clang 20 que con clang 23)
+  y el modo de 60 FPS (igual con `DOAX2_FPS=30`). Tampoco son las opciones:
+  son las del lanzador de Windows salvo las de D3D12. **A `doax2` (Proton)
+  no le pasa** en el mismo PC, así que es algo del build de Linux (SDK o
+  código del port fuera de `#if defined(_WIN32)`, que solo está en
+  `src/doax2_60fps.cpp` y no toca esto). Sin arreglo: usar `doax2`.
 
 ## Imagen Ubuntu 24.04 (contenedor de build)
 
