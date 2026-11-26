@@ -63,6 +63,29 @@ este PC) y la página del juego del launcher («disc image, verified»).
   Mejor no: la versión buena es la del paquete; para cambiar de versión,
   `./update.sh` y reempaquetar.
 
+## Rendimiento (2026-11-26)
+
+En los **combates no llega a 60 FPS** en la Deck LCD: 51-58 FPS, con
+fotogramas de hasta ~27 ms; menús y pantalla de título, 60 FPS. Es del
+port, no del paquete: lo limita **la CPU**, en un solo hilo (todos los
+hilos de la Xbox corren en uno del sistema, al 99 %), con la GPU casi
+parada. Da igual la resolución (1x y 2x dan los mismos números). En el PC
+(i5-6500) el mismo combate va peor (18-55 FPS). Incidencia de upstream:
+https://github.com/tmcleroy/soulcalibur2-recomp/issues/78 (abierta; otro
+usuario lo cuenta igual en la Deck).
+
+Cómo se midió (sirve para comparar versiones nuevas):
+`RECOMP_PERF_COUNTER=1` escribe cada segundo en el log
+`recomp performance: … fps=… max_ms=…`. Con `--skip-intro --quick-match
+0:0:1:0` (P1:traje:P2:traje[:escenario]) la primera demo del título, ~30 s
+tras arrancar y sin tocar nada, es un combate de esos dos (escenario 8), y
+el log marca `recomp sc2: quick match …` al empezar. **Ojo:** sin
+`--skip-intro`, lo que se ve al principio es el vídeo de la intro, que no
+sirve para medir. Las líneas `vblank miss` dicen qué hilo de la Xbox se
+pasó del fotograma (`bee10014=…` ms). Desde SSH, en el modo Juego:
+`DISPLAY=:0 XDG_RUNTIME_DIR=/run/user/1000` y `--settings`/`--storage` a
+una carpeta temporal para no tocar las partidas.
+
 ## Imagen Ubuntu 24.04 (contenedor de build)
 
 No la usa: el build solo copia archivos.

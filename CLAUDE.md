@@ -703,6 +703,13 @@ gastar espacio.
     código generado «match»), probado desde otra ruta (OpenGL, sin
     preguntas) e instalador con HOME falso (conserva `portable/`).
     Imágenes elegidas por el usuario.
+18. **Soulcalibur II no va fluido en la Deck** (aviso del usuario).
+    Medido con `RECOMP_PERF_COUNTER=1 --skip-intro --quick-match 0:0:1:0`
+    (combate de la demo): 51-58 FPS en combate, 60 en menús, limitado por
+    la CPU en un hilo; igual a 1x que a 2x; en el PC, peor. Es la
+    incidencia #78 de upstream (abierta). Mi primera medida fue sobre el
+    vídeo de la intro (me avisó el usuario): sin `--skip-intro` no vale.
+    Método en `games/soulcalibur2/README.md`, *Rendimiento*.
 
 ### Pendiente
 
