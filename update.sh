@@ -139,13 +139,18 @@ extract() {
     local archive="$1" dest="$2" tmp
     tmp="$(mktemp -d "$ROOT/.extract.XXXXXX")"
     case "$archive" in
-        *.zip)            unzip -q "$archive" -d "$tmp" ;;
+        # unzip sale con 1 si solo hay avisos (p. ej. doax2: rutas con «\\»,
+        # que convierte en «/»): el archivo se ha descomprimido entero.
+        *.zip)            unzip -q "$archive" -d "$tmp" || [[ $? -eq 1 ]] ;;
         *.tar.gz|*.tgz)   tar -xzf "$archive" -C "$tmp" ;;
         *.tar.xz)         tar -xJf "$archive" -C "$tmp" ;;
         *.tar.zst)        tar --zstd -xf "$archive" -C "$tmp" ;;
         *.7z)             7z x -y -o"$tmp" "$archive" >/dev/null ;;
         *) echo "  Formato no soportado: $archive" >&2; rm -rf "$tmp"; return 1 ;;
     esac
+    # Zips hechos en Windows pueden traer carpetas sin permiso de lectura
+    # (doax2: out/game).
+    chmod -R u+rwX "$tmp"
     local entries=("$tmp"/* "$tmp"/.[!.]*)
     local real=()
     for e in "${entries[@]}"; do [[ -e "$e" ]] && real+=("$e"); done

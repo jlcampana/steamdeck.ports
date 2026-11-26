@@ -80,7 +80,7 @@ recompilar todo.
 
 ## Imagen Ubuntu 24.04 (contenedor de build)
 
-`games/doa4-linux/Dockerfile` hace `FROM steamdeck-ports/ubuntu-build:24.04`
+`games/doa4-linux/Dockerfile` (enlace a `tools/docker/rexglue-build.Dockerfile`, compartido con doax2-linux) hace `FROM steamdeck-ports/ubuntu-build:24.04`
 y añade clang 23 (de apt.llvm.org, con su `llvm.sh`), `libstdc++-14-dev`
 (`<print>`), GTK 3, x11-xcb, ibus, drm/gbm y `glslc`/`glslang-tools`.
 `run_in_container` (`tools/lib.sh`) construye las dos imágenes.

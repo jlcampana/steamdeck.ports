@@ -27,7 +27,8 @@ juegos de Xbox/Xbox 360:
 - Idioma: español en docs, mensajes de scripts y commits.
 - Ids de juego (carpeta `games/<id>`): `doaxtreme`, `doa3`, `doa2u`, `doa1u`,
   `castlevania-son`, `doa4`, `drakengard3`, `vf3tb`, `urban-reign`,
-  `soulcalibur`, `doa4-linux` (`vrdeluxe` se quitó el 2026-11-26).
+  `soulcalibur`, `doa4-linux`, `doax2`, `doax2-linux` (`vrdeluxe` se
+  quitó el 2026-11-26).
 - Nunca subir archivos de juego: `isos/`, `latest/`, `ports.db`,
   `games/*/latest/`, `games/*/build/` están en `.gitignore`.
 - Los assets de Castlevania SON los extrae el usuario a mano en
@@ -101,6 +102,19 @@ proyecto [`.claude/skills/add-game/SKILL.md`](.claude/skills/add-game/SKILL.md):
   con menos de 6 procesadores lógicos el SDK no fija la afinidad de los
   hilos y **se congela a veces al arrancar** (este PC, 4: 2 de 5; con 2
   núcleos, siempre). La Deck tiene 8.
+- **DOAX2** (`doax2`, Proton): la release de Windows con su lanzador Win32
+  (arranca `out/game/doax2.exe` con ~50 opciones y rutas relativas). El zip
+  trae rutas con `\` y `out/game` sin permiso de lectura (`update.sh`:
+  acepta el 1 de `unzip` y hace `chmod`). `isos/DOAX2.iso` mide lo mismo
+  que la de DOA4 y sus primeros 100 MB coinciden (partición de vídeo
+  común de los discos de 360), pero es DOAX2 (SHA-256 del xex comprobado).
+- **doax2-linux**: DOAX2 nativo, compilado aquí del `-source.zip` de la
+  release (no hay versión ni guía de Linux; el código sí es portable). SDK
+  rexglue v0.10.0 en el commit del submódulo (API de GitHub) + el parche del
+  proyecto; `rexglue codegen` genera el código desde el xex (no va en la
+  release). Sin lanzador: `steamdeck.sh` lleva sus opciones
+  (`games/doax2-linux/launch-options.sh`, Vulkan, 60 FPS, variables
+  `DOAX2_*`). El zip trae `game/README.md`: ojo al copiar el juego.
 - **Drakengard 3** (PS3, `drakengard3`): binario Linux listo (SDL2 del
   sistema, Vulkan 1.3). Solo prereleases. Pide la ISO USA **descifrada**
   (`isos/Drakengard3.iso`: su `EBOOT.BIN` coincide con el SHA-256 de
@@ -457,6 +471,21 @@ gastar espacio.
    `games/vrdeluxe`, `ports.tsv` y `ports.md`). Fuera también de las tablas
    del README.
 
+2. **doa4-linux en el Steam del PC** (petición del usuario): Steam cerrado
+   con `-shutdown`, `instalar.sh` del paquete (a `PC_GAMES`, con
+   imágenes) y Steam abierto otra vez.
+3. **Incidencia en doa4-online** (petición del usuario, en su nombre):
+   https://github.com/dwreckgg/doa4-online/issues/26 (congelación al
+   arrancar con menos de 6 procesadores lógicos).
+4. `/add-game` **DOAX2** (`ports.md`) y versión Linux (petición del
+   usuario). `doax2` (Proton, con su lanzador): 40 s, 6,3 GB, paquete
+   2,9 GB; sin probar en Proton. `doax2-linux`: compilado aquí (~18 min:
+   SDK, codegen y juego), 4 arranques a 60 FPS hasta el título, paquete
+   2,9 GB. `update.sh`: acepta el 1 de `unzip` (avisos) y hace `chmod -R
+   u+rwX` al descomprimir. El Dockerfile de clang 23 pasa a
+   `tools/docker/rexglue-build.Dockerfile` (enlazado desde cada juego).
+   Imágenes: las más votadas (a elegir por el usuario).
+
 ### Pendiente
 
 - [x] `tools/install.sh`.
@@ -484,5 +513,7 @@ gastar espacio.
 - [x] Imágenes de vrdeluxe y soulcalibur elegidas por el usuario.
 - [ ] doa4-linux: probarlo en la Deck (¿se congela al arrancar con 8
       hilos?) y, si va bien, decidir si sustituye a la de Proton.
+- [ ] doax2: elegir imágenes (`tools/fetch-art.sh` bajó candidatas) y
+      probar las dos versiones jugando (en el PC y en la Deck).
 - [ ] DOA4: quitar el arreglo del puerto 1000 cuando salga la 0.3.8 (ya se
       salta solo por versión; probar en la Deck).

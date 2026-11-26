@@ -19,6 +19,7 @@ disponibles). Usa como referencia el `build.sh` existente más parecido:
 | Binario Linux listo + paquetes STFS de Xbox 360 | `games/castlevania-son/build.sh` |
 | Solo Windows (Proton) + ISO extraída en `assets/` | `games/doa1u/build.sh` |
 | Solo Windows (Proton) + ISO de Xbox 360 + rutas en un `.toml` al instalar | `games/doa4/build.sh` y `deck-post-install.sh` |
+| Port de ReXGlue solo Windows, pero con código portable: versión Linux compilada aquí (SDK + codegen + juego) | `games/doax2-linux/build.sh` (o `games/doa4-linux/build.sh` si el código generado viene en el repo) |
 
 Todo en español: mensajes de los scripts, docs y commits.
 

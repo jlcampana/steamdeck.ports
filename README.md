@@ -18,6 +18,8 @@ aportan desde copias propias y quedan fuera de git (`isos/`).
 | `castlevania-son`  | Castlevania: Symphony of the Night (XBLA) | [birabittoh/NocturneRecomp](https://github.com/birabittoh/NocturneRecomp/releases) | `nocturnerecomp-<v>-linux-amd64.tar.gz` | Linux nativo (binario) | `isos/Castlevania SON/` (paquetes STFS) |
 | `doa4`             | Dead or Alive 4 Online | [dwreckgg/doa4-online](https://github.com/dwreckgg/doa4-online/releases) | `DOA4-alpha-v<v>-win64.zip` (solo prereleases) | Windows → **Proton** (+ arreglo del puerto 1000 hasta 0.3.7) | `isos/DOA4.iso` |
 | `doa4-linux`       | Dead or Alive 4 Online (Linux nativo) | [dwreckgg/doa4-online](https://github.com/dwreckgg/doa4-online/releases) | código fuente de la última release (`@source`) | Linux nativo **compilado aquí** (clang 23, ~40 min); online solo con este mismo build | `isos/DOA4.iso` (o el `game/` de doa4) |
+| `doax2`            | Dead or Alive Xtreme 2 Recomp | [hibikifukui22/Dead-or-Alive-Xtreme-2-Recompilation](https://github.com/hibikifukui22/Dead-or-Alive-Xtreme-2-Recompilation/releases) | `DOAX2-Recomp-v<v>-win64.zip` | Windows → **Proton** (con su lanzador) | `isos/DOAX2.iso` |
+| `doax2-linux`      | Dead or Alive Xtreme 2 Recomp (Linux nativo) | [hibikifukui22/Dead-or-Alive-Xtreme-2-Recompilation](https://github.com/hibikifukui22/Dead-or-Alive-Xtreme-2-Recompilation/releases) | `DOAX2-Recomp-v<v>-source.zip` | Linux nativo **compilado aquí** (SDK + codegen + juego, ~18 min; sin lanzador) | `isos/DOAX2.iso` (o el juego de doax2) |
 | `drakengard3`      | Drakengard 3 (PS3) | [soyjxck/dod3-recomp](https://github.com/soyjxck/dod3-recomp/releases) | `dod3-recomp-<v>-linux-x86_64.tar.gz` (solo prereleases) | Linux nativo (binario; instala el juego en el PC) | `isos/Drakengard3.iso` (descifrada) + update 1.01 `.pkg` |
 | `vf3tb`            | Virtua Fighter 3 Team Battle (arcade Model 3) | [mr-finster/vf3-recomp](https://github.com/mr-finster/vf3-recomp/releases) | `VirtuaFighter3Recomp-deck.tar.gz` (**versión para Steam Deck**) | Linux nativo (binario) | `isos/VF33tb.zip` (set de MAME vf3tb completo) |
 | `urban-reign`      | Urban Reign (PS2) | [thiagordsfx/urban-reign-recomp](https://github.com/thiagordsfx/urban-reign-recomp/releases) | `UrbanReignPC-<v>-linux-x86_64.tar.gz` | Linux nativo (binario) | `isos/UrbanReign.chd` (→ `.iso`) |
@@ -219,6 +221,8 @@ games/doa3/build.sh -f         # build limpio
 | castlevania-son | descarga `scripts/extract_game.py` del mismo tag, instala World y Japón en `assets/`, crea `portable.txt` | segundos | ~300 MB |
 | doa4 | extrae `isos/DOA4.iso` en `game/` y comprueba `SHA256SUMS.txt` | ~45 s | 6,8 GB |
 | doa4-linux | compila el código y el SDK (podman, clang 23, `-j 2`) y copia `game/` de doa4 | ~40 min (1.ª vez) | 6,8 GB |
+| doax2 | extrae `isos/DOAX2.iso` en `extracted game files here/` | ~40 s | 6,3 GB |
+| doax2-linux | compila SDK parcheado, genera el código del xex y compila el juego (podman, clang 23) | ~18 min (1.ª vez) | 6,3 GB |
 | doa1u | extrae `isos/DOA2U.iso` en `assets/` con extract-xiso | ~20 s | ~4,3 GB |
 | doa3 | compila en Ubuntu 24.04 (podman) | ~6-9 min | 4,4 GB |
 | doaxtreme | compila en Ubuntu 24.04 (podman) | ~6-7 min | 4,4 GB |
@@ -233,7 +237,7 @@ Casi todo el tamaño de los DOA es el disco extraído (`private/`).
 ### `build/steamdeck.sh`: punto de entrada común en la Deck
 
 Todos los juegos Linux (doa3, doa2u, doaxtreme, castlevania-son,
-drakengard3, vf3tb, urban-reign, soulcalibur, doa4-linux) tienen `build/steamdeck.sh`, así que en la
+drakengard3, vf3tb, urban-reign, soulcalibur, doa4-linux, doax2-linux) tienen `build/steamdeck.sh`, así que en la
 Deck se añaden a Steam igual. En los binarios listos solo lanza el ejecutable
 desde su carpeta (`write_steamdeck_launcher <ejecutable> [args…]`; p. ej.
 `urban-reign --game`). En los DOA hace además esto:

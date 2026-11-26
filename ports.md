@@ -59,3 +59,9 @@
 - Nombre: SoulCalibur
 - Releases: https://github.com/enrique363/voldorium/releases
 - SteamGridDB: https://www.steamgriddb.com/game/35327
+
+## Dead or Alive Xtreme 2
+
+- Nombre: DOAX2
+- Releases: https://github.com/hibikifukui22/Dead-or-Alive-Xtreme-2-Recompilation/releases
+- StreamGridDB: https://www.steamgriddb.com/game/5274802
