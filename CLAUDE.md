@@ -485,6 +485,10 @@ gastar espacio.
    u+rwX` al descomprimir. El Dockerfile de clang 23 pasa a
    `tools/docker/rexglue-build.Dockerfile` (enlazado desde cada juego).
    Imágenes: las más votadas (a elegir por el usuario).
+5. **DOAX2 en el Steam del PC** (petición del usuario): las dos variantes,
+   `doax2` (Proton, GE-Proton más reciente) y `doax2-linux`, instaladas en
+   `PC_GAMES` con imágenes (Steam cerrado con `-shutdown` y abierto otra
+   vez).
 
 ### Pendiente
 
