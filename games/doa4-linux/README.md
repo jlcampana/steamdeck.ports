@@ -81,7 +81,7 @@ ver [doa4](../doa4/README.md#bañadores-de-doax2).
   processor cores - scheduling will be wonky»); este PC tiene 4. La Deck
   tiene 8, como los equipos donde upstream lo probó sin problemas (también
   una Deck). La versión de Windows con Proton no se congela en este PC.
-  Falta probarlo en la Deck.
+- **En la Deck funciona bien** (prueba del usuario, 2026-11-26).
 
 ## Imagen Ubuntu 24.04 (contenedor de build)
 

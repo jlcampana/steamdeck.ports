@@ -104,7 +104,7 @@ proyecto [`.claude/skills/add-game/SKILL.md`](.claude/skills/add-game/SKILL.md):
   `-j 2`). Se identifica como `dev`: online solo con el mismo build. En PCs
   con menos de 6 procesadores lógicos el SDK no fija la afinidad de los
   hilos y **se congela a veces al arrancar** (este PC, 4: 2 de 5; con 2
-  núcleos, siempre). La Deck tiene 8.
+  núcleos, siempre). La Deck tiene 8 y allí va bien (prueba del usuario).
 - **DOAX2** (`doax2`, Proton): la release de Windows con su lanzador Win32
   (arranca `out/game/doax2.exe` con ~50 opciones y rutas relativas). El zip
   trae rutas con `\` y `out/game` sin permiso de lectura (`update.sh`:
@@ -646,8 +646,8 @@ gastar espacio.
       luego `games/doa3/build.sh` + `tools/package.sh doa3`. La europea ya
       no lleva trajes (decisión del usuario).
 - [x] Imágenes de vrdeluxe y soulcalibur elegidas por el usuario.
-- [ ] doa4-linux: probarlo en la Deck (¿se congela al arrancar con 8
-      hilos?) y, si va bien, decidir si sustituye a la de Proton.
+- [x] doa4-linux: probado en la Deck, funciona bien (prueba del usuario,
+      2026-11-26). Falta decidir si sustituye a la de Proton.
 - [x] doax2-linux: se colgaba al pulsar Start. Arreglado con un parche del
       SDK (2026-11-26, punto 9). Falta jugar más allá de la primera
       pantalla, reempaquetar e instalar.
