@@ -30,8 +30,8 @@ juegos de Xbox/Xbox 360:
 - Idioma: español en docs, mensajes de scripts y commits.
 - Ids de juego (carpeta `games/<id>`): `doaxtreme`, `doa3`, `doa2u`, `doa1u`,
   `castlevania-son`, `doa4`, `drakengard3`, `vf3tb`, `urban-reign`,
-  `soulcalibur`, `doa4-linux`, `doax2`, `doax2-linux`, `soulcalibur2`
-  (`vrdeluxe` se quitó el 2026-11-26).
+  `soulcalibur`, `doa4-linux`, `doax2`, `doax2-linux`, `soulcalibur2`,
+  `jsrf` (`vrdeluxe` se quitó el 2026-11-26).
 - Nunca subir archivos de juego: `isos/`, `latest/`, `ports.db`,
   `games/*/latest/`, `games/*/build/` están en `.gitignore`.
 - Los assets de Castlevania SON los extrae el usuario a mano en
@@ -178,6 +178,14 @@ proyecto [`.claude/skills/add-game/SKILL.md`](.claude/skills/add-game/SKILL.md):
   launcher (y crea `~/.local/share/Soulcalibur II` si no hay
   `portable.txt`). `--screenshot <prefijo> --size WxH` saca una captura de
   cada página sin ventana.
+- **Jet Set Radio Future** (Xbox, `jsrf`, JSRF-PC): la release no trae el
+  motor; se compila del `default.xbe` con `kit/build_engine.py` y el
+  archivo `JSRF-PC-tools-linux-x86_64.tar.gz` del mismo tag (Python,
+  capstone y Zig propios; sin contenedor), guardado en
+  `latest/jsrf/tools-<tag>.tar.gz`. `kit/expected.txt` trae los SHA-256 del
+  motor y del código generado; con `isos/JSRF.iso` salen los dos «match».
+  Modo portable (`portable/`); en `portable/settings.cfg`, `game_dir=game`
+  (relativa) evita el selector de zenity. `JSRF_GAME_DIR` **no** lo evita.
 
 ## Entorno del PC de build
 
@@ -691,6 +699,10 @@ gastar espacio.
     ruta (`--play`: Vulkan, ~57 FPS, disco de la nueva ruta; capturas del
     launcher: disco verificado) e instalador con HOME falso (reinstalar
     conserva `user/`). Imágenes elegidas por el usuario.
+    jsrf: motor compilado aquí (~6 min, 2,4 GB, paquete 1,6 GB; motor y
+    código generado «match»), probado desde otra ruta (OpenGL, sin
+    preguntas) e instalador con HOME falso (conserva `portable/`).
+    Imágenes elegidas por el usuario.
 
 ### Pendiente
 
