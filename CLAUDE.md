@@ -170,8 +170,12 @@ gastar espacio.
   (`ssh-copy-id deck@<ip>` una vez; hace falta que el usuario active `sshd` y
   ponga contraseña con `passwd` en la Deck). Sin contraseña de `sudo`: lo que
   sea de root (p. ej. plugins de Decky) lo hace el usuario.
-- **Steam tiene que estar abierto** para `steamos-add-to-steam` (desde SSH,
-  sin Steam: «Cannot run this script from a tty if Steam is not running»).
+- **`steamos-add-to-steam`** manda `steam://addnonsteamgame/…`: con Steam
+  cerrado, en una sesión gráfica **abre Steam** y no vuelve hasta que se
+  cierra; desde SSH (`XDG_SESSION_TYPE=tty`) se niega («Cannot run this
+  script from a tty if Steam is not running»). Por eso `instalar.sh` solo lo
+  usa con Steam abierto y, si no, escribe `shortcuts.vdf`. Para simular la
+  sesión gráfica desde SSH: `XDG_SESSION_TYPE=x11` y las variables de abajo.
   En el modo escritorio se abre desde SSH con
   `DISPLAY=:0 XDG_RUNTIME_DIR=/run/user/1000 DBUS_SESSION_BUS_ADDRESS=unix:path=/run/user/1000/bus systemd-run --user --collect steam`,
   y los comandos que lo usan llevan esas mismas variables.
@@ -582,6 +586,22 @@ gastar espacio.
      Steam abierto añade el acceso y las imágenes bien.
    - mDNS: la Deck ve el PC por las dos redes (`enp4s0f3u1u4c2`, cable, y
      `wlan0`); el cliente elige el cable.
+10. **Instalar con Steam cerrado en la Deck** (aviso del usuario: al
+    instalar doa4-linux por red, la terminal se llenó de mensajes). Con
+    Steam cerrado, `steamos-add-to-steam` lo abrió para el enlace
+    `steam://addnonsteamgame/…`, Steam quedó colgado de la terminal del
+    instalador y este esperaba a que se cerrara (el juego sí se añadió;
+    faltaban las imágenes, puestas a mano). Primer intento: lanzarlo
+    aparte (`setsid`) y esperar 120 s; Steam no guardaba el acceso a tiempo
+    y acababa cerrándose, descartado. **Ahora**, con Steam cerrado,
+    `instalar.sh` escribe `shortcuts.vdf` (`steam-art.py add`, como en un
+    PC; con `--proton` en los de Windows) y no abre Steam. Probado con
+    vf3tb (4 s, Steam sigue cerrado, acceso + 4 imágenes). El appid es
+    distinto del que da `steamos-add-to-steam` (que no es el CRC de
+    `exe+nombre`): al cambiar de uno a otro quedan imágenes huérfanas en
+    `grid/`. Sin probar en la Deck: un juego de Proton por esta vía (elige
+    el GE-Proton más reciente de `compatibilitytools.d` o
+    `proton_experimental`).
 9. **Arreglado el cuelgue de doax2-linux al pulsar Start** (el usuario lo
    dejó investigando). Se reprodujo sin nadie delante con un mando virtual
    (`uinput`). Se lanzó `doax2.exe` con Proton sin el lanzador para comparar

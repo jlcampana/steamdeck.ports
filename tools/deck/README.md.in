@@ -49,8 +49,9 @@ de steamdeck.ports, sección *Por red*).
 - Comprueba que cabe en el destino.
 - Descomprime el juego en `<destino>/@ID@`.
 - Crea `<destino>/@ID@/@ID@.desktop`, que lanza `@EXEC@`, y lo añade a
-  Steam con `steamos-add-to-steam`. Si ya había un acceso directo a esa
-  carpeta, no crea otro.
+  Steam: con Steam abierto, con `steamos-add-to-steam`; con Steam cerrado,
+  lo escribe en su lista de juegos sin abrirlo (aparece al abrir Steam). Si
+  ya había un acceso directo a esa carpeta, no crea otro.
 @POST_INSTALL@- Copia las imágenes a la ficha de Steam
   (`~/.local/share/Steam/userdata/<usuario>/config/grid/`).
 

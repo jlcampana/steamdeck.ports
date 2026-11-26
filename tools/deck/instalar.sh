@@ -15,9 +15,10 @@
 #    game.conf: rutas o patrones relativos a la carpeta del juego; en las
 #    carpetas se salta KEEP_EXCLUDE). El .old queda como copia de seguridad.
 # 3. Crea <base>/<id>/<id>.desktop y lo añade a Steam (si no estaba ya):
-#    en la Deck con steamos-add-to-steam; en un PC, escribiendo shortcuts.vdf
-#    (con Steam cerrado) y, si el juego es de Windows, con el Proton más
-#    reciente ya elegido. En un PC, los juegos Linux van también al menú de
+#    en la Deck con Steam abierto, con steamos-add-to-steam; si no (Deck con
+#    Steam cerrado o PC), escribiendo shortcuts.vdf (con Steam cerrado; en
+#    la Deck no se abre Steam) y, si el juego es de Windows, con el Proton
+#    más reciente ya elegido. En un PC, los juegos Linux van también al menú de
 #    aplicaciones, y los de Windows arrancan con .proton-dpi.sh, que pone en
 #    su prefijo de Proton los DPI de PC_PROTON_DPI (game.conf, 192 = doble;
 #    0 = no tocar): si no, menús como el de DOA4 salen diminutos.
@@ -272,6 +273,12 @@ flatpak_sees() {
 
 ART_PY=(python3 -I "$DEST/.steam-art.py")
 ADDED_PROTON=0
+# Para escribir el acceso en shortcuts.vdf (steam-art.py add): en un PC
+# siempre, y en la Deck cuando Steam está cerrado.
+add_args=(add "$DEST/$EXEC" "$NAME")
+[[ -n "$ICON" ]] && add_args+=(--icon "$ICON")
+[[ "$PROTON" == 1 ]] && add_args+=(--proton)
+(( PROTON_DPI )) && add_args+=(--launch-options "\"$DEST/.proton-dpi.sh\" %command%")
 if "${ART_PY[@]}" find "$DEST" >/dev/null 2>&1; then
     say "Ya estaba en Steam (misma carpeta): no se añade otra vez."
     # Accesos de antes de .proton-dpi.sh: los DPI, directamente en el prefijo.
@@ -281,10 +288,6 @@ if "${ART_PY[@]}" find "$DEST" >/dev/null 2>&1; then
     fi
 elif (( ! ON_DECK )); then
     # PC: shortcuts.vdf a mano. Steam lo reescribe al salir, así que tiene que estar cerrado.
-    add_args=(add "$DEST/$EXEC" "$NAME")
-    [[ -n "$ICON" ]] && add_args+=(--icon "$ICON")
-    [[ "$PROTON" == 1 ]] && add_args+=(--proton)
-    (( PROTON_DPI )) && add_args+=(--launch-options "\"$DEST/.proton-dpi.sh\" %command%")
     while pgrep -x steam >/dev/null; do
         warn "Steam está abierto. Para añadir el juego hay que cerrarlo (Steam → Salir)."
         read -rp "Ciérralo y pulsa Enter (o escribe «n» para no añadirlo a Steam): " a || a=n
@@ -309,7 +312,8 @@ elif (( ! ON_DECK )); then
         cp "$DESKTOP" "$apps/steamdeck-ports-$ID.desktop"
         say "Añadido al menú de aplicaciones."
     fi
-elif command -v steamos-add-to-steam >/dev/null; then
+elif pgrep -x steam >/dev/null; then
+    # Deck con Steam abierto: steamos-add-to-steam («steam steam://addnonsteamgame/…»).
     say "Añadiendo «$NAME» a Steam…"
     steamos-add-to-steam "$DESKTOP" || warn "steamos-add-to-steam ha fallado"
     # Steam escribe shortcuts.vdf al cabo de unos segundos.
@@ -318,7 +322,15 @@ elif command -v steamos-add-to-steam >/dev/null; then
         sleep 1
     done
 else
-    warn "No es SteamOS (no hay steamos-add-to-steam): añade $DESKTOP a Steam a mano."
+    # Deck con Steam cerrado: steamos-add-to-steam abriría Steam y no volvería
+    # hasta que se cerrara (el instalador se quedaba parado con los mensajes de
+    # Steam en su terminal). Se escribe shortcuts.vdf como en un PC.
+    if "${ART_PY[@]}" "${add_args[@]}"; then
+        say "Añadido «$NAME» a Steam: aparecerá al abrirlo."
+        [[ "$PROTON" == 1 ]] && ADDED_PROTON=1
+    else
+        warn "No se ha podido añadir a Steam. Luego, con Steam cerrado: python3 \"$DEST/.steam-art.py\" ${add_args[*]@Q}"
+    fi
 fi
 
 # --- 4. Imágenes ------------------------------------------------------------

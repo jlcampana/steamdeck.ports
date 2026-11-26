@@ -311,8 +311,12 @@ una terminal y el instalador:
    `build/`.
 3. Descomprime en `<base>/<id>` y crea `<id>.desktop` (nombre, ejecutable e
    icono `art/icon.*`).
-4. Lo añade a Steam con `steamos-add-to-steam <id>.desktop`, salvo que ya haya
-   un acceso directo a esa carpeta (al reinstalar no se duplica).
+4. Lo añade a Steam, salvo que ya haya un acceso directo a esa carpeta (al
+   reinstalar no se duplica). Con Steam abierto, con
+   `steamos-add-to-steam <id>.desktop`. Con Steam cerrado, escribiendo
+   `shortcuts.vdf` (`steam-art.py add`, como en un PC; aparece al abrir
+   Steam): `steamos-add-to-steam` abriría Steam y no volvería hasta que se
+   cerrara, y el instalador se quedaba parado con los mensajes de Steam.
 5. Busca el appid del acceso en `userdata/*/config/shortcuts.vdf` y copia las
    imágenes a `config/grid/`: `cover` → `<appid>p`, `header` → `<appid>`,
    `hero` → `<appid>_hero`, `logo` → `<appid>_logo`.
