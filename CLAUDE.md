@@ -31,7 +31,7 @@ juegos de Xbox/Xbox 360:
 - Ids de juego (carpeta `games/<id>`): `doaxtreme`, `doa3`, `doa2u`, `doa1u`,
   `castlevania-son`, `doa4`, `drakengard3`, `vf3tb`, `urban-reign`,
   `soulcalibur`, `doa4-linux`, `doax2`, `doax2-linux`, `soulcalibur2`,
-  `jsrf` (`vrdeluxe` se quitó el 2026-11-26).
+  `jsrf`, `hyrule-warriors` (`vrdeluxe` se quitó el 2026-11-26).
 - Nunca subir archivos de juego: `isos/`, `latest/`, `ports.db`,
   `games/*/latest/`, `games/*/build/` están en `.gitignore`.
 - Los assets de Castlevania SON los extrae el usuario a mano en
@@ -186,6 +186,18 @@ proyecto [`.claude/skills/add-game/SKILL.md`](.claude/skills/add-game/SKILL.md):
   motor y del código generado; con `isos/JSRF.iso` salen los dos «match».
   Modo portable (`portable/`); en `portable/settings.cfg`, `game_dir=game`
   (relativa) evita el selector de zenity. `JSRF_GAME_DIR` **no** lo evita.
+- **Hyrule Warriors DE** (Switch, `hyrule-warriors`, HWDER): la release de
+  Linux es el Setup del port, sin el juego compilado. `build.sh` ejecuta
+  `tools/linux_setup.py prepare` con `XDG_DATA_HOME=games/hyrule-warriors/work`
+  (herramientas propias: Zig/Clang, CMake, Ninja, Python; sin contenedor).
+  El juego lee **en cada arranque** el `.nsp` base, `prod.keys` (y
+  `title.keys`) y la update descomprimida, así que van en el paquete
+  (`game/base.nsp`, `keys/`, `update/`): **el paquete lleva las claves de la
+  Switch del usuario**. `hwder_settings.ini` guarda rutas absolutas;
+  `deck-launch.sh` las rehace al arrancar (también `save_dir` y
+  `mods_dir`: si no, irían a `~/.local/share/HWDER`). `HWDER_LOG=<archivo>`
+  abre la ventana minimizada (pruebas sin nadie); `skip_prelaunch=1` en el
+  `.ini` se salta la pantalla de inicio.
 
 ## Entorno del PC de build
 
@@ -743,6 +755,18 @@ gastar espacio.
     /tmp/x.png` (con `DISPLAY=:0 XDG_RUNTIME_DIR=/run/user/1000`) captura
     la pantalla de la Deck.
 
+22. `/add-game` con dos juegos pendientes de `ports.md`: **Hyrule Warriors
+    DE** (`hyrule-warriors`) y Lollipop Chainsaw (después). Hyrule: build
+    ~30 min (Setup del port; `work/` 3,6 GB), `build/` 14 GB (casi todo el
+    `.nsp`). Probado desde otra ruta: rutas del `.ini` rehechas, update
+    1.0.1 cargada, Vulkan, menús y vídeo a 60 FPS exactos, `save/` dentro
+    de la carpeta. Imágenes: las más votadas (a elegir por el usuario).
+    Paquete 14 GB (5,5 min); instalador probado con HOME falso (instalar
+    y reinstalar conservando `save/` y el `.ini`) en
+    `/run/media/pandi/Stuff/hw-prueba` (28 GB; la borra el usuario: la
+    comprobación de seguridad no deja). Sin probar en la Deck (el usuario
+    la prueba el 2026-11-27; reiniciar `serve.sh` antes).
+
 ### Pendiente
 
 - [x] `tools/install.sh`.
@@ -778,5 +802,7 @@ gastar espacio.
 - [x] doa4-linux: `shm_unlink` en su SDK (punto 12).
 - [ ] doax2: elegir imágenes (`tools/fetch-art.sh` bajó candidatas) y
       probar las dos versiones jugando (en el PC y en la Deck).
+- [ ] hyrule-warriors: probar en la Deck (instalar por red, mando,
+      rendimiento) y elegir imágenes.
 - [ ] DOA4: quitar el arreglo del puerto 1000 cuando salga la 0.3.8 (ya se
       salta solo por versión; probar en la Deck).

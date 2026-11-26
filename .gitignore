@@ -31,6 +31,7 @@ __pycache__/
 # Paquetes de trajes de DOA3 descargados por pick-costumes.py
 games/doa3/costume-packs/
 
-# Compilación de doa4-linux y doax2-linux (código, SDK y objetos; se conserva entre builds)
+# Compilación de doa4-linux, doax2-linux y hyrule-warriors (código, SDK, herramientas y objetos; se conserva entre builds)
 games/doa4-linux/work/
 games/doax2-linux/work/
+games/hyrule-warriors/work/

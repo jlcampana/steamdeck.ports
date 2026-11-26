@@ -26,6 +26,7 @@ aportan desde copias propias y quedan fuera de git (`isos/`).
 | `soulcalibur`      | SoulCalibur (Dreamcast) | [enrique363/voldorium](https://github.com/enrique363/voldorium/releases) | `Voldorium-<v>-linux.tar.gz` | Linux nativo (binario + `sc_game.so` generado del disco) | `isos/SoulCalibur.chd` (→ `.gdi`) |
 | `soulcalibur2`     | Soulcalibur II (Xbox) | [tmcleroy/soulcalibur2-recomp](https://github.com/tmcleroy/soulcalibur2-recomp/releases) | `Soulcalibur2Recomp-linux-x86_64.tar.gz` | Linux nativo (binario, con su launcher) | `isos/Soulcalibur2.iso` (USA) |
 | `jsrf`             | Jet Set Radio Future (Xbox) | [spriteice/JSRF-PC](https://github.com/spriteice/JSRF-PC/releases) | `JSRF-PC-<v>-linux-x86_64.tar.gz` | Linux nativo (motor **compilado aquí** del disco con sus herramientas, sin contenedor) | `isos/JSRF.iso` (USA suelto) |
+| `hyrule-warriors` | Hyrule Warriors: Definitive Edition (Switch) | [blocker-3/HWDER](https://github.com/blocker-3/HWDER/releases) | `HWDER-linux-x86_64-<v>.tar.gz` | Linux nativo (**compilado aquí** con el Setup del port, sin contenedor) | `isos/HyruleWarriors/` (`.nsp` base + update 1.0.1 + `prod.keys`) |
 
 (*) DOA1U no tiene ISO propia: el disco de DOA2U trae los dos juegos
 (`Doa1.xbe` y `DOA2.xbe` en la raíz, comprobado con `extract-xiso -l`).
@@ -239,13 +240,14 @@ games/doa3/build.sh -f         # build limpio
 | soulcalibur | CHD → `.gdi` (`chdman`) y genera `sc_game.so` desde el disco (podman, Zig) | ~3 min | 1,3 GB |
 | soulcalibur2 | comprueba el `Default.xbe` de `isos/Soulcalibur2.iso`, la copia a `disc/`, crea `portable.txt` | ~20 s | 1,4 GB |
 | jsrf | extrae `isos/JSRF.iso` en `game/` y compila el motor con las herramientas de la release (`kit/build_engine.py`) | ~6 min | 2,4 GB |
+| hyrule-warriors | compila el juego del `.nsp` con el Setup del port (`linux_setup.py prepare`; herramientas en `work/`) y copia `.nsp`, claves y update | ~30 min | 14 GB |
 
 Casi todo el tamaño de los DOA es el disco extraído (`private/`).
 
 ### `build/steamdeck.sh`: punto de entrada común en la Deck
 
 Todos los juegos Linux (doa3, doa2u, doaxtreme, castlevania-son,
-drakengard3, vf3tb, urban-reign, soulcalibur, soulcalibur2, jsrf, doa4-linux, doax2-linux) tienen `build/steamdeck.sh`, así que en la
+drakengard3, vf3tb, urban-reign, soulcalibur, soulcalibur2, jsrf, hyrule-warriors, doa4-linux, doax2-linux) tienen `build/steamdeck.sh`, así que en la
 Deck se añaden a Steam igual. En los binarios listos solo lanza el ejecutable
 desde su carpeta (`write_steamdeck_launcher <ejecutable> [args…]`; p. ej.
 `urban-reign --game`). En los DOA hace además esto:

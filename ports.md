@@ -83,3 +83,9 @@
 - Nombre LollipopChainsaw
 - Release: https://github.com/kxrxh/lollipop-chainsaw-recomp/releases
 - StreamGridDB: https://www.steamgriddb.com/game/34733
+
+## Hyrule Warriors Definitive Edition
+
+- Nombre: HyruleWarriors
+- Release: https://github.com/blocker-3/HWDER/releases
+- StreamGridDB: https://www.steamgriddb.com/game/5293704
