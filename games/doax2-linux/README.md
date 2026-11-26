@@ -98,6 +98,8 @@ p. ej. `DOAX2_FPS=30 %command%`.
   no le pasa** en el mismo PC, así que es algo del build de Linux (SDK o
   código del port fuera de `#if defined(_WIN32)`, que solo está en
   `src/doax2_60fps.cpp` y no toca esto). Sin arreglo: usar `doax2`.
+  Incidencia #23 del port; detalles e ideas en
+  [`debug-cuelgue-start.md`](debug-cuelgue-start.md).
 
 ## Imagen Ubuntu 24.04 (contenedor de build)
 

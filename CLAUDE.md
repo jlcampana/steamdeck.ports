@@ -538,7 +538,8 @@ gastar espacio.
 - [ ] doa4-linux: probarlo en la Deck (¿se congela al arrancar con 8
       hilos?) y, si va bien, decidir si sustituye a la de Proton.
 - [ ] doax2-linux: se cuelga al pulsar Start (ver 2026-11-26, punto 6);
-      `doax2` (Proton) va bien. Sin arreglo.
+      `doax2` (Proton) va bien. Sin arreglo. Incidencia #23 del port;
+      notas para retomarlo: `games/doax2-linux/debug-cuelgue-start.md`.
 - [ ] doax2: elegir imágenes (`tools/fetch-art.sh` bajó candidatas) y
       probar las dos versiones jugando (en el PC y en la Deck).
 - [ ] DOA4: quitar el arreglo del puerto 1000 cuando salga la 0.3.8 (ya se
