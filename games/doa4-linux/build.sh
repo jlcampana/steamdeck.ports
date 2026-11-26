@@ -1,7 +1,8 @@
 #!/usr/bin/env bash
 # Dead or Alive 4 Online, versión NATIVA de Linux (sin Proton): compila el
 # código de la release (no publica binario de Linux) con el ReXGlue SDK en el
-# commit de netplay_sdk.txt, en Ubuntu 24.04 + clang 23 (contenedor,
+# commit de netplay_sdk.txt (+ los parches de patches/rexglue-sdk), en
+# Ubuntu 24.04 + clang 23 (contenedor,
 # games/doa4-linux/Dockerfile), y pone al lado el juego extraído en game/.
 # Resultado: games/doa4-linux/build (dead_or_alive_4, librexruntime.so,
 # game/ y steamdeck.sh).
@@ -51,10 +52,21 @@ if [[ ! -d "$SDK/.git" ]]; then
     log "Clonando el SDK ($sdk_repo)"
     git clone --filter=blob:none "$sdk_repo" "$SDK"
 fi
-if [[ "$(git -C "$SDK" rev-parse HEAD)" != "$sdk_commit" ]]; then
-    log "SDK -> $sdk_commit"
+# Parches nuestros (games/doa4-linux/patches/rexglue-sdk): /dev/shm. Solo se
+# reescriben los archivos que cambian, así ninja recompila solo esos.
+our_patches=("$GAME_DIR"/patches/rexglue-sdk/*.patch)
+sdk_stamp="$sdk_commit $(cat "${our_patches[@]}" | sha256sum | cut -d' ' -f1)"
+if [[ "$(git -C "$SDK" rev-parse HEAD)" != "$sdk_commit" \
+      || "$(cat "$SDK/.steamdeck-ports-stamp" 2>/dev/null)" != "$sdk_stamp" ]]; then
+    log "SDK -> $sdk_commit + parches nuestros"
+    git -C "$SDK" checkout -q -- .   # quita los parches anteriores
     git -C "$SDK" cat-file -e "$sdk_commit^{commit}" 2>/dev/null || git -C "$SDK" fetch origin
     git -C "$SDK" checkout -q "$sdk_commit"
+    for p in "${our_patches[@]}"; do
+        log "SDK: parche nuestro $(basename "$p")"
+        git -C "$SDK" apply "$p"
+    done
+    echo "$sdk_stamp" > "$SDK/.steamdeck-ports-stamp"
 fi
 git -C "$SDK" submodule update --init --recursive
 

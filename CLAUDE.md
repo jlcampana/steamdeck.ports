@@ -629,6 +629,22 @@ gastar espacio.
     resumen), `package.sh` y `fetch-art.sh` sin ids, y `serve.sh`, se lo
     saltan; nombrándolo sigue funcionando y `build.sh` avisa.
 
+12. **doa4-linux: arreglada la fuga de `/dev/shm`** con
+    `games/doa4-linux/patches/rexglue-sdk/0001-linux-shm.patch` (el mismo
+    `shm_unlink` que doax2-linux), que `build.sh` aplica tras el checkout
+    del SDK (marca `.steamdeck-ports-stamp`). Como el SDK se compila con el
+    juego, solo se recompilaron 10 objetos (~2 min). Probado: con el juego
+    abierto, la memoria está en un descriptor borrado y `/dev/shm` queda
+    vacío al cerrar.
+13. **DOAX2 (Linux) se colgaba en la Deck** (aviso del usuario): tenía el
+    paquete de las 02:50, anterior al arreglo (mismo cuelgue: «tick
+    timeout» en el log, y un `xenia_memory_*` de 4,8 GB en `/dev/shm`,
+    borrado). Reempaquetados doax2-linux y doa4-linux.
+14. DOA1U en Linux (petición del usuario): **no viable por ahora**. El
+    recompilador (TGP482/XboxXBE-Recomp) es solo Windows: D3D12, XAudio2,
+    kernel de la Xbox sobre Win32 y el código del juego compilado en el
+    primer arranque a una DLL con `clang.exe`/`lld-link.exe`. Ni upstream
+    ni forks tienen nada de Linux. Sigue con Proton.
 
 ### Pendiente
 
@@ -662,9 +678,7 @@ gastar espacio.
 - [x] doax2-linux: se colgaba al pulsar Start. Arreglado con un parche del
       SDK (2026-11-26, punto 9). Falta jugar más allá de la primera
       pantalla, reempaquetar e instalar.
-- [ ] doa4-linux: cada partida deja `xenia_memory_*` (4,8 GB) en
-      `/dev/shm` hasta reiniciar. Su SDK no tiene el `shm_unlink` del parche
-      de doax2-linux: aplicarlo también allí (recompilar, ~40 min).
+- [x] doa4-linux: `shm_unlink` en su SDK (punto 12).
 - [ ] doax2: elegir imágenes (`tools/fetch-art.sh` bajó candidatas) y
       probar las dos versiones jugando (en el PC y en la Deck).
 - [ ] DOA4: quitar el arreglo del puerto 1000 cuando salga la 0.3.8 (ya se

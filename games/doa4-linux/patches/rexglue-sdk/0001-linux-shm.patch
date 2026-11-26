@@ -1,0 +1,18 @@
+# Parche nuestro del SDK de doa4-online (ca6b928): shm_unlink al crear la memoria
+# del guest, para que no quede en /dev/shm (mismo arreglo que doax2-linux).
+diff --git a/src/core/memory_posix.cpp b/src/core/memory_posix.cpp
+index fce701e..26dc5f3 100644
+--- a/src/core/memory_posix.cpp
++++ b/src/core/memory_posix.cpp
+@@ -377,6 +377,11 @@ FileMappingHandle CreateFileMappingHandle(const std::filesystem::path& path, siz
+     shm_unlink(full_path.c_str());
+     return kFileMappingHandleInvalid;
+   }
++  // Nothing opens the mapping by name again (views map the descriptor), so
++  // unlink it now: the memory lives while the descriptor and the views do,
++  // and the name does not stay in /dev/shm when the process ends without
++  // running ~Memory (the title hard-exits; SIGKILL; crashes).
++  shm_unlink(full_path.c_str());
+   return static_cast<FileMappingHandle>(ret);
+ #endif
+ }
