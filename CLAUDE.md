@@ -647,6 +647,15 @@ gastar espacio.
     kernel de la Xbox sobre Win32 y el código del juego compilado en el
     primer arranque a una DLL con `clang.exe`/`lld-link.exe`. Ni upstream
     ni forks tienen nada de Linux. Sigue con Proton.
+15. **DOAX2 (Linux) en la Deck: menú de gráficos y RenderDoc.** No hay
+    menú dentro del juego (lo hace el lanzador de Windows): variables
+    `DOAX2_MSAA`, `DOAX2_AA`, `DOAX2_ANISO` y archivo `opciones.conf`
+    junto a `steamdeck.sh` (en `KEEP`; se edita por SSH sin cerrar Steam).
+    En la Deck del usuario: MSAA off + FXAA; GPU de ~25 a ~1,3 ms por
+    fotograma; sin RenderDoc, 60 FPS estables. El overlay «Capturing Vulkan» era RenderDoc: SteamOS trae
+    `librenderdoc.so` (paquete `renderdoc-minimal`) y el SDK v0.10.0 la
+    cargaba siempre. Parche `0002-linux-renderdoc.patch` (`RTLD_NOLOAD`).
+    doa4-linux no lo necesita: su SDK ya lo trae.
 
 ### Pendiente
 

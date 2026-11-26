@@ -79,7 +79,9 @@ lanzador, y las teclas F5–F9 del port usan `GetAsyncKeyState` (solo
 Windows). En la Deck (2026-11-26) va a 60 FPS de motor pero pinta unos
 40 fotogramas/s (unos 25 ms por fotograma en la GPU). Para aligerarlo:
 `DOAX2_MSAA=off DOAX2_AA=1 %command%`, luego `DOAX2_SHADOWS=0` o
-`DOAX2_FPS=30`.
+`DOAX2_FPS=30`. Con `DOAX2_MSAA=off DOAX2_AA=1`, la GPU pasó de ~25 a
+~1,3 ms por fotograma (aún con RenderDoc cargado), y sin RenderDoc va a
+60 FPS estables (0,7 ms).
 
 Las mismas variables pueden ir en `opciones.conf`, junto a `steamdeck.sh`
 (líneas `DOAX2_…=valor`; el instalador lo conserva). Así no hace falta
@@ -110,6 +112,12 @@ Steam mandan sobre el archivo. En la Deck del usuario: `DOAX2_MSAA=off`,
   la partida y entra en el juego (probado con un mando virtual). Detalles
   en [`debug-cuelgue-start.md`](debug-cuelgue-start.md); incidencia #23 del
   port.
+- **En la Deck salía el overlay de RenderDoc** («Capturing Vulkan…
+  F12, PrtScr to capture»): SteamOS trae `librenderdoc.so` y el SDK la
+  cargaba con un `dlopen` normal aunque RenderDoc no estuviera conectado,
+  y además activaba los marcadores de depuración de la GPU. Arreglado con
+  `patches/rexglue-sdk/0002-linux-renderdoc.patch` (`RTLD_NOLOAD`, como
+  Xenia Canary; el SDK de doa4-online ya lo hace así).
 - El mismo parche evita que cada partida deje 4,8 GB en `/dev/shm`
   (`xenia_memory_*`, en RAM hasta reiniciar): el SDK solo los borraba al
   salir de forma ordenada, y el juego nunca sale así.
