@@ -151,4 +151,5 @@ assert s.count(a) == 1, "steamdeck.sh inesperado"
 open(p, "w").write(s.replace(a, opts))
 PY
 bash -n "$BUILD/steamdeck.sh"
+install -m 755 "$GAME_DIR/launcher.py" "$BUILD/launcher.py"   # lanzador de opciones
 finish_build

@@ -656,6 +656,12 @@ gastar espacio.
     `librenderdoc.so` (paquete `renderdoc-minimal`) y el SDK v0.10.0 la
     cargaba siempre. Parche `0002-linux-renderdoc.patch` (`RTLD_NOLOAD`).
     doa4-linux no lo necesita: su SDK ya lo trae.
+16. **Lanzador de opciones para doax2-linux** (petición del usuario):
+    `games/doax2-linux/launcher.py` (GTK3 + mando por `/dev/input/js*`,
+    que en la Deck son legibles por el usuario: ACL de uaccess), lo abre
+    `steamdeck.sh` antes del juego y escribe `opciones.conf`. Probado en
+    el PC con un mando virtual (uinput); instalado en la Deck y en el PC
+    sin reinstalar.
 
 ### Pendiente
 

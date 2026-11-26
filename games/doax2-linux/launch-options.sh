@@ -18,6 +18,16 @@
 # También se pueden poner en opciones.conf, junto a steamdeck.sh (líneas
 # VARIABLE=valor, # para comentarios; el instalador lo conserva). Las de las
 # Opciones de lanzamiento de Steam mandan sobre las del archivo.
+# Lanzador (launcher.py, GTK3 + mando): las opciones gráficas antes de jugar,
+# guardadas en opciones.conf. DOAX2_LAUNCHER=0 (Steam o el archivo) lo salta;
+# sin GTK o sin pantalla, el juego arranca igual. Salir (B) no arranca el juego.
+launcher_on="${DOAX2_LAUNCHER:-$(sed -n 's/^[[:space:]]*DOAX2_LAUNCHER[[:space:]]*=[[:space:]]*\([01]\).*/\1/p' \
+    "$HERE/opciones.conf" 2>/dev/null | tail -1)}"
+if [[ "${launcher_on:-1}" != 0 && -f "$HERE/launcher.py" ]] && command -v python3 >/dev/null; then
+    rc=0
+    env -u LD_LIBRARY_PATH python3 "$HERE/launcher.py" "$HERE/opciones.conf" || rc=$?
+    [[ $rc == 1 ]] && exit 0
+fi
 if [[ -f "$HERE/opciones.conf" ]]; then
     while IFS='=' read -r k v; do
         k="${k//[[:space:]]/}"; v="${v%%#*}"; v="${v//[[:space:]]/}"

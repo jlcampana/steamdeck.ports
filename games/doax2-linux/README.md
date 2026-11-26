@@ -83,6 +83,15 @@ Windows). En la Deck (2026-11-26) va a 60 FPS de motor pero pinta unos
 ~1,3 ms por fotograma (aún con RenderDoc cargado), y sin RenderDoc va a
 60 FPS estables (0,7 ms).
 
+**Lanzador** (`launcher.py`, Python + GTK3, los dos en SteamOS): antes
+de cada partida, `steamdeck.sh` enseña las opciones gráficas del lanzador
+de Windows y las guarda en `opciones.conf`. Se maneja con el mando
+(cruceta o stick: elegir y cambiar; A: cambiar o jugar; Start: jugar; B:
+salir sin jugar), con el teclado o con la pantalla táctil. Lee el mando
+por `/dev/input/js*` (con Steam Input, solo los «X-Box 360 pad» virtuales).
+Su opción «Mostrar este menú al arrancar» (`DOAX2_LAUNCHER=0`) lo salta;
+sin GTK o sin pantalla, el juego arranca igual.
+
 Las mismas variables pueden ir en `opciones.conf`, junto a `steamdeck.sh`
 (líneas `DOAX2_…=valor`; el instalador lo conserva). Así no hace falta
 cerrar Steam para cambiarlas desde SSH. Las Opciones de lanzamiento de
