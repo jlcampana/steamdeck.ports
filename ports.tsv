@@ -15,3 +15,4 @@ doax2-linux	hibikifukui22/Dead-or-Alive-Xtreme-2-Recompilation	-source\.zip$
 soulcalibur2	tmcleroy/soulcalibur2-recomp	-linux-x86_64\.tar\.gz$
 jsrf	spriteice/JSRF-PC	^JSRF-PC-b.*-linux-x86_64\.tar\.gz$
 hyrule-warriors	blocker-3/HWDER	-linux-x86_64-.*\.tar\.gz$
+lollipop-chainsaw	kxrxh/lollipop-chainsaw-recomp	@source

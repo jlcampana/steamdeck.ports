@@ -1,0 +1,813 @@
+# Port a Linux del código de Lollipop Chainsaw Recomp (steamdeck-ports).
+# Ver games/lollipop-chainsaw/README.md: recursos con .incbin, SHA-256 propio,
+# sin GDI+/makecab (iconos de teclado: solo los del mando), prefetch con madvise,
+# main() en lollipop_dlc_tool.
+
+diff --git a/CMakeLists.txt b/CMakeLists.txt
+index 7d9c105..b21fb76 100644
+--- a/CMakeLists.txt
++++ b/CMakeLists.txt
+@@ -31,11 +31,24 @@ target_compile_options(lollipop_recomp PRIVATE ${recomp_options})
+ target_precompile_headers(lollipop_recomp PRIVATE "${LOLLIPOP_GENERATED_DIR}/lollipop_pch.h")
+ rexglue_apply_target_settings(lollipop_recomp)
+ 
+-add_library(lollipop_host_sdk STATIC src/settings/runtime_settings.cpp)
+-target_include_directories(lollipop_host_sdk PUBLIC src)
++add_library(lollipop_host_sdk STATIC src/settings/runtime_settings.cpp src/platform/portable.cpp)
++target_include_directories(lollipop_host_sdk PUBLIC src PRIVATE "${CMAKE_CURRENT_SOURCE_DIR}/assets")
++if(WIN32)
++    target_link_libraries(lollipop_host_sdk PUBLIC bcrypt)
++else()
++    # Linux: assets/lollipop.rc's RCDATA files are embedded with .incbin (platform/portable.cpp).
++    target_compile_definitions(lollipop_host_sdk PRIVATE
++        "LOLLIPOP_ASSET_DIR=${CMAKE_CURRENT_SOURCE_DIR}/assets")
++    set_property(SOURCE src/platform/portable.cpp APPEND PROPERTY OBJECT_DEPENDS
++        "${CMAKE_CURRENT_SOURCE_DIR}/assets/settings/panel.png"
++        "${CMAKE_CURRENT_SOURCE_DIR}/assets/settings/controls.png"
++        "${CMAKE_CURRENT_SOURCE_DIR}/assets/settings/quit-game.png"
++        "${CMAKE_CURRENT_SOURCE_DIR}/assets/shaders/pipelines.txt")
++endif()
+ target_link_libraries(lollipop_host_sdk PUBLIC rex::sdk rex::ui rex::filesystem rex::gpu rex::hid)
+ 
+ add_executable(lollipop WIN32
++    src/platform/portable.h
+     src/main.cpp
+     src/app/application.cpp
+     src/game/game_settings.cpp
+@@ -73,8 +86,11 @@ if(WIN32)
+         "${CMAKE_CURRENT_SOURCE_DIR}/assets/shaders/pipelines.txt")
+     target_include_directories(lollipop PRIVATE "${CMAKE_CURRENT_SOURCE_DIR}/assets")
+ endif()
+-target_include_directories(lollipop PRIVATE src "${LOLLIPOP_GENERATED_DIR}")
+-target_link_libraries(lollipop PRIVATE lollipop_recomp lollipop_host_sdk gdiplus bcrypt)
++target_include_directories(lollipop PRIVATE src "${LOLLIPOP_GENERATED_DIR}" "${CMAKE_CURRENT_SOURCE_DIR}/assets")
++target_link_libraries(lollipop PRIVATE lollipop_recomp lollipop_host_sdk)
++if(WIN32)
++    target_link_libraries(lollipop PRIVATE gdiplus bcrypt)
++endif()
+ rexglue_configure_target(lollipop)
+ # Relink and restage if a runtime-loaded SDK module changes between builds.
+ get_property(sdk_targets DIRECTORY PROPERTY IMPORTED_TARGETS)
+diff --git a/src/app/application.cpp b/src/app/application.cpp
+index 106c9af..50f1afb 100644
+--- a/src/app/application.cpp
++++ b/src/app/application.cpp
+@@ -4,7 +4,9 @@
+ #include <fstream>
+ #include <future>
+ #include <stdexcept>
++#ifdef _WIN32
+ #include <windows.h>
++#endif
+ 
+ #include <rex/app/title_app.h>
+ #include <rex/gpu/graphics_system.h>
+@@ -24,6 +26,7 @@
+ #include "input/live_prompts.h"
+ #include "input/prompt_artwork.h"
+ #include "lollipop_init.h"
++#include "platform/portable.h"
+ #include "settings/pc_settings.h"
+ #include "settings/runtime_settings.h"
+ #include "testing/test_bridge.h"
+@@ -59,10 +62,12 @@ protected:
+ 
+   rex::Result<void> OnInit() override {
+     auto& ui = GetUI();
++#ifdef _WIN32
+     if (settings::Query<bool>("window_hidden")) {
+       if (auto window = ui.GetNativeWindow(); window)
+         ShowWindow(static_cast<HWND>(window->window), SW_HIDE);
+     }
++#endif
+     const auto config = REX_PATHS().user_root.Get() / "pc-settings.toml";
+     configure_pc_settings(config);
+     configure_frame_rate();
+@@ -168,12 +173,10 @@ private:
+     rex::ScopeGuard reset([&] { gpu.SetShaderPrecompile(false, {}); });
+     REX_TRY_VOID(title.AttachForLaunch());
+     auto worker = std::async(std::launch::async, [&] {
+-      auto resource = FindResourceA(nullptr, MAKEINTRESOURCEA(104), RT_RCDATA);
+-      auto data = resource ? LoadResource(nullptr, resource) : nullptr;
+-      if (!data)
++      const auto data = platform::embedded_resource(104);
++      if (data.empty())
+         throw std::runtime_error("The pipeline inventory is missing from this build.");
+-      std::string_view inventory(static_cast<const char*>(LockResource(data)),
+-                                 SizeofResource(nullptr, resource));
++      std::string_view inventory(reinterpret_cast<const char*>(data.data()), data.size());
+       prepare_shader_inventory(game, cache, inventory, report,
+                                {title.GetMembase().TranslateVirtual(kPPCImageConfig.image_base),
+                                 kPPCImageConfig.image_size});
+diff --git a/src/app/dlc_tool.cpp b/src/app/dlc_tool.cpp
+index 9b3dba8..d90459f 100644
+--- a/src/app/dlc_tool.cpp
++++ b/src/app/dlc_tool.cpp
+@@ -27,8 +27,13 @@ public:
+ };
+ } // namespace
+ 
++#ifdef _WIN32
+ int wmain(int argc, wchar_t** argv) try {
+   if (argc != 4 || std::wstring_view(argv[1]) != L"prepare")
++#else
++int main(int argc, char** argv) try {
++  if (argc != 4 || std::string_view(argv[1]) != "prepare")
++#endif
+     throw std::runtime_error("Usage: lollipop_dlc_tool prepare <package> <new staging folder>");
+   dlc_reader reader(argv[3]);
+   lollipop::prepare_dlc_package(argv[2], argv[3]);
+diff --git a/src/game/main_menu.cpp b/src/game/main_menu.cpp
+index 19e6921..e3588da 100644
+--- a/src/game/main_menu.cpp
++++ b/src/game/main_menu.cpp
+@@ -1,5 +1,6 @@
+ #include "main_menu.h"
+ #include "game/package_lzx.h"
++#include "platform/portable.h"
+ #include "settings_resources.h"
+ 
+ #include <algorithm>
+@@ -11,9 +12,7 @@
+ #include <string>
+ #include <string_view>
+ #include <utility>
+-#include <windows.h>
+ 
+-#include <bcrypt.h>
+ 
+ namespace lollipop {
+ namespace {
+@@ -372,11 +371,7 @@ std::vector<uint8_t> make_main_menu(std::span<const uint8_t> source,
+                                              0x5e, 0x0d, 0x71, 0xd4, 0x4b, 0x79, 0x1b, 0xf2,
+                                              0xc8, 0xf9, 0x80, 0x37, 0xd1, 0x36, 0x50, 0x71,
+                                              0xce, 0x65, 0xed, 0xdc, 0x9a, 0x0f, 0x5a, 0x11};
+-  std::array<uint8_t, 32> digest{};
+-  if (source.size() != 3276800 ||
+-      BCryptHash(BCRYPT_SHA256_ALG_HANDLE, nullptr, 0, const_cast<uint8_t*>(source.data()),
+-                 ULONG(source.size()), digest.data(), ULONG(digest.size())) < 0 ||
+-      digest != expected)
++  if (source.size() != 3276800 || platform::sha256(source) != expected)
+     throw std::runtime_error("Quit Game requires the verified disc's MENU_PL.xxx");
+   bytes package(8331940);
+   std::copy_n(source.begin(), 0x809, package.begin());
+@@ -427,14 +422,8 @@ std::vector<uint8_t> make_main_menu(std::span<const uint8_t> source,
+ }
+ 
+ void cache_main_menu(const std::filesystem::path& game, const std::filesystem::path& cache) {
+-  const auto resource =
+-      FindResourceW(nullptr, MAKEINTRESOURCEW(IDR_MAIN_MENU_QUIT), MAKEINTRESOURCEW(10));
+-  const auto handle = resource ? LoadResource(nullptr, resource) : nullptr;
+-  if (!handle)
+-    throw std::runtime_error("Missing native Quit Game artwork");
+-  const auto artwork = std::span(static_cast<const uint8_t*>(LockResource(handle)),
+-                                 SizeofResource(nullptr, resource));
+-  if (!artwork.data())
++  const auto artwork = platform::embedded_resource(IDR_MAIN_MENU_QUIT);
++  if (artwork.empty())
+     throw std::runtime_error("Could not read native Quit Game artwork");
+   const auto source = load(game / "AshGame/CookedXbox360/MENU_PL.xxx");
+   const auto source_hash = rex::HashXXH3(source);
+@@ -455,11 +444,11 @@ void cache_main_menu(const std::filesystem::path& game, const std::filesystem::p
+   const auto patched = make_main_menu(source, artwork);
+   auto publish = [](const std::filesystem::path& target, const char* data, size_t size) {
+     auto temporary = target;
+-    temporary += "." + std::to_string(GetCurrentProcessId()) + ".tmp";
++    temporary += "." + std::to_string(platform::process_id()) + ".tmp";
+     std::ofstream file(temporary, std::ios::binary | std::ios::trunc);
+     file.write(data, size);
+     file.close();
+-    if (!file || !MoveFileExW(temporary.c_str(), target.c_str(), MOVEFILE_REPLACE_EXISTING))
++    if (!file || !platform::replace_file(temporary, target))
+       throw std::runtime_error("Could not cache native Quit Game menu");
+   };
+   publish(path, reinterpret_cast<const char*>(patched.data()), patched.size());
+diff --git a/src/game/shader_inventory.cpp b/src/game/shader_inventory.cpp
+index 6decc3c..e43f0ce 100644
+--- a/src/game/shader_inventory.cpp
++++ b/src/game/shader_inventory.cpp
+@@ -10,7 +10,11 @@
+ #include <sstream>
+ #include <stdexcept>
+ #include <string>
++#ifdef _WIN32
+ #include <windows.h>
++#endif
++#include <thread>
++#include "platform/portable.h"
+ 
+ #include <rex/hash.h>
+ #include <rex/xenos/ucode.h>
+@@ -149,6 +153,12 @@ void publish(const std::filesystem::path& path, std::span<const uint8_t> data) {
+   file.close();
+   if (!file)
+     throw std::runtime_error("Could not write shader inventory: " + temporary.string());
++#ifndef _WIN32
++  if (!platform::replace_file(temporary, path))
++    throw std::runtime_error("Could not publish shader inventory: " + path.string());
++  return;
++#endif
++#ifdef _WIN32
+   for (unsigned attempt = 0;; ++attempt) {
+     if (MoveFileExW(temporary.c_str(), path.c_str(),
+                     MOVEFILE_REPLACE_EXISTING | MOVEFILE_WRITE_THROUGH))
+@@ -161,6 +171,7 @@ void publish(const std::filesystem::path& path, std::span<const uint8_t> data) {
+                                std::to_string(error) + "): " + path.string());
+     Sleep(25);
+   }
++#endif
+ }
+ void add_programs(std::map<uint64_t, shader_program>& programs,
+                   std::vector<shader_program> additions) {
+diff --git a/src/game/startup_hooks.cpp b/src/game/startup_hooks.cpp
+index 63dbf9d..82a36b9 100644
+--- a/src/game/startup_hooks.cpp
++++ b/src/game/startup_hooks.cpp
+@@ -7,7 +7,13 @@
+ #include <rex/logging/log_category.h>
+ #include <rex/memory/endian.h>
+ #include <vector>
++#ifdef _WIN32
+ #include <windows.h>
++#else
++#include <link.h>
++#include <sys/mman.h>
++#include <unistd.h>
++#endif
+ 
+ namespace lollipop {
+ namespace {
+@@ -15,6 +21,38 @@ std::atomic<uint32_t> startup_live_check{};
+ } // namespace
+ 
+ bool prefetch_recompiled_code() {
++#ifndef _WIN32
++  // Linux: ask the kernel to read in the executable's code segments (the
++  // equivalent of PrefetchVirtualMemory below).
++  struct prefetch_state {
++    size_t bytes = 0;
++    bool failed = false;
++  } state;
++  dl_iterate_phdr(
++      [](dl_phdr_info* info, size_t, void* data) {
++        auto& state = *static_cast<prefetch_state*>(data);
++        const auto page = static_cast<uintptr_t>(sysconf(_SC_PAGESIZE));
++        for (unsigned i = 0; i < info->dlpi_phnum; ++i) {
++          const auto& header = info->dlpi_phdr[i];
++          if (header.p_type != PT_LOAD || !(header.p_flags & PF_X))
++            continue;
++          const auto start = (info->dlpi_addr + header.p_vaddr) & ~(page - 1);
++          const auto end = info->dlpi_addr + header.p_vaddr + header.p_memsz;
++          if (madvise(reinterpret_cast<void*>(start), end - start, MADV_WILLNEED) == 0)
++            state.bytes += end - start;
++          else
++            state.failed = true;
++        }
++        return 1;  // the first object is the executable itself
++      },
++      &state);
++  if (!state.bytes || state.failed) {
++    REXLOG_WARN("Could not prefetch recompiled code");
++    return false;
++  }
++  REXLOG_INFO("Prefetched {} MiB of recompiled code", state.bytes / (1024 * 1024));
++  return true;
++#else
+   auto* module = reinterpret_cast<std::byte*>(GetModuleHandleW(nullptr));
+   std::vector<WIN32_MEMORY_RANGE_ENTRY> ranges;
+   size_t bytes = 0;
+@@ -39,6 +77,7 @@ bool prefetch_recompiled_code() {
+   }
+   REXLOG_INFO("Prefetched {} MiB of recompiled code", bytes / (1024 * 1024));
+   return true;
++#endif
+ }
+ 
+ void set_startup_live_check(uint32_t function) { startup_live_check.store(function); }
+diff --git a/src/input/live_prompts.cpp b/src/input/live_prompts.cpp
+index 1cc762e..2f890c3 100644
+--- a/src/input/live_prompts.cpp
++++ b/src/input/live_prompts.cpp
+@@ -15,6 +15,8 @@
+ #include <rex/kernel/title_runtime.h>
+ #include <rex/logging/log_category.h>
+ 
++#include "platform/portable.h"
++
+ namespace {
+ std::atomic<rex::kernel::TitleRuntime*> prompt_runtime{nullptr};
+ PPCFunc* advance_original = nullptr;
+@@ -39,7 +41,8 @@ void advance_movie(PPCContext& ctx, uint8_t* base) {
+   if (!runtime) return;
+   // Native settings can wait on guest threads that also need the runtime lock.
+   lollipop::update_game_ui(*runtime, ctx);
+-  if (!lollipop::settings::Query<bool>("mnk_mode"))
++  if (!lollipop::platform::kKeyboardPromptArtwork ||
++      !lollipop::settings::Query<bool>("mnk_mode"))
+     return;
+   // Advance can unload its own movie; check ownership again before touching it.
+   movie_state movie;
+diff --git a/src/input/prompt_artwork.cpp b/src/input/prompt_artwork.cpp
+index c398c08..e1f2b56 100644
+--- a/src/input/prompt_artwork.cpp
++++ b/src/input/prompt_artwork.cpp
+@@ -12,12 +12,15 @@
+ #include <stdexcept>
+ #include <string>
+ #include <string_view>
++#ifdef _WIN32
+ #include <windows.h>
+ 
+-#include <bcrypt.h>
+ #include <objidl.h>
+ 
+ #include <gdiplus.h>
++#endif
++
++#include "platform/portable.h"
+ 
+ #include "settings/runtime_settings.h"
+ #include <rex/filesystem/file_system.h>
+@@ -107,6 +110,8 @@ std::wstring key_label(const prompt &p) {
+   return std::wstring(key.begin(), key.end());
+ }
+ 
++#ifdef _WIN32
++// Keyboard and mouse artwork (GDI+): Windows only, see platform::kKeyboardPromptArtwork.
+ void comic_shading(Gdiplus::Graphics &g, Gdiplus::GraphicsPath &shape) {
+   Gdiplus::RectF bounds;
+   shape.GetBounds(&bounds);
+@@ -264,6 +269,9 @@ struct gdiplus_session {
+   }
+   ~gdiplus_session() { Gdiplus::GdiplusShutdown(token); }
+ };
++#else
++struct gdiplus_session {};
++#endif
+ 
+ size_t tiled_offset(unsigned x, unsigned y, unsigned pitch) {
+   const unsigned macro = ((x >> 5) + (y >> 5) * ((pitch + 31) >> 5)) << 11;
+@@ -274,6 +282,7 @@ size_t tiled_offset(unsigned x, unsigned y, unsigned pitch) {
+          (((((y & 8) >> 2) + (x >> 3)) & 3) << 6) + (offset & 63);
+ }
+ 
++#ifdef _WIN32
+ std::array<uint8_t, 16> encode_dxt5(
+     const std::array<Gdiplus::Color, 16> &pixels) {
+   std::array<uint8_t, 16> block{};
+@@ -383,6 +392,11 @@ void paint_prompt(std::vector<uint8_t> &package, const prompt &p) {
+   // identifiable.
+   write32(package, payload + 8, static_cast<uint32_t>(p.offset));
+ }
++#else
++void paint_prompt(std::vector<uint8_t> &, const prompt &) {
++  throw std::runtime_error("Keyboard prompt artwork needs GDI+ (Windows only)");
++}
++#endif
+ 
+ void upscale_controller_prompt(std::vector<uint8_t> &package, const prompt &p) {
+   if (read32(package, p.offset + 28) != 32) return;
+@@ -428,6 +442,12 @@ void upscale_controller_prompt(std::vector<uint8_t> &package, const prompt &p) {
+ 
+ std::vector<uint8_t> pack_keyboard_prompts(
+     std::span<const uint8_t> package, const std::filesystem::path &directory) {
++#ifndef _WIN32
++  // Packing uses Windows' makecab.exe for LZX; only reached with keyboard artwork.
++  (void)package;
++  (void)directory;
++  throw std::runtime_error("Keyboard prompt packing needs makecab.exe (Windows only)");
++#else
+   constexpr size_t chunk_size = 0x20000;
+   const size_t chunks = (package.size() + chunk_size - 1) / chunk_size;
+   std::vector<uint8_t> result(16 + chunks * 8);
+@@ -522,6 +542,7 @@ std::vector<uint8_t> pack_keyboard_prompts(
+   write32(result, 8, static_cast<uint32_t>(result.size() - 16 - chunks * 8));
+   result.resize((result.size() + 32767) & ~size_t(32767));
+   return result;
++#endif
+ }
+ void mount_game_ui_assets(rex::filesystem::IFileSystem& files, const std::filesystem::path& game,
+                           const std::filesystem::path& cache) {
+@@ -566,11 +587,11 @@ bool cache_keyboard_prompts(std::span<const uint8_t> package,
+   const auto packed = pack_keyboard_prompts(package, directory);
+   auto publish = [&](const std::filesystem::path& target, const char* data, size_t size) {
+     auto temporary = target;
+-    temporary += "." + std::to_string(GetCurrentProcessId()) + ".tmp";
++    temporary += "." + std::to_string(platform::process_id()) + ".tmp";
+     std::ofstream out(temporary, std::ios::binary | std::ios::trunc);
+     out.write(data, size);
+     out.close();
+-    if (!out || !MoveFileExW(temporary.c_str(), target.c_str(), MOVEFILE_REPLACE_EXISTING))
++    if (!out || !platform::replace_file(temporary, target))
+       throw std::runtime_error("Could not publish keyboard artwork cache");
+   };
+   publish(path, reinterpret_cast<const char*>(packed.data()), packed.size());
+@@ -585,13 +606,7 @@ std::vector<uint8_t> make_keyboard_prompts(std::span<const uint8_t> startup,
+       0x44, 0x19, 0x7b, 0x07, 0x5e, 0x3f, 0x8f, 0x98, 0x6f, 0x51, 0x99,
+       0xb5, 0xe7, 0xbf, 0xfc, 0xa9, 0xb0, 0xa7, 0x1b, 0x2a, 0xb3, 0x8b,
+       0x0b, 0x6a, 0xd8, 0xfb, 0xe3, 0x85, 0xd0, 0xf4, 0x5a, 0x35};
+-  std::array<uint8_t, 32> digest{};
+-  if (startup.size() != 294912 ||
+-      BCryptHash(BCRYPT_SHA256_ALG_HANDLE, nullptr, 0,
+-                 const_cast<uint8_t *>(startup.data()),
+-                 static_cast<ULONG>(startup.size()), digest.data(),
+-                 digest.size()) < 0 ||
+-      digest != expected)
++  if (startup.size() != 294912 || platform::sha256(startup) != expected)
+     throw std::runtime_error(
+         "Keyboard prompts require the verified disc's Startup.xxx");
+   const auto total = read32(startup, 12);
+@@ -800,7 +815,7 @@ void install_game_ui_assets(rex::kernel::TitleRuntime& runtime,
+   static const auto prompt_hash_bytes = RegisterCounter("prompt_hash_bytes").value();
+   static const auto prompt_candidates = RegisterCounter("prompt_candidates").value();
+   static const auto prompt_match_ns = RegisterCounter("prompt_match_ns").value();
+-  if (lollipop::settings::Query<bool>("mnk_mode")) {
++  if (platform::kKeyboardPromptArtwork && lollipop::settings::Query<bool>("mnk_mode")) {
+     const auto source = game_root / "AshGame/CookedXbox360/Startup.xxx";
+     std::ifstream file(source, std::ios::binary | std::ios::ate);
+     if (!file || file.tellg() != 294912)
+diff --git a/src/platform/portable.cpp b/src/platform/portable.cpp
+new file mode 100644
+index 0000000..d981977
+--- /dev/null
++++ b/src/platform/portable.cpp
+@@ -0,0 +1,180 @@
++#include "platform/portable.h"
++
++#include <system_error>
++
++#ifdef _WIN32
++#include <windows.h>
++
++#include <bcrypt.h>
++#else
++#include <unistd.h>
++
++#include <cstdio>
++#endif
++
++#include "settings_resources.h"
++
++#include <rex/platform/file.h>
++
++#ifndef _WIN32
++// The RCDATA resources, embedded with .incbin (LOLLIPOP_ASSET_DIR comes from CMake).
++#define LOLLIPOP_STR2(x) #x
++#define LOLLIPOP_STR(x) LOLLIPOP_STR2(x)
++#define LOLLIPOP_EMBED(name, file)                                                         \
++  asm(".section .rodata\n.balign 16\n.global " #name "_begin\n" #name "_begin:\n"           \
++      ".incbin \"" LOLLIPOP_STR(LOLLIPOP_ASSET_DIR) "/" file "\"\n.global " #name "_end\n" \
++      #name "_end:\n.previous\n");                                                        \
++  extern "C" const uint8_t name##_begin[], name##_end[];
++LOLLIPOP_EMBED(lollipop_res_panel, "settings/panel.png")
++LOLLIPOP_EMBED(lollipop_res_controls, "settings/controls.png")
++LOLLIPOP_EMBED(lollipop_res_quit, "settings/quit-game.png")
++LOLLIPOP_EMBED(lollipop_res_pipelines, "shaders/pipelines.txt")
++#endif
++
++namespace lollipop::platform {
++
++std::span<const uint8_t> embedded_resource(int id) {
++#ifdef _WIN32
++  const auto module = GetModuleHandleW(nullptr);
++  const auto resource = FindResourceW(module, MAKEINTRESOURCEW(id), MAKEINTRESOURCEW(10));
++  const auto handle = resource ? LoadResource(module, resource) : nullptr;
++  const auto* data = handle ? static_cast<const uint8_t*>(LockResource(handle)) : nullptr;
++  return data ? std::span(data, SizeofResource(module, resource)) : std::span<const uint8_t>{};
++#else
++  switch (id) {
++  case IDR_SETTINGS_PANEL:
++    return {lollipop_res_panel_begin, lollipop_res_panel_end};
++  case IDR_SETTINGS_CONTROLS:
++    return {lollipop_res_controls_begin, lollipop_res_controls_end};
++  case IDR_MAIN_MENU_QUIT:
++    return {lollipop_res_quit_begin, lollipop_res_quit_end};
++  case 104:
++    return {lollipop_res_pipelines_begin, lollipop_res_pipelines_end};
++  default:
++    return {};
++  }
++#endif
++}
++
++#ifndef _WIN32
++namespace {
++constexpr uint32_t k[64] = {
++    0x428a2f98, 0x71374491, 0xb5c0fbcf, 0xe9b5dba5, 0x3956c25b, 0x59f111f1, 0x923f82a4, 0xab1c5ed5,
++    0xd807aa98, 0x12835b01, 0x243185be, 0x550c7dc3, 0x72be5d74, 0x80deb1fe, 0x9bdc06a7, 0xc19bf174,
++    0xe49b69c1, 0xefbe4786, 0x0fc19dc6, 0x240ca1cc, 0x2de92c6f, 0x4a7484aa, 0x5cb0a9dc, 0x76f988da,
++    0x983e5152, 0xa831c66d, 0xb00327c8, 0xbf597fc7, 0xc6e00bf3, 0xd5a79147, 0x06ca6351, 0x14292967,
++    0x27b70a85, 0x2e1b2138, 0x4d2c6dfc, 0x53380d13, 0x650a7354, 0x766a0abb, 0x81c2c92e, 0x92722c85,
++    0xa2bfe8a1, 0xa81a664b, 0xc24b8b70, 0xc76c51a3, 0xd192e819, 0xd6990624, 0xf40e3585, 0x106aa070,
++    0x19a4c116, 0x1e376c08, 0x2748774c, 0x34b0bcb5, 0x391c0cb3, 0x4ed8aa4a, 0x5b9cca4f, 0x682e6ff3,
++    0x748f82ee, 0x78a5636f, 0x84c87814, 0x8cc70208, 0x90befffa, 0xa4506ceb, 0xbef9a3f7, 0xc67178f2};
++
++constexpr uint32_t rotr(uint32_t x, int n) { return (x >> n) | (x << (32 - n)); }
++
++void compress(std::array<uint32_t, 8>& h, const uint8_t* block) {
++  uint32_t w[64];
++  for (int i = 0; i < 16; ++i)
++    w[i] = (uint32_t(block[i * 4]) << 24) | (uint32_t(block[i * 4 + 1]) << 16) |
++           (uint32_t(block[i * 4 + 2]) << 8) | block[i * 4 + 3];
++  for (int i = 16; i < 64; ++i) {
++    const uint32_t s0 = rotr(w[i - 15], 7) ^ rotr(w[i - 15], 18) ^ (w[i - 15] >> 3);
++    const uint32_t s1 = rotr(w[i - 2], 17) ^ rotr(w[i - 2], 19) ^ (w[i - 2] >> 10);
++    w[i] = w[i - 16] + s0 + w[i - 7] + s1;
++  }
++  uint32_t a = h[0], b = h[1], c = h[2], d = h[3], e = h[4], f = h[5], g = h[6], hh = h[7];
++  for (int i = 0; i < 64; ++i) {
++    const uint32_t t1 = hh + (rotr(e, 6) ^ rotr(e, 11) ^ rotr(e, 25)) + ((e & f) ^ (~e & g)) +
++                        k[i] + w[i];
++    const uint32_t t2 = (rotr(a, 2) ^ rotr(a, 13) ^ rotr(a, 22)) + ((a & b) ^ (a & c) ^ (b & c));
++    hh = g;
++    g = f;
++    f = e;
++    e = d + t1;
++    d = c;
++    c = b;
++    b = a;
++    a = t1 + t2;
++  }
++  h[0] += a; h[1] += b; h[2] += c; h[3] += d;
++  h[4] += e; h[5] += f; h[6] += g; h[7] += hh;
++}
++} // namespace
++#endif
++
++std::array<uint8_t, 32> sha256(std::span<const uint8_t> data) {
++  std::array<uint8_t, 32> digest{};
++#ifdef _WIN32
++  BCryptHash(BCRYPT_SHA256_ALG_HANDLE, nullptr, 0, const_cast<uint8_t*>(data.data()),
++             ULONG(data.size()), digest.data(), ULONG(digest.size()));
++#else
++  std::array<uint32_t, 8> h{0x6a09e667, 0xbb67ae85, 0x3c6ef372, 0xa54ff53a,
++                            0x510e527f, 0x9b05688c, 0x1f83d9ab, 0x5be0cd19};
++  size_t offset = 0;
++  for (; data.size() - offset >= 64; offset += 64)
++    compress(h, data.data() + offset);
++  uint8_t tail[128]{};
++  const size_t rest = data.size() - offset;
++  std::copy_n(data.data() + offset, rest, tail);
++  tail[rest] = 0x80;
++  const size_t blocks = rest + 9 > 64 ? 2 : 1;
++  const uint64_t bits = uint64_t(data.size()) * 8;
++  for (int i = 0; i < 8; ++i)
++    tail[blocks * 64 - 1 - i] = uint8_t(bits >> (8 * i));
++  for (size_t b = 0; b < blocks; ++b)
++    compress(h, tail + b * 64);
++  for (int i = 0; i < 8; ++i)
++    for (int j = 0; j < 4; ++j)
++      digest[i * 4 + j] = uint8_t(h[i] >> (24 - 8 * j));
++#endif
++  return digest;
++}
++
++uint32_t process_id() {
++#ifdef _WIN32
++  return GetCurrentProcessId();
++#else
++  return static_cast<uint32_t>(getpid());
++#endif
++}
++
++bool replace_file(const std::filesystem::path& source, const std::filesystem::path& target) {
++#ifdef _WIN32
++  return MoveFileExW(source.c_str(), target.c_str(),
++                     MOVEFILE_REPLACE_EXISTING | MOVEFILE_WRITE_THROUGH) != 0;
++#else
++  return std::rename(source.c_str(), target.c_str()) == 0;
++#endif
++}
++
++std::filesystem::path menu_font() {
++#ifdef _WIN32
++  wchar_t windows[MAX_PATH]{};
++  const auto length = GetWindowsDirectoryW(windows, MAX_PATH);
++  if (!length || length >= MAX_PATH)
++    return {};
++  return std::filesystem::path(windows) / "Fonts" / "arialbd.ttf";
++#else
++  // Liberation Sans has Arial's metrics: first the copy next to the executable
++  // (steamdeck-ports puts it in fonts/), then the system's.
++  std::error_code error;
++  const auto bundled = rex::platform::GetExecutableFolder() / "fonts" / "LiberationSans-Bold.ttf";
++  if (std::filesystem::is_regular_file(bundled, error))
++    return bundled;
++  for (const char* candidate : {
++           "/usr/share/fonts/liberation/LiberationSans-Bold.ttf",
++           "/usr/share/fonts/liberation-sans/LiberationSans-Bold.ttf",
++           "/usr/share/fonts/truetype/liberation/LiberationSans-Bold.ttf",
++           "/usr/share/fonts/TTF/LiberationSans-Bold.ttf",
++           "/usr/share/fonts/TTF/DejaVuSans-Bold.ttf",
++           "/usr/share/fonts/dejavu/DejaVuSans-Bold.ttf",
++           "/usr/share/fonts/dejavu-sans-fonts/DejaVuSans-Bold.ttf",
++           "/usr/share/fonts/truetype/dejavu/DejaVuSans-Bold.ttf",
++           "/usr/share/fonts/noto/NotoSans-Bold.ttf",
++       }) {
++    if (std::filesystem::is_regular_file(candidate, error))
++      return candidate;
++  }
++  return {};
++#endif
++}
++
++} // namespace lollipop::platform
+diff --git a/src/platform/portable.h b/src/platform/portable.h
+new file mode 100644
+index 0000000..e0546ce
+--- /dev/null
++++ b/src/platform/portable.h
+@@ -0,0 +1,36 @@
++#pragma once
++
++// Host helpers with a Windows and a Linux implementation (steamdeck-ports
++// Linux port). Windows keeps using its resources, BCrypt and Win32 calls.
++
++#include <array>
++#include <cstdint>
++#include <filesystem>
++#include <span>
++
++namespace lollipop::platform {
++
++// Data embedded in the executable: the RCDATA resources of assets/lollipop.rc
++// (IDR_* in settings_resources.h, 104 = shaders/pipelines.txt). Empty if absent.
++std::span<const uint8_t> embedded_resource(int id);
++
++std::array<uint8_t, 32> sha256(std::span<const uint8_t> data);
++
++uint32_t process_id();
++
++// Atomically replaces `target` with `source`. Returns false on failure.
++bool replace_file(const std::filesystem::path& source, const std::filesystem::path& target);
++
++// Whether keyboard and mouse prompt artwork can be drawn: it needs GDI+ and
++// Windows' makecab.exe, so on Linux the game keeps its gamepad prompts.
++constexpr bool kKeyboardPromptArtwork =
++#ifdef _WIN32
++    true;
++#else
++    false;
++#endif
++
++// A bold UI font for the PC settings menu (Arial Bold on Windows), or empty.
++std::filesystem::path menu_font();
++
++} // namespace lollipop::platform
+diff --git a/src/settings/pc_settings.cpp b/src/settings/pc_settings.cpp
+index b7338ac..5a3d03b 100644
+--- a/src/settings/pc_settings.cpp
++++ b/src/settings/pc_settings.cpp
+@@ -7,8 +7,8 @@
+ #include <iomanip>
+ #include <set>
+ #include <sstream>
+-#include <windows.h>
+ 
++#include "platform/portable.h"
+ #include "settings/runtime_settings.h"
+ #include <rex/logging/log_category.h>
+ 
+@@ -129,8 +129,7 @@ bool save_pc_settings(const std::filesystem::path& path, const pc_values& values
+     for (const auto& [name, value] : values)
+       file << name << " = " << std::quoted(value) << '\n';
+     file.close();
+-    if (!file || !MoveFileExW(temporary.c_str(), path.c_str(),
+-                             MOVEFILE_REPLACE_EXISTING | MOVEFILE_WRITE_THROUGH)) {
++    if (!file || !platform::replace_file(temporary, path)) {
+       error = "Could not save settings. Check that your user folder is writable.";
+       return false;
+     }
+diff --git a/src/testing/test_bridge.cpp b/src/testing/test_bridge.cpp
+index 11c2262..3820738 100644
+--- a/src/testing/test_bridge.cpp
++++ b/src/testing/test_bridge.cpp
+@@ -9,7 +9,11 @@
+ #include <imgui_internal.h>
+ #include <sstream>
+ #include <stdexcept>
++#ifdef _WIN32
+ #include <windows.h>
++#else
++#include <dlfcn.h>
++#endif
+ 
+ #include "settings/runtime_settings.h"
+ #include <renderdoc_app.h>
+@@ -30,21 +34,24 @@ std::string capture_frame(const std::filesystem::path& path) {
+       image->rgba.size() != size_t(image->width) * image->height * 4)
+     return "error invalid capture dimensions";
+ 
+-  BITMAPFILEHEADER header{};
+-  BITMAPINFOHEADER info{};
+-  header.bfType = 0x4D42;
+-  header.bfOffBits = sizeof(header) + sizeof(info);
+-  header.bfSize = header.bfOffBits + DWORD(image->rgba.size());
+-  info.biSize = sizeof(info);
+-  info.biWidth = LONG(image->width);
+-  info.biHeight = -LONG(image->height);
+-  info.biPlanes = 1;
+-  info.biBitCount = 32;
++  // BITMAPFILEHEADER (14 bytes) + BITMAPINFOHEADER (40 bytes), little endian.
++  std::array<uint8_t, 54> header{};
++  auto put = [&](size_t offset, uint32_t value, size_t size) {
++    for (size_t i = 0; i < size; ++i)
++      header[offset + i] = uint8_t(value >> (8 * i));
++  };
++  put(0, 0x4D42, 2);
++  put(2, uint32_t(header.size() + image->rgba.size()), 4);
++  put(10, uint32_t(header.size()), 4);
++  put(14, 40, 4);
++  put(18, image->width, 4);
++  put(22, uint32_t(-int32_t(image->height)), 4);
++  put(26, 1, 2);
++  put(28, 32, 2);
+   for (size_t offset = 0; offset < image->rgba.size(); offset += 4)
+     std::swap(image->rgba[offset], image->rgba[offset + 2]);
+   std::ofstream file(path, std::ios::binary | std::ios::trunc);
+-  file.write(reinterpret_cast<const char*>(&header), sizeof(header));
+-  file.write(reinterpret_cast<const char*>(&info), sizeof(info));
++  file.write(reinterpret_cast<const char*>(header.data()), header.size());
+   file.write(reinterpret_cast<const char*>(image->rgba.data()), image->rgba.size());
+   file.close();
+   if (!file)
+@@ -53,10 +60,16 @@ std::string capture_frame(const std::filesystem::path& path) {
+ }
+ 
+ std::string control_gpu_capture(bool start) {
++#ifdef _WIN32
+   const auto module = GetModuleHandleW(L"renderdoc.dll");
+   const auto get_api =
+       module ? reinterpret_cast<pRENDERDOC_GetAPI>(GetProcAddress(module, "RENDERDOC_GetAPI"))
+              : nullptr;
++#else
++  void* module = dlopen("librenderdoc.so", RTLD_NOW | RTLD_NOLOAD);
++  const auto get_api =
++      module ? reinterpret_cast<pRENDERDOC_GetAPI>(dlsym(module, "RENDERDOC_GetAPI")) : nullptr;
++#endif
+   void* api_pointer = nullptr;
+   if (!get_api || !get_api(eRENDERDOC_API_Version_1_0_0, &api_pointer) || !api_pointer)
+     return "error launch this test under RenderDoc first";
+diff --git a/src/ui/settings_menu.cpp b/src/ui/settings_menu.cpp
+index 0029795..6b842c4 100644
+--- a/src/ui/settings_menu.cpp
++++ b/src/ui/settings_menu.cpp
+@@ -2,6 +2,7 @@
+ #include "game/game_settings.h"
+ #include "game/timing_hooks.h"
+ #include "input/prompt_artwork.h"
++#include "platform/portable.h"
+ #include "settings/pc_settings.h"
+ #include "settings_resources.h"
+ #include "ui/cheats_menu.h"
+@@ -17,7 +18,6 @@
+ #include <fstream>
+ #include <stdexcept>
+ #include <string>
+-#include <windows.h>
+ 
+ #include "settings/runtime_settings.h"
+ #include <imgui_internal.h>
+@@ -54,16 +54,11 @@ texture_ptr upload_art(int width, int height, const uint8_t* rgba) {
+ }
+ 
+ texture_ptr load_art(int id) {
+-  const auto module = GetModuleHandleW(nullptr);
+-  const auto resource = FindResourceW(module, MAKEINTRESOURCEW(id), MAKEINTRESOURCEW(10));
+-  if (!resource)
++  const auto bytes = platform::embedded_resource(id);
++  if (bytes.empty())
+     throw std::runtime_error("Missing embedded PC settings artwork");
+-  const auto bytes = static_cast<const uint8_t*>(LockResource(LoadResource(module, resource)));
+-  if (!bytes)
+-    throw std::runtime_error("Could not load PC settings artwork");
+   int width = 0, height = 0;
+-  const auto rgba =
+-      rex::ui::DecodeImageRGBA(bytes, SizeofResource(module, resource), width, height);
++  const auto rgba = rex::ui::DecodeImageRGBA(bytes.data(), bytes.size(), width, height);
+   if (rgba.empty())
+     throw std::runtime_error("Could not decode PC settings artwork");
+   return upload_art(width, height, rgba.data());
+@@ -88,7 +83,7 @@ public:
+     if (!file.read(reinterpret_cast<char*>(startup.data()), startup.size()))
+       throw std::runtime_error("Could not read settings button artwork");
+     for (unsigned device = 0; device < 2; ++device) {
+-      const auto images = make_settings_prompt_artwork(startup, device == 1);
++      const auto images = make_settings_prompt_artwork(startup, platform::kKeyboardPromptArtwork && device == 1);
+       for (size_t i = 0; i < images.size(); ++i) {
+         unsigned left = 128, top = 128, right = 0, bottom = 0;
+         for (unsigned y = 0; y < 128; ++y)
+@@ -562,11 +557,9 @@ private:
+ } // namespace
+ 
+ void configure_settings_fonts(ImFontAtlas* atlas) {
+-  std::array<wchar_t, MAX_PATH> windows{};
+-  const auto length = GetWindowsDirectoryW(windows.data(), static_cast<UINT>(windows.size()));
+-  if (!length || length >= windows.size())
++  const auto menu = platform::menu_font();
++  if (menu.empty())
+     return;
+-  const auto menu = std::filesystem::path(windows.data()) / "Fonts" / "arialbd.ttf";
+   constexpr float sizes[] = {32, 48, 64, 96};
+   for (size_t i = 0; i < menu_fonts.size(); ++i) {
+     if (std::filesystem::exists(menu))

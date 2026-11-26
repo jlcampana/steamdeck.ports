@@ -1,0 +1,40 @@
+# Arreglos nuestros del SDK v0.11.0 para Linux (steamdeck-ports), después de
+# los 5 parches del port. Los mismos que games/doax2-linux/patches/rexglue-sdk/0001.
+
+diff --git a/src/base/fiber_posix.cpp b/src/base/fiber_posix.cpp
+index 3d25ae2..eefd4f4 100644
+--- a/src/base/fiber_posix.cpp
++++ b/src/base/fiber_posix.cpp
+@@ -63,8 +63,15 @@ void Fiber::SwitchTo(Fiber* target) {
+ }
+ 
+ void Fiber::Destroy() {
++  // A thread fiber is destroyed by ~XThread, which runs on whichever thread
++  // drops the last reference (e.g. another guest thread closing the handle
++  // of one that has exited). Only clear the current fiber of this thread if
++  // it is this one: clearing another fiber thread's g_current_fiber made its
++  // next SwitchTo call swapcontext(nullptr, ...).
+   if (is_thread_fiber_) {
+-    g_current_fiber = nullptr;
++    if (g_current_fiber == this) {
++      g_current_fiber = nullptr;
++    }
+   } else {
+     assert(this != g_current_fiber && "Destroy called on the currently running fiber");
+   }
+diff --git a/src/base/memory_posix.cpp b/src/base/memory_posix.cpp
+index 1d7cd9f..307e65c 100644
+--- a/src/base/memory_posix.cpp
++++ b/src/base/memory_posix.cpp
+@@ -381,6 +381,11 @@ FileMappingHandle CreateFileMappingHandle(const std::filesystem::path& path, siz
+     shm_unlink(full_path.c_str());
+     return kFileMappingHandleInvalid;
+   }
++  // Nothing opens the mapping by name again (views map the descriptor), so
++  // unlink it now: the memory lives while the descriptor and the views do,
++  // and the name does not stay in /dev/shm when the process ends without
++  // running ~Memory (the title hard-exits; SIGKILL; crashes).
++  shm_unlink(full_path.c_str());
+   return ret;
+ #endif
+ }

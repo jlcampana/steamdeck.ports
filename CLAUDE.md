@@ -31,7 +31,8 @@ juegos de Xbox/Xbox 360:
 - Ids de juego (carpeta `games/<id>`): `doaxtreme`, `doa3`, `doa2u`, `doa1u`,
   `castlevania-son`, `doa4`, `drakengard3`, `vf3tb`, `urban-reign`,
   `soulcalibur`, `doa4-linux`, `doax2`, `doax2-linux`, `soulcalibur2`,
-  `jsrf`, `hyrule-warriors` (`vrdeluxe` se quitó el 2026-11-26).
+  `jsrf`, `hyrule-warriors`, `lollipop-chainsaw` (`vrdeluxe` se quitó el
+  2026-11-26).
 - Nunca subir archivos de juego: `isos/`, `latest/`, `ports.db`,
   `games/*/latest/`, `games/*/build/` están en `.gitignore`.
 - Los assets de Castlevania SON los extrae el usuario a mano en
@@ -198,6 +199,19 @@ proyecto [`.claude/skills/add-game/SKILL.md`](.claude/skills/add-game/SKILL.md):
   `mods_dir`: si no, irían a `~/.local/share/HWDER`). `HWDER_LOG=<archivo>`
   abre la ventana minimizada (pruebas sin nadie); `skip_prelaunch=1` en el
   `.ini` se salta la pantalla de inicio.
+- **Lollipop Chainsaw** (Xbox 360, `lollipop-chainsaw`): el port solo
+  publica un lanzador de Windows (WPF) que compila el juego en el PC del
+  jugador. Aquí: `@source` + SDK rexglue v0.11.0 en el commit de
+  `scripts/sdk-package.ps1` + sus 5 parches + los nuestros (fibras,
+  `/dev/shm`), Vulkan-Headers 1.4.313 y VMA 3.3.0 fijados por el port
+  (Ubuntu 24.04 trae Vulkan 1.3), clang 20, y **un parche nuestro del
+  juego** (`patches/game/0001-linux.patch`) que porta GDI+, recursos `.rc`,
+  BCrypt y Win32. En Linux no hay iconos de teclado (solo los del mando).
+  `work/src` es un repo git (commit `base` = código original) para sacar
+  el parche con `git diff`. El «test bridge» del port
+  (`--lollipop_test_directory=<dir>`, `command.txt` con «id\ncomando»:
+  `capture`, `input <botones> 0 0 0 0 <ms>`, `input_device gamepad`) sirve
+  para probarlo sin nadie delante.
 
 ## Entorno del PC de build
 
@@ -767,6 +781,18 @@ gastar espacio.
     comprobación de seguridad no deja). Sin probar en la Deck (el usuario
     la prueba el 2026-11-27; reiniciar `serve.sh` antes).
 
+23. **Lollipop Chainsaw** (`lollipop-chainsaw`), versión **Linux nativa
+    compilada aquí** (decisión del usuario, frente a Proton con el lanzador
+    de Windows). El SDK v0.11.0 con los parches del port compila en Linux
+    sin cambios; el juego necesitó nuestro parche (ver arriba). Build
+    ~20 min la primera vez (`work/` 6,8 GB), `build/` 5,2 GB, paquete
+    5,1 GB. Probado desde otra ruta: vídeos de inicio y prólogo jugable
+    con el mando virtual del test bridge (Vulkan). Pendiente: manchas
+    naranjas/verdes en la piel en un primer plano del prólogo (¿Vulkan?
+    En Windows el port usa D3D12 ROV) y probar en la Deck. Instalador
+    probado con HOME falso. **Error mío:** reescribí `build.sh` mientras se
+    ejecutaba (iba a fallar igualmente; no hizo daño).
+
 ### Pendiente
 
 - [x] `tools/install.sh`.
@@ -804,5 +830,7 @@ gastar espacio.
       probar las dos versiones jugando (en el PC y en la Deck).
 - [ ] hyrule-warriors: probar en la Deck (instalar por red, mando,
       rendimiento) y elegir imágenes.
+- [ ] lollipop-chainsaw: probar en la Deck, jugar más allá del prólogo,
+      revisar las manchas de color del prólogo y elegir imágenes.
 - [ ] DOA4: quitar el arreglo del puerto 1000 cuando salga la 0.3.8 (ya se
       salta solo por versión; probar en la Deck).
