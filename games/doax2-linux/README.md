@@ -92,6 +92,12 @@ por `/dev/input/js*` (con Steam Input, solo los «X-Box 360 pad» virtuales).
 Su opción «Mostrar este menú al arrancar» (`DOAX2_LAUNCHER=0`) lo salta;
 sin GTK o sin pantalla, el juego arranca igual.
 
+**Medido en la Deck** (2026-11-26, sin RenderDoc, a un monitor 1080p):
+1920 × 1080 con escala 1x, MSAA 2x nativo, anisótropo 16x y sombras va a
+60 FPS estables; con escala 2x (dibuja a 2560 × 1440) baja a ~35 FPS. La
+opción «Resolución» es el tamaño de salida; lo que dibuja más detalle es la
+escala interna.
+
 Las mismas variables pueden ir en `opciones.conf`, junto a `steamdeck.sh`
 (líneas `DOAX2_…=valor`; el instalador lo conserva). Así no hace falta
 cerrar Steam para cambiarlas desde SSH. Las Opciones de lanzamiento de
