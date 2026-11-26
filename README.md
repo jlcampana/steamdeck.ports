@@ -24,6 +24,7 @@ aportan desde copias propias y quedan fuera de git (`isos/`).
 | `vf3tb`            | Virtua Fighter 3 Team Battle (arcade Model 3) | [mr-finster/vf3-recomp](https://github.com/mr-finster/vf3-recomp/releases) | `VirtuaFighter3Recomp-deck.tar.gz` (**versión para Steam Deck**) | Linux nativo (binario) | `isos/VF33tb.zip` (set de MAME vf3tb completo) |
 | `urban-reign`      | Urban Reign (PS2) | [thiagordsfx/urban-reign-recomp](https://github.com/thiagordsfx/urban-reign-recomp/releases) | `UrbanReignPC-<v>-linux-x86_64.tar.gz` | Linux nativo (binario) | `isos/UrbanReign.chd` (→ `.iso`) |
 | `soulcalibur`      | SoulCalibur (Dreamcast) | [enrique363/voldorium](https://github.com/enrique363/voldorium/releases) | `Voldorium-<v>-linux.tar.gz` | Linux nativo (binario + `sc_game.so` generado del disco) | `isos/SoulCalibur.chd` (→ `.gdi`) |
+| `soulcalibur2`     | Soulcalibur II (Xbox) | [tmcleroy/soulcalibur2-recomp](https://github.com/tmcleroy/soulcalibur2-recomp/releases) | `Soulcalibur2Recomp-linux-x86_64.tar.gz` | Linux nativo (binario, con su launcher) | `isos/Soulcalibur2.iso` (USA) |
 
 (*) DOA1U no tiene ISO propia: el disco de DOA2U trae los dos juegos
 (`Doa1.xbe` y `DOA2.xbe` en la raíz, comprobado con `extract-xiso -l`).
@@ -235,13 +236,14 @@ games/doa3/build.sh -f         # build limpio
 | urban-reign | convierte `isos/UrbanReign.chd` a `game/UrbanReign.iso` (`chdman`) | ~1 min | 3,8 GB |
 | drakengard3 | `dod3 --install <iso> <update> [DLC…]` en el PC (instala en `game/`) | ~2 min | 16 GB |
 | soulcalibur | CHD → `.gdi` (`chdman`) y genera `sc_game.so` desde el disco (podman, Zig) | ~3 min | 1,3 GB |
+| soulcalibur2 | comprueba el `Default.xbe` de `isos/Soulcalibur2.iso`, la copia a `disc/`, crea `portable.txt` | ~20 s | 1,4 GB |
 
 Casi todo el tamaño de los DOA es el disco extraído (`private/`).
 
 ### `build/steamdeck.sh`: punto de entrada común en la Deck
 
 Todos los juegos Linux (doa3, doa2u, doaxtreme, castlevania-son,
-drakengard3, vf3tb, urban-reign, soulcalibur, doa4-linux, doax2-linux) tienen `build/steamdeck.sh`, así que en la
+drakengard3, vf3tb, urban-reign, soulcalibur, soulcalibur2, doa4-linux, doax2-linux) tienen `build/steamdeck.sh`, así que en la
 Deck se añaden a Steam igual. En los binarios listos solo lanza el ejecutable
 desde su carpeta (`write_steamdeck_launcher <ejecutable> [args…]`; p. ej.
 `urban-reign --game`). En los DOA hace además esto:

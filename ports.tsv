@@ -12,3 +12,5 @@ urban-reign	thiagordsfx/urban-reign-recomp	-linux-x86_64\.tar\.gz$
 soulcalibur	enrique363/voldorium	-linux\.tar\.gz$
 doax2	hibikifukui22/Dead-or-Alive-Xtreme-2-Recompilation	-win64\.zip$
 doax2-linux	hibikifukui22/Dead-or-Alive-Xtreme-2-Recompilation	-source\.zip$
+soulcalibur2	tmcleroy/soulcalibur2-recomp	-linux-x86_64\.tar\.gz$
+jsrf	spriteice/JSRF-PC	^JSRF-PC-b.*-linux-x86_64\.tar\.gz$

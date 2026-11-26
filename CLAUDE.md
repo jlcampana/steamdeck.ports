@@ -30,8 +30,8 @@ juegos de Xbox/Xbox 360:
 - Idioma: español en docs, mensajes de scripts y commits.
 - Ids de juego (carpeta `games/<id>`): `doaxtreme`, `doa3`, `doa2u`, `doa1u`,
   `castlevania-son`, `doa4`, `drakengard3`, `vf3tb`, `urban-reign`,
-  `soulcalibur`, `doa4-linux`, `doax2`, `doax2-linux` (`vrdeluxe` se
-  quitó el 2026-11-26).
+  `soulcalibur`, `doa4-linux`, `doax2`, `doax2-linux`, `soulcalibur2`
+  (`vrdeluxe` se quitó el 2026-11-26).
 - Nunca subir archivos de juego: `isos/`, `latest/`, `ports.db`,
   `games/*/latest/`, `games/*/build/` están en `.gitignore`.
 - Los assets de Castlevania SON los extrae el usuario a mano en
@@ -166,6 +166,18 @@ proyecto [`.claude/skills/add-game/SKILL.md`](.claude/skills/add-game/SKILL.md):
   que descarga Zig). El disco hace falta también al jugar: CHD →
   `chdman extractcd` → `disc/SoulCalibur.gdi`; `disc =` en `voldorium.ini` es
   relativa a la carpeta actual. `--seconds N` para probarlo.
+- **Soulcalibur II** (Xbox, `soulcalibur2`): binario Linux listo con el
+  código del juego ya compilado (`soulcalibur2`, y `soulcalibur2-pal` para
+  el disco europeo); solo lee la ISO al jugar. `isos/Soulcalibur2.iso` es
+  la USA con el parche de medios de extract-xiso (SHA-256 del `Default.xbe`
+  en el README del port). Con `portable.txt` todo va a
+  `user/Soulcalibur II/`; su `launcher.ini` guarda el disco con ruta
+  absoluta, así que `deck-launch.sh` la reescribe al arrancar. El launcher
+  (ImGui, con mando) hace de menú de opciones; `--play` entra directo.
+  **Ojo:** `soulcalibur2-launcher --help` no es una ayuda: abre el
+  launcher (y crea `~/.local/share/Soulcalibur II` si no hay
+  `portable.txt`). `--screenshot <prefijo> --size WxH` saca una captura de
+  cada página sin ventana.
 
 ## Entorno del PC de build
 
@@ -671,6 +683,15 @@ gastar espacio.
     `steamdeck.sh` antes del juego y escribe `opciones.conf`. Probado en
     el PC con un mando virtual (uinput); instalado en la Deck y en el PC
     sin reinstalar.
+17. `/add-game` con dos juegos nuevos de `ports.md`: **Soulcalibur II**
+    (`soulcalibur2`) y Jet Set Radio Future (`jsrf`, después: el usuario
+    estaba descomprimiendo su ISO). En JSRF la regex excluye
+    `JSRF-PC-tools-…` (las herramientas para compilar). soulcalibur2:
+    binario listo, build ~20 s (1,4 GB), paquete 915 MB; probado desde otra
+    ruta (`--play`: Vulkan, ~57 FPS, disco de la nueva ruta; capturas del
+    launcher: disco verificado) e instalador con HOME falso (reinstalar
+    conserva `user/`). Imágenes: candidatas bajadas, falta que elija el
+    usuario.
 
 ### Pendiente
 

@@ -65,3 +65,21 @@
 - Nombre: DOAX2
 - Releases: https://github.com/hibikifukui22/Dead-or-Alive-Xtreme-2-Recompilation/releases
 - StreamGridDB: https://www.steamgriddb.com/game/5274802
+
+## Soulcalibur 2
+
+- Nombre: Soulcalibur2
+- Releases: https://github.com/tmcleroy/soulcalibur2-recomp/releases
+- StreamGridDB: https://www.steamgriddb.com/game/34146
+
+## Jet Set Radio Future
+
+- Nombre: JetSetRadioFuture
+- Release: https://github.com/spriteice/JSRF-PC/releases
+- StreamGridDB: https://www.steamgriddb.com/game/5248415
+
+## Lollipop Chainsaw
+
+- Nombre LollipopChainsaw
+- Release: https://github.com/kxrxh/lollipop-chainsaw-recomp/releases
+- StreamGridDB: https://www.steamgriddb.com/game/34733
