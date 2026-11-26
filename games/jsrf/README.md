@@ -73,6 +73,14 @@ conserva `portable/`.
   (UDATA/TDATA), `logs/last-run.log` y `cache/`. El instalador conserva
   `portable/` al reinstalar (`KEEP`).
 
+## Ojo: `kit/lib/libGL.so.1`
+
+Es una libGL **de mentira** (14 KB) para enlazar el motor. No puede ir en
+`LD_LIBRARY_PATH`: `bin/jsrf_recomp` pide `libGL.so.1` sin RUNPATH y SDL2
+también la carga, así que en X11 (el modo Juego de la Deck) la ventana
+falla con «Could not retrieve OpenGL functions». `write_steamdeck_launcher`
+se salta las librerías de driver; `steamdeck.sh` solo pone `lib/` (SDL2).
+
 ## Imagen Ubuntu 24.04 (contenedor de build)
 
 No la usa: el motor se compila con las herramientas de la propia release

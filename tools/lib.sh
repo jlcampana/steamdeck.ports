@@ -186,6 +186,12 @@ check_absolute_paths() {
 # No se parchean los binarios porque run_game.py comprueba su SHA-256.
 # Si el port dejó private/disc-path.txt (ruta absoluta del disco, doa3 0.8.1),
 # steamdeck.sh lo reescribe al arrancar con la ruta de la instalación.
+# Las librerías del driver (libGL, libEGL, libGLX, libOpenGL, libvulkan) no
+# cuentan: tienen que ser las del sistema. Si un port trae una (jsrf: una
+# libGL.so.1 de mentira en kit/lib, solo para enlazar), meter su carpeta en
+# LD_LIBRARY_PATH la carga en vez de la real y SDL no puede crear la ventana
+# OpenGL en X11 («Could not retrieve OpenGL functions»; el modo Juego de la
+# Deck es X11).
 write_steamdeck_launcher() {
     local entry="$1" dirs=() d args="" disc_rel="" disc
     shift
@@ -201,7 +207,8 @@ write_steamdeck_launcher() {
     if (( $# )); then args="$(printf ' %q' "$@")"; fi
     while IFS= read -r d; do dirs+=("$d"); done < <(
         find "$BUILD" -path "$BUILD/private/venv" -prune -o -type f -regextype posix-extended \
-                -regex '.*/[^/]+\.so(\.[0-9]+)*' -print \
+                -regex '.*/[^/]+\.so(\.[0-9]+)*' \
+                ! -regex '.*/lib(GL|EGL|GLX|GLESv[0-9]|OpenGL|vulkan)[^/]*' -print \
             | grep -v '/CMakeFiles/' | xargs -r -n1 dirname | sort -u \
             | xargs -r -n1 realpath --relative-to="$BUILD")
     {

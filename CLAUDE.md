@@ -710,6 +710,20 @@ gastar espacio.
     incidencia #78 de upstream (abierta). Mi primera medida fue sobre el
     vídeo de la intro (me avisó el usuario): sin `--skip-intro` no vale.
     Método en `games/soulcalibur2/README.md`, *Rendimiento*.
+19. Soulcalibur II **v0.7.1-beta.1** (solo arreglos visuales; el
+    rendimiento, igual): `update.sh`, build, paquete e instalado en la Deck
+    por red. `serve.sh` hace su índice al arrancar: con el servidor en
+    marcha, tras reempaquetar hay que rehacer su línea de `index.tsv` (o
+    reiniciarlo).
+20. **JSRF no arrancaba en la Deck** (aviso del usuario): `kit/lib` trae una
+    `libGL.so.1` de mentira (14 KB, para enlazar) y `steamdeck.sh` metía
+    `kit/lib` en `LD_LIBRARY_PATH`; `jsrf_recomp` (sin RUNPATH) y SDL2 la
+    cargaban y en X11 (el modo Juego) fallaba la ventana: «[GL]
+    SDL_CreateWindow failed: Could not retrieve OpenGL functions» en
+    `portable/logs/last-run.log`. En el PC no salió porque el escritorio es
+    Wayland (EGL). `write_steamdeck_launcher` ya no cuenta libGL, libEGL,
+    libGLX, libGLES, libOpenGL ni libvulkan (ningún otro juego trae una).
+    Probado en la Deck por SSH (X11): OpenGL 4.6 radeonsi.
 
 ### Pendiente
 
