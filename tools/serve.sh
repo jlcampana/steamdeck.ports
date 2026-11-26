@@ -28,6 +28,8 @@ set -euo pipefail
 ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 # shellcheck source=tools/help.sh
 source "$ROOT/tools/help.sh"
+# shellcheck source=tools/deprecated.sh
+source "$ROOT/tools/deprecated.sh"
 show_help_if_asked "$0" "$@"
 DEST="$ROOT/dist"
 # shellcheck source=/dev/null
@@ -77,6 +79,7 @@ for conf in "$DEST"/*/game.conf; do
     dir="$(dirname "$conf")"
     id="$(pkg_value "$conf" ID)"
     [[ "$id" == "$(basename "$dir")" ]] || { warn "$dir: el ID de game.conf ($id) no es el de la carpeta; se salta"; continue; }
+    if is_deprecated "$id"; then log "$id: obsoleto (DEPRECATED en games/$id/game.conf), no se ofrece"; continue; fi
     pkg="$dir/$id.tar.zst"
     if [[ ! -f "$pkg" || ! -f "$pkg.sha256" ]]; then
         warn "$id: falta $id.tar.zst o su .sha256; se salta"

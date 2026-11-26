@@ -18,7 +18,7 @@
 #
 #     README.md                  cómo instalarlo en la Deck (tools/deck/README.md.in)
 #
-# Uso: tools/package.sh [-o destino] [-m] [id…]   (sin ids: todos los que tienen build/)
+# Uso: tools/package.sh [-o destino] [-m] [id…]   (sin ids: todos los que tienen build/, menos los obsoletos)
 #   -o destino  carpeta de los paquetes
 #   -h, --help  muestra esta ayuda
 #   -m  solo metadatos: README, instalador, game.conf e imágenes, sin volver a
@@ -32,6 +32,8 @@ set -euo pipefail
 ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 # shellcheck source=tools/help.sh
 source "$ROOT/tools/help.sh"
+# shellcheck source=tools/deprecated.sh
+source "$ROOT/tools/deprecated.sh"
 # shellcheck source=tools/notify.sh
 source "$ROOT/tools/notify.sh"
 show_help_if_asked "$0" "$@"
@@ -54,7 +56,10 @@ command -v zstd >/dev/null || die "Falta zstd"
 
 ids=("$@")
 if (( ${#ids[@]} == 0 )); then
-    for d in "$ROOT"/games/*/build; do ids+=("$(basename "$(dirname "$d")")"); done
+    for d in "$ROOT"/games/*/build; do
+        id="$(basename "$(dirname "$d")")"
+        if is_deprecated "$id"; then log "$id: obsoleto (DEPRECATED en game.conf), se salta"; else ids+=("$id"); fi
+    done
 fi
 (( ${#ids[@]} )) || die "No hay ningún build"
 

@@ -2,7 +2,7 @@
 # Descarga de SteamGridDB varias imágenes candidatas de cada tipo (cover,
 # header, hero, logo, icon) para elegir las de la ficha de Steam.
 #
-# Uso: tools/fetch-art.sh [-n N] [id…]   (sin ids: todos; N por defecto 10)
+# Uso: tools/fetch-art.sh [-n N] [id…]   (sin ids: todos menos los obsoletos; N por defecto 10)
 #   -n N        candidatas por tipo (1-50); la elegida se baja aunque quede fuera
 #   -h, --help  muestra esta ayuda
 #
@@ -24,6 +24,8 @@ set -euo pipefail
 ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 # shellcheck source=tools/help.sh
 source "$ROOT/tools/help.sh"
+# shellcheck source=tools/deprecated.sh
+source "$ROOT/tools/deprecated.sh"
 show_help_if_asked "$0" "$@"
 # shellcheck source=/dev/null
 [[ -f "$ROOT/local.conf" ]] && source "$ROOT/local.conf"
@@ -149,6 +151,9 @@ fetch() {
 
 ids=("$@")
 if (( ${#ids[@]} == 0 )); then
-    for c in "$ROOT"/games/*/game.conf; do ids+=("$(basename "$(dirname "$c")")"); done
+    for c in "$ROOT"/games/*/game.conf; do
+        id="$(basename "$(dirname "$c")")"
+        is_deprecated "$id" || ids+=("$id")
+    done
 fi
 for id in "${ids[@]}"; do fetch "$id"; done

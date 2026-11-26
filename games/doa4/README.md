@@ -1,5 +1,13 @@
 # Dead or Alive 4 Online — `doa4`
 
+> **Obsoleto** (2026-11-26): lo sustituye [`doa4-linux`](../doa4-linux/README.md),
+> la versión nativa, que va bien en la Deck. Los archivos se conservan
+> (`DEPRECATED=1` en `game.conf`): `update.sh`, `tools/package.sh`,
+> `tools/fetch-art.sh` y `tools/serve.sh` se lo saltan, pero se puede
+> seguir usando nombrándolo (`./update.sh doa4`, `games/doa4/build.sh`,
+> `tools/package.sh doa4`). `doa4-linux` sigue copiando de aquí el juego
+> extraído (`build/game`) si existe.
+
 - Repo: https://github.com/dwreckgg/doa4-online (recompilación estática con el
   [ReXGlue SDK](https://github.com/rexglue/rexglue-sdk); fork de
   parkerallan/doa4-recomp con juego online 1v1)

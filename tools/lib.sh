@@ -18,6 +18,12 @@ EXTRACT_XISO="$ROOT/tools/bin/extract-xiso"
 source "$ROOT/tools/help.sh"
 show_help_if_asked "${BASH_SOURCE[1]}" "$@"
 
+# shellcheck source=tools/deprecated.sh
+source "$ROOT/tools/deprecated.sh"
+if is_deprecated "$GAME_ID"; then
+    printf '\e[1;33m[%s]\e[0m Juego obsoleto (DEPRECATED en game.conf): se compila igual, pero ya no se usa\n' "$GAME_ID" >&2
+fi
+
 # shellcheck source=tools/notify.sh
 source "$ROOT/tools/notify.sh"
 # Aviso de escritorio al terminar el build.sh: bien (finish_build) o con error.

@@ -11,7 +11,8 @@
 #                  solo si stdin y stdout son una terminal)
 #   -M, --no-menu  sin menú de builds
 #   -h, --help     muestra esta ayuda
-#   id             limita la actualización a esos juegos (por defecto, todos)
+#   id             limita la actualización a esos juegos (por defecto, todos
+#                  menos los obsoletos: DEPRECATED=1 en su game.conf)
 #
 # Al final resume qué versiones se han descargado y qué builds y paquetes para
 # la Deck (DEST de local.conf o dist/) se han quedado atrás. También avisa si
@@ -35,6 +36,8 @@ set -euo pipefail
 ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 # shellcheck source=tools/help.sh
 source "$ROOT/tools/help.sh"
+# shellcheck source=tools/deprecated.sh
+source "$ROOT/tools/deprecated.sh"
 show_help_if_asked "$0" "$@"
 DB="$ROOT/ports.db"
 FORCE=0
@@ -165,7 +168,8 @@ extract() {
 n_games=0
 while IFS=$'\t' read -r id _; do
     [[ -z "$id" || "$id" == \#* ]] && continue
-    if (( ${#ONLY[@]} )) && [[ ! " ${ONLY[*]} " == *" $id "* ]]; then continue; fi
+    if (( ${#ONLY[@]} )); then [[ " ${ONLY[*]} " == *" $id "* ]] || continue
+    elif is_deprecated "$id"; then continue; fi
     n_games=$((n_games + 1))
 done < "$ROOT/ports.tsv"
 check_rate_limit $(( n_games * 2 ))
@@ -176,7 +180,8 @@ deck_assets=()    # "id: archivo" de releases con algo para Steam Deck
 ids=()            # juegos revisados
 while IFS=$'\t' read -r id repo regex; do
     [[ -z "$id" || "$id" == \#* ]] && continue
-    if (( ${#ONLY[@]} )) && [[ ! " ${ONLY[*]} " == *" $id "* ]]; then continue; fi
+    if (( ${#ONLY[@]} )); then [[ " ${ONLY[*]} " == *" $id "* ]] || continue
+    elif is_deprecated "$id"; then echo "== $id: obsoleto (DEPRECATED en game.conf), se salta"; continue; fi
 
     echo "== $id ($repo)"
     ids+=("$id")
@@ -329,6 +334,7 @@ choose_games() {
     local id latest built packaged old state mark all=() names=() states=() marks=()
     while IFS=$'\t' read -r id _; do
         [[ -z "$id" || "$id" == \#* ]] && continue
+        is_deprecated "$id" && continue
         latest="$(tag_of "$ROOT/games/$id/latest/.release-tag")"
         [[ -n "$latest" ]] || continue
         built="$(tag_of "$ROOT/games/$id/build/.release-tag")"
@@ -433,7 +439,9 @@ else
 fi
 
 # Resumen después de compilar y empaquetar
-ids=(); while IFS=$'\t' read -r id _; do [[ -z "$id" || "$id" == \#* ]] || ids+=("$id"); done < "$ROOT/ports.tsv"
+ids=(); while IFS=$'\t' read -r id _; do
+    [[ -z "$id" || "$id" == \#* ]] || is_deprecated "$id" || ids+=("$id")
+done < "$ROOT/ports.tsv"
 new_versions=(); deck_assets=()
 summary
 if (( ${#failed[@]} )); then

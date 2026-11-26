@@ -87,6 +87,11 @@ proyecto [`.claude/skills/add-game/SKILL.md`](.claude/skills/add-game/SKILL.md):
   Como upstream compila y juega en la misma ruta, no le afectan las rutas
   absolutas (RUNPATH, `disc-path.txt`), que es lo que arregla `steamdeck.sh`.
 
+- **Juegos obsoletos:** `DEPRECATED=1` en `games/<id>/game.conf`
+  (`tools/deprecated.sh`). Se conservan sus archivos; `update.sh`,
+  `package.sh`, `fetch-art.sh` y `serve.sh` se los saltan al recorrer
+  todos, pero funcionan si se nombran. Ahora: `doa4` (lo sustituye
+  `doa4-linux`).
 - **DOA4 solo publica prereleases** (`alpha-v…`): `update.sh` usa la release
   más reciente con el archivo si no hay «latest». Es solo Windows → Proton.
   Hasta alpha-v0.3.7 se congela al arrancar en Proton (puerto UDP 1000, issue
@@ -618,6 +623,12 @@ gastar espacio.
    Las teclas del lanzador de Windows quedan en `launch-options.sh`
    (no eran la causa).
 
+11. **doa4-linux sustituye a doa4 (Proton)** (decisión del usuario, tras
+    probarlo en la Deck). `doa4` no se borra: `DEPRECATED=1` en su
+    `game.conf` (`tools/deprecated.sh`). `update.sh` (descarga, menú y
+    resumen), `package.sh` y `fetch-art.sh` sin ids, y `serve.sh`, se lo
+    saltan; nombrándolo sigue funcionando y `build.sh` avisa.
+
 
 ### Pendiente
 
@@ -647,7 +658,7 @@ gastar espacio.
       no lleva trajes (decisión del usuario).
 - [x] Imágenes de vrdeluxe y soulcalibur elegidas por el usuario.
 - [x] doa4-linux: probado en la Deck, funciona bien (prueba del usuario,
-      2026-11-26). Falta decidir si sustituye a la de Proton.
+      2026-11-26). Sustituye a `doa4` (Proton), que queda obsoleto.
 - [x] doax2-linux: se colgaba al pulsar Start. Arreglado con un parche del
       SDK (2026-11-26, punto 9). Falta jugar más allá de la primera
       pantalla, reempaquetar e instalar.
