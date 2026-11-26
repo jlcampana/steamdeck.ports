@@ -65,7 +65,8 @@ conserva: si se corta, sigue donde iba. Build 6,3 GB, paquete 2,9 GB.
 `launch-options.sh`: las ~50 opciones que pasa el lanzador de Windows
 (`src/launcher_public.cpp`, `Launch()`) con sus valores por defecto, salvo
 `--gpu_backend=vulkan` (Vulkan (Native)), `--fullscreen=true` y sin las
-opciones solo de D3D12. Variables para cambiarlas: `DOAX2_FPS` (60/30),
+opciones solo de D3D12. Teclas: las del lanzador (`--keybind_*`: Enter = Start,
+Espacio = A, Retroceso = B, WASD = stick izquierdo, flechas = cruceta…). Variables para cambiarlas: `DOAX2_FPS` (60/30),
 `DOAX2_FULLSCREEN`, `DOAX2_WIDTH`/`DOAX2_HEIGHT` (1280x720), `DOAX2_SCALE`,
 `DOAX2_SHADOWS`, `DOAX2_FPS_OVERLAY`. En Steam: Opciones de lanzamiento,
 p. ej. `DOAX2_FPS=30 %command%`.
@@ -93,8 +94,9 @@ p. ej. `DOAX2_FPS=30 %command%`.
   ocupados. Descartado: la afinidad de los hilos (repartir los 6 núcleos de
   la 360 entre las 4 CPU no lo cambia) y el parche del port (no toca las
   fibras de Linux), el compilador (igual con clang 20 que con clang 23)
-  y el modo de 60 FPS (igual con `DOAX2_FPS=30`). Tampoco son las opciones:
-  son las del lanzador de Windows salvo las de D3D12. **A `doax2` (Proton)
+  y el modo de 60 FPS (igual con `DOAX2_FPS=30`). Tampoco son las opciones
+  (las del lanzador de Windows salvo las de D3D12, teclas incluidas) ni el
+  mando: igual con Start del mando que con Enter. **A `doax2` (Proton)
   no le pasa** en el mismo PC, así que es algo del build de Linux (SDK o
   código del port fuera de `#if defined(_WIN32)`, que solo está en
   `src/doax2_60fps.cpp` y no toca esto). Sin arreglo: usar `doax2`.

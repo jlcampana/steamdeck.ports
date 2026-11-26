@@ -47,6 +47,15 @@ OPTS=(
     --doax2_hires_photos=true
     --doax2_money_multiplier=1
     --mnk_mode=true --mnk_mouse=false
+    # Teclas del lanzador de Windows (kKeyActions); las del SDK son otras
+    --keybind_a=Space --keybind_b=Backspace --keybind_x=F --keybind_y=R
+    --keybind_left_shoulder=Q --keybind_right_shoulder=E
+    --keybind_left_trigger=Z --keybind_right_trigger=C
+    --keybind_back=Tab --keybind_start=Return
+    --keybind_lstick_press=V --keybind_rstick_press=H
+    --keybind_lstick_up=W --keybind_lstick_down=S --keybind_lstick_left=A --keybind_lstick_right=D
+    --keybind_rstick_up=I --keybind_rstick_down=K --keybind_rstick_left=J --keybind_rstick_right=L
+    --keybind_dpad_up=Up --keybind_dpad_down=Down --keybind_dpad_left=Left --keybind_dpad_right=Right
 )
 if ((N60)); then
     OPTS+=(--doax2_native60_tick_scale=0.5

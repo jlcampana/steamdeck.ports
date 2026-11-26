@@ -537,7 +537,9 @@ gastar espacio.
    `rexglue-build` trae ahora también clang 20 y `doax2-linux/build.sh` lo
    usa (`DOAX2_CLANG`; con otro compilador borra las carpetas de CMake).
    **Con clang 20 se cuelga igual**, y también a 30 FPS. Se queda clang 20
-   (el del port).
+   (el del port). Tampoco son las teclas: con las `--keybind_*` del
+   lanzador de Windows (ahora en `launch-options.sh`) se cuelga igual, con
+   Start del mando y con Enter.
 7. **Bañadores de DOAX2 en los paquetes de DOA4** (petición del usuario):
    `games/doa4-linux/doax2-suits.sh` los genera con el propio juego
    (`DOA4_SETUP_TEST=doax2=…`, interruptor de pruebas del port, y

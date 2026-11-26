@@ -44,23 +44,21 @@ kernel más**. Los fallos de `cache:\` y `D:\DOAX2\` salen igual en Proton.
   de física, timer de 1 ms, XInput para saltar vídeos). Nada de esto.
 - Fibras POSIX: el parche del port solo añade la variante de Android;
   Linux usa el `swapcontext` del SDK original.
+- Teclas y mando: igual pulsando Start en el mando que Enter en el teclado,
+  y también con las mismas `--keybind_*` que pasa el lanzador de Windows
+  (las del SDK por defecto son otras; ahora `launch-options.sh` las pasa).
 
 ## Sin probar todavía (ideas)
 
-1. **Teclas:** el lanzador de Windows pasa `--keybind_*` (`start=Return`,
-   `a=Space`, …: ver la línea de `doax2.exe` en `ps` con Proton) y
-   `launch-options.sh` no. Con `--mnk_mode=true` y sin keybinds, ¿qué se
-   envía al pulsar Start/Enter? Probar con las mismas `--keybind_*` y con
-   un mando.
-2. Comparar con un log trace de la versión de Proton tras Start
+1. Comparar con un log trace de la versión de Proton tras Start
    (`--log_level=trace` añadido a mano) para ver qué llamada viene después
    de `Unregistered symbolic link: upsdrive0:` en Windows.
-3. Mirar en `generated/default/` qué hacen `sub_82783210` (planificador
+2. Mirar en `generated/default/` qué hacen `sub_82783210` (planificador
    de fibras) y los dos hilos: ¿esperan una variable que en Linux no
    cambia (p. ej. un evento/overlapped del SDK que en POSIX no se marca)?
    `log_high_frequency_kernel_calls=true` saca también las llamadas
    frecuentes (KeWait…, KeDelay…), ocultas en el trace normal.
-4. Rutas: en Linux `game_data_root` distingue mayúsculas; buscar en el
+3. Rutas: en Linux `game_data_root` distingue mayúsculas; buscar en el
    trace opens fallidos de `game:\` tras Start.
 
 ## Cómo reproducir rápido
