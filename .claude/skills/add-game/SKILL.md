@@ -97,6 +97,11 @@ Todo en español: mensajes de los scripts, docs y commits.
    (recibe la carpeta del juego y `VERSION`). Lo que deba saber quien instala
    va en `games/<id>/deck-notes.md` (sale en el README del paquete).
 
+   **Menú de opciones:** si el juego no tiene menú propio para sus ajustes
+   y solo se cambian con opciones de arranque o con un lanzador que no
+   funciona en la Deck, crea uno si se puede (modelo:
+   `games/doax2-linux/launcher.py`, ver `CLAUDE.md`, Convenciones).
+
 8. **Documenta.**
    - `games/<id>/README.md` con las mismas secciones que los demás: datos del
      repo y la release, contenido, datos del juego, Build, Jugar (indicando

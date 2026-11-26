@@ -49,6 +49,15 @@ juegos de Xbox/Xbox 360:
   archivo con «steamdeck», «steam_deck» o «steamos» en el nombre, pero hay que
   mirar también README y docs.
 
+- **Menú de opciones:** si un juego no tiene menú propio para sus ajustes
+  (gráficos, FPS, resolución…) y solo se cambian con opciones de arranque
+  o con un lanzador que en la Deck no hay (p. ej. el de Windows), crear
+  uno si se puede (petición del usuario, 2026-11-26). Modelo:
+  `games/doax2-linux/launcher.py` (Python + GTK3, que trae SteamOS; mando
+  por `/dev/input/js*`, teclado y pantalla táctil; guarda en un
+  `opciones.conf` junto a `steamdeck.sh`, que va en `KEEP`). Si no se
+  puede, documentar las variables en el README del juego.
+
 ## Añadir un juego nuevo
 
 El usuario lo añade a `ports.md` (nombre + enlace a releases) y lanza
