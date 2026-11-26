@@ -20,6 +20,9 @@ juegos de Xbox/Xbox 360:
 - `tools/package.sh`: empaqueta cada `build/` (`tar.zst`) con un instalador
   `.desktop` para la Deck (`tools/deck/`), que lo añade a Steam con imágenes
   (`games/<id>/art`, de SteamGridDB con `tools/fetch-art.sh`).
+- `tools/serve.sh`: sirve los paquetes por HTTP (y los anuncia por mDNS)
+  para instalarlos en la Deck **por red** con «Ports por red»
+  (`tools/deck/steamdeck-ports.sh`), sin copiar carpetas. Ver README, *Por red*.
 - Juegos sin versión Linux → Proton en la Deck.
 
 ## Convenciones
@@ -513,6 +516,34 @@ gastar espacio.
    `PROTON_DPI` en `games/<id>/game.conf` manda sobre `PC_PROTON_DPI` de
    `local.conf`; doax2 lleva 96. En el PC: `.proton-dpi` = 96 y el prefijo
    puesto a 96 con Steam cerrado.
+9. **Instalación por red** (petición del usuario: hasta ahora se copiaban
+   los 57 GB de paquetes a la Deck con rsync). Detalles en el README,
+   *Por red*.
+   - `tools/serve.sh`: `python3 -m http.server` sobre una carpeta temporal
+     en `$XDG_RUNTIME_DIR` (índice `index.tsv`, `listas/<id>.lst`,
+     `comun/` con los scripts de `tools/deck`, el cliente y enlaces a cada
+     paquete) + `avahi-publish` de `_steamdeck-ports._tcp`. Al parar
+     (Ctrl+C o `kill`) borra la carpeta y deja de anunciarse (comprobado).
+   - `tools/deck/steamdeck-ports.sh` («Ports por red»): se instala con
+     `curl … | bash -s -- --instalar <url>`, busca el PC por mDNS (cable
+     antes que Wi-Fi: el campo de interfaz de `avahi-browse -p`), se
+     actualiza solo, menú con versión del PC / instalada, y lanza
+     `instalar.sh` por juego.
+   - `instalar.sh`: `PKG_URL` (descarga y descomprime a la vez; SHA-256 con
+     `tee` a un fifo; si falla, vuelve la instalación anterior) e
+     `INSTALAR_SIN_PAUSA`. El modo de siempre (archivo local) no cambia.
+   - **Por qué `comun/`:** la primera prueba falló porque el cliente usaba
+     el `instalar.sh` guardado en el paquete, anterior a `PKG_URL`. Ahora
+     la Deck usa siempre los scripts del repo y cambiarlos no obliga a
+     reempaquetar.
+   - Probado en la Deck (SteamOS, cable a 192.168.1.64) con vf3tb: mDNS,
+     autoactualización del cliente, instalación nueva, reinstalación (con
+     `.old`) y una suma falsa (la instalación anterior queda intacta).
+     `steamos-add-to-steam` desde SSH necesita Steam abierto (si no:
+     «Cannot run this script from a tty if Steam is not running»); con
+     Steam abierto añade el acceso y las imágenes bien.
+   - mDNS: la Deck ve el PC por las dos redes (`enp4s0f3u1u4c2`, cable, y
+     `wlan0`); el cliente elige el cable.
 
 ### Pendiente
 
@@ -522,9 +553,11 @@ gastar espacio.
 - [x] Imagen única de compilación (ver punto 14).
 - [x] `steamdeck.sh` en todos los juegos Linux (ver punto 15).
 - [x] Distribución a la Steam Deck: `tools/package.sh` + instalador.
-- [ ] Probar en la Deck: el instalador `.desktop` en KDE,
-      `steamos-add-to-steam` con un `.desktop` (¿usa `Name`, `Exec` e `Icon`?),
-      que Steam escriba `shortcuts.vdf` a tiempo para las imágenes, y cada juego.
+- [ ] Probar en la Deck: el instalador `.desktop` en KDE y cada juego.
+      `steamos-add-to-steam` con el `.desktop` y las imágenes ya están
+      probados (vf3tb, 2026-11-26, punto 9).
+- [ ] «Ports por red» con doble clic en el modo escritorio (probado solo
+      por SSH) y con un juego grande (doa3) por cable.
 - [x] Enlaces de SteamGridDB: de `ports.md` a cada `game.conf`.
 - [ ] API key de SteamGridDB en `local.conf` → `tools/fetch-art.sh` y volver a empaquetar.
 - [x] Al reinstalar, el instalador copia las partidas de `<id>.old`

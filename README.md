@@ -51,10 +51,12 @@ tools/
   install.sh         instala paquetes del sistema y extract-xiso
   lib.sh             funciones comunes de los build.sh
   package.sh         empaqueta games/<id>/build + instalador para la Deck
+  serve.sh           sirve los paquetes por HTTP (+ mDNS) para instalar por red
   fetch-art.sh       descarga imágenes candidatas de SteamGridDB (games/<id>/art)
   pick-art.sh        elige una candidata (y guarda su id en game.conf)
   art-lib.sh         funciones comunes de fetch-art.sh y pick-art.sh
-  deck/              lo que se ejecuta en la Deck (instalar.sh, steam-art.py)
+  deck/              lo que se ejecuta en la Deck (instalar.sh, steam-art.py,
+                     steamdeck-ports.sh = «Ports por red»)
 dist/                paquetes para la Deck, si no se cambia el destino (no va a git)
 local.conf           configuración local: destino, API key (no va a git)
 local.conf.template  plantilla de local.conf
@@ -71,6 +73,8 @@ isos/                ISOs y paquetes de los juegos (no va a git)
 4. `tools/fetch-art.sh` (opcional) — imágenes de Steam desde SteamGridDB.
 5. `tools/package.sh` — crea el paquete y su instalador; en la Deck, doble clic
    en `Instalar <juego>.desktop` (ver [Distribución](#distribución-a-la-steam-deck)).
+6. `tools/serve.sh` (opcional) — sirve los paquetes por la red y en la Deck se
+   instalan con «Ports por red», sin copiar carpetas (ver [Por red](#por-red)).
 
 Los pasos 2, 3 y 5 de una vez: **`./update.sh --build`** (descarga, compila y
 empaqueta solo lo que ha cambiado), o `./update.sh` a secas desde una terminal,
@@ -293,8 +297,8 @@ y `zstd` viene en SteamOS.
 
 ### En la Deck
 
-Copiar la carpeta del juego (USB, red…) y, en el modo escritorio, doble clic en
-`Instalar <Nombre>.desktop` (KDE puede pedir confirmar que se ejecute). Se abre
+Copiar la carpeta del juego (USB, tarjeta…) y, en el modo escritorio, doble clic en
+`Instalar <Nombre>.desktop` (o, sin copiar nada, ver [Por red](#por-red)) (KDE puede pedir confirmar que se ejecute). Se abre
 una terminal y el instalador:
 
 1. Pregunta dónde instalar: `~/Games` (interna) o `<tarjeta SD>/Games`, con el
@@ -316,6 +320,81 @@ una terminal y el instalador:
    Compatibilidad.
 
 Sin teclado físico: Steam + X abre el teclado en pantalla.
+
+### Por red
+
+En vez de copiar la carpeta del paquete a la Deck, el PC la sirve por la red
+y la Deck la descarga y la descomprime **a la vez**: no se guarda el
+`.tar.zst` en la Deck (solo hace falta el espacio del juego instalado) y no
+hay que llevar nada en un USB.
+
+**En el PC**, con los paquetes ya hechos (`tools/package.sh`):
+
+```
+tools/serve.sh            # puerto 8765, paquetes de DEST (local.conf)
+tools/serve.sh -p 9000    # otro puerto
+tools/serve.sh -o /otra/carpeta
+```
+
+Se queda en marcha hasta Ctrl+C. Al arrancar hace el índice de los paquetes
+(si empaquetas algo nuevo, reinícialo), anuncia el servicio por mDNS
+(`_steamdeck-ports._tcp`, con `avahi-publish`) y escribe las direcciones y el
+comando para instalar el cliente en la Deck. La carpeta de los paquetes no se
+toca: lo que sirve está en una carpeta temporal de `$XDG_RUNTIME_DIR` que se
+borra al parar.
+
+| Ruta servida | Qué es |
+|---|---|
+| `index.tsv` | un juego por línea: id, nombre, versión, KB instalado, Proton (0/1), bytes del `.tar.zst` |
+| `listas/<id>.lst` | archivos pequeños del paquete que baja la Deck (`game.conf`, `.sha256`, `art/`, `README.md`…) |
+| `comun/` | `instalar.sh`, `steam-art.py` y `proton-dpi.sh` **del repo** (`tools/deck/`): la Deck usa siempre estos y no los del paquete, así que un cambio en el instalador no obliga a reempaquetar |
+| `steamdeck-ports.sh` | el cliente de la Deck (se actualiza solo desde aquí) |
+| `<id>/` | la carpeta del paquete (enlace) |
+
+En Fedora, la zona `FedoraWorkstation` de firewalld ya deja entrar los
+puertos TCP 1025–65535; con otra zona: `sudo firewall-cmd --add-port=8765/tcp`.
+
+**En la Deck, una vez**: instalar el cliente «Ports por red». En el modo
+escritorio, en Konsole, el comando que escribe `serve.sh` al arrancar:
+
+```
+curl -fsSL http://<ip-del-pc>:8765/steamdeck-ports.sh | bash -s -- --instalar http://<ip-del-pc>:8765
+```
+
+Queda en `~/.local/share/steamdeck-ports/steamdeck-ports.sh`, con un
+`Ports por red.desktop` en el escritorio y en el menú de aplicaciones
+(Juegos).
+
+**Para instalar o actualizar** (modo escritorio, con Steam abierto): doble
+clic en «Ports por red». El cliente:
+
+1. Busca el PC: la URL que se le pase (`steamdeck-ports.sh http://…:8765`);
+   si no, por mDNS (prefiere la dirección por cable a la de Wi-Fi); si no, la
+   última que funcionó (`~/.config/steamdeck-ports/servidor`); si no, la
+   pide.
+2. Se actualiza solo si la copia del PC es distinta, y vuelve a arrancar.
+3. Enseña los juegos con la versión del PC, la instalada (`.release-tag` en
+   `~/Games/<id>` o `<tarjeta SD>/Games/<id>`) y el tamaño; `*` marca los
+   que tienen versión nueva.
+4. Se eligen por número (varios separados por espacios) o con `a` todos los
+   marcados. Por cada uno baja los archivos pequeños a
+   `~/.cache/steamdeck-ports/<id>` y lanza `instalar.sh` con
+   `PKG_URL=<servidor>/<id>/<id>.tar.zst`: el mismo instalador de siempre
+   (destino, `.old`, partidas, Steam, imágenes), pero el juego llega por
+   `curl | tee | zstd -d | tar -x`.
+5. La suma SHA-256 se calcula mientras se descarga (`tee` a un fifo que lee
+   `sha256sum`) y se compara con el `.sha256` del paquete. **Si la descarga
+   falla o la suma no coincide**, se borra lo descomprimido y la
+   instalación anterior vuelve a su sitio.
+
+`instalar.sh` admite `PKG_URL` también a mano (`PKG_URL=… ./instalar.sh`) e
+`INSTALAR_SIN_PAUSA=1` (no espera a Enter al terminar; el cliente lo usa
+para no parar entre juegos y para una sola vez al final).
+
+Velocidad: por cable unos 37–40 MB/s (lo que da la red; DOA3, 7,5 GB
+comprimido, ~3,5 min). Por Wi-Fi, bastante menos. `curl` no reintenta
+(`--retry` mezclaría datos en la tubería): si se corta, se vuelve a elegir
+el juego.
 
 ### En un PC con Linux
 

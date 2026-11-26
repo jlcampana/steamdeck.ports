@@ -40,6 +40,10 @@ compilar ni configurar nada.
 Si el doble clic no funciona, abre una terminal (Konsole) en esta carpeta y
 ejecuta `./instalar.sh`.
 
+**Sin copiar la carpeta:** si el PC tiene en marcha `tools/serve.sh`, el
+juego se instala desde la Deck por la red con «Ports por red» (ver el README
+de steamdeck.ports, sección *Por red*).
+
 ## Qué hace el instalador
 
 - Comprueba que cabe en el destino.

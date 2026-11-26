@@ -24,6 +24,14 @@
 # 4. Copia las imágenes de art/ a la ficha de Steam (steam-art.py).
 # Si el paquete trae post-install.sh (games/<id>/deck-post-install.sh), lo
 # ejecuta tras descomprimir con la carpeta del juego como argumento.
+#
+# Instalación por red (la usa steamdeck-ports.sh, ver tools/serve.sh):
+#   PKG_URL=http://<pc>:8765/<id>/<id>.tar.zst ./instalar.sh
+# Con PKG_URL, el juego se descarga y se descomprime a la vez, sin guardar el
+# .tar.zst; la suma se comprueba con el <id>.tar.zst.sha256 de esta carpeta.
+# Si la descarga falla o la suma no coincide, se borra lo descomprimido y la
+# instalación anterior (si la había) vuelve a su sitio.
+# INSTALAR_SIN_PAUSA=1: no espera a que se pulse Enter al terminar.
 set -euo pipefail
 
 case "${1:-}" in
@@ -43,11 +51,17 @@ say()  { printf '\e[1;34m==>\e[0m %s\n' "$*"; }
 warn() { printf '\e[1;33m[aviso]\e[0m %s\n' "$*"; }
 fail() { printf '\e[1;31m[error]\e[0m %s\n' "$*" >&2; pause; exit 1; }
 # Con doble clic se abre una terminal: que no se cierre sin dejar leer.
-pause() { [[ -t 0 ]] && read -rp "Pulsa Enter para cerrar…" _ || true; }
+pause() { [[ -t 0 && "${INSTALAR_SIN_PAUSA:-0}" != 1 ]] && read -rp "Pulsa Enter para cerrar…" _ || true; }
 ask_yes() { local a; read -rp "$1 [s/N] " a; [[ "$a" =~ ^[sSyY] ]]; }
 
 PKG="$HERE/$ID.tar.zst"
-[[ -f "$PKG" ]] || fail "No encuentro $PKG"
+PKG_URL="${PKG_URL:-}"
+if [[ -n "$PKG_URL" ]]; then
+    command -v curl >/dev/null || fail "Falta curl"
+    [[ -f "$PKG.sha256" ]] || fail "No encuentro $PKG.sha256"
+else
+    [[ -f "$PKG" ]] || fail "No encuentro $PKG"
+fi
 command -v zstd >/dev/null || fail "Falta zstd"
 
 # En la Deck (SteamOS) o en un PC
@@ -58,6 +72,7 @@ fi
 FLATPAK_STEAM=com.valvesoftware.Steam
 
 say "Instalador de $NAME ($VERSION)"
+[[ -n "$PKG_URL" ]] && say "Origen: $PKG_URL"
 
 # --- 1. Destino -------------------------------------------------------------
 if [[ $# -ge 1 ]]; then
@@ -94,6 +109,7 @@ if (( free_kb < SIZE_KB )); then
     fail "No hay espacio en $BASE: hacen falta $((SIZE_KB / 1024 / 1024 + 1)) GB y hay $((free_kb / 1024 / 1024)) GB"
 fi
 
+moved_old=0
 if [[ -e "$DEST" ]]; then
     old="$(cat "$DEST/.release-tag" 2>/dev/null || echo "?")"
     warn "Ya está instalado en $DEST (versión $old)."
@@ -102,13 +118,54 @@ if [[ -e "$DEST" ]]; then
     ask_yes "¿Continuar?" || { echo "Cancelado."; pause; exit 0; }
     rm -rf "$DEST.old"
     mv "$DEST" "$DEST.old"
+    moved_old=1
 fi
 
-say "Descomprimiendo en $DEST (puede tardar unos minutos)…"
+# Por red: curl | tee (al fifo, del que lee sha256sum) | zstd | tar. Sin
+# --retry: curl repetiría la descarga por la salida y se mezclarían los datos.
+unpack() {
+    if [[ -z "$PKG_URL" ]]; then
+        zstd -dc --progress "$PKG" | tar -x -C "$tmp"
+        return
+    fi
+    local want got sp fifo="$BASE/.$ID.sha256-fifo" sumf="$BASE/.$ID.sha256-got"
+    want="$(cut -d' ' -f1 "$PKG.sha256")"
+    rm -f "$fifo" "$sumf"
+    mkfifo "$fifo" || return 1
+    sha256sum <"$fifo" >"$sumf" &
+    sp=$!
+    if ! curl -fL --progress-bar "$PKG_URL" | tee "$fifo" | zstd -dcq | tar -x -C "$tmp"; then
+        wait "$sp" || true
+        rm -f "$fifo" "$sumf"
+        warn "La descarga o la descompresión ha fallado"
+        return 1
+    fi
+    wait "$sp" || true
+    got="$(cut -d' ' -f1 "$sumf" 2>/dev/null)"
+    rm -f "$fifo" "$sumf"
+    if [[ "$got" != "$want" ]]; then
+        warn "La suma SHA-256 no coincide (esperada $want, recibida ${got:-ninguna})"
+        return 1
+    fi
+    say "Suma SHA-256 comprobada."
+}
+
+if [[ -n "$PKG_URL" ]]; then
+    say "Descargando y descomprimiendo en $DEST (puede tardar unos minutos)…"
+else
+    say "Descomprimiendo en $DEST (puede tardar unos minutos)…"
+fi
 tmp="$BASE/.$ID.partial"
 rm -rf "$tmp"
 mkdir -p "$tmp"
-zstd -dc --progress "$PKG" | tar -x -C "$tmp"
+if ! unpack || [[ ! -d "$tmp/$ID" ]]; then
+    rm -rf "$tmp"
+    if (( moved_old )); then
+        mv "$DEST.old" "$DEST"
+        warn "Se deja como estaba la instalación anterior ($DEST)."
+    fi
+    fail "No se ha instalado $NAME"
+fi
 mv "$tmp/$ID" "$DEST"
 rmdir "$tmp"
 
