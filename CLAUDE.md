@@ -489,6 +489,11 @@ gastar espacio.
    `doax2` (Proton, GE-Proton más reciente) y `doax2-linux`, instaladas en
    `PC_GAMES` con imágenes (Steam cerrado con `-shutdown` y abierto otra
    vez).
+6. **doax2-linux se cuelga al pulsar Start en el título** (prueba del
+   usuario; 5 de 5). Detalles en `games/doax2-linux/README.md`. Probado y
+   descartado: fijar la afinidad de los hilos con menos de 6 CPU (cambio
+   en `xthread.cpp` del SDK, revertido). Falta saber si a `doax2` (Proton)
+   le pasa lo mismo.
 
 ### Pendiente
 
@@ -517,6 +522,8 @@ gastar espacio.
 - [x] Imágenes de vrdeluxe y soulcalibur elegidas por el usuario.
 - [ ] doa4-linux: probarlo en la Deck (¿se congela al arrancar con 8
       hilos?) y, si va bien, decidir si sustituye a la de Proton.
+- [ ] doax2-linux: se cuelga al pulsar Start (ver 2026-11-26, punto 6).
+      Probar `doax2` (Proton) en el PC para saber si es cosa de Linux.
 - [ ] doax2: elegir imágenes (`tools/fetch-art.sh` bajó candidatas) y
       probar las dos versiones jugando (en el PC y en la Deck).
 - [ ] DOA4: quitar el arreglo del puerto 1000 cuando salga la 0.3.8 (ya se

@@ -84,6 +84,16 @@ p. ej. `DOAX2_FPS=30 %command%`.
   estables cada vez. A diferencia de doa4-linux, no se ha congelado en este
   PC de 4 núcleos. Solo se ha probado hasta el título (sin jugar).
 - Instalador probado con HOME falso.
+- **Se cuelga al pulsar Start en el título** (2026-11-26, el usuario desde
+  Steam y fuera de Steam, 5 de 5). Llega al título a 60 FPS, pero al pulsar
+  Start lee la partida (`upsdrive0:`, `ups.dat`), la cierra y deja de
+  sacar fotogramas («tick timeouts 100» en el log). Ya no hace ninguna
+  llamada al kernel. El hilo principal del juego se queda al 100 % cambiando
+  de fibra (`SwitchToFiber`, `swapcontext`) y dos hilos del juego siguen
+  ocupados. Descartado: la afinidad de los hilos (repartir los 6 núcleos de
+  la 360 entre las 4 CPU no lo cambia) y el parche del port (no toca las
+  fibras de Linux). Por probar: si a `doax2` (Proton) le pasa lo mismo
+  (incidencia #18 del port: «crashes at press start screen», en Windows).
 
 ## Imagen Ubuntu 24.04 (contenedor de build)
 
