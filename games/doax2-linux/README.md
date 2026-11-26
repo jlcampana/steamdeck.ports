@@ -69,8 +69,17 @@ conserva: si se corta, sigue donde iba. Build 6,3 GB, paquete 2,9 GB.
 opciones solo de D3D12. Teclas: las del lanzador (`--keybind_*`: Enter = Start,
 Espacio = A, Retroceso = B, WASD = stick izquierdo, flechas = cruceta…). Variables para cambiarlas: `DOAX2_FPS` (60/30),
 `DOAX2_FULLSCREEN`, `DOAX2_WIDTH`/`DOAX2_HEIGHT` (1280x720), `DOAX2_SCALE`,
-`DOAX2_SHADOWS`, `DOAX2_FPS_OVERLAY`. En Steam: Opciones de lanzamiento,
+`DOAX2_SHADOWS`, `DOAX2_FPS_OVERLAY`, y las de gráficos del lanzador:
+`DOAX2_MSAA` (`native`, `emulated`, `off`), `DOAX2_AA` (FXAA: 0, 1, 2) y
+`DOAX2_ANISO` (-1…5; 3 = 4x). En Steam: Opciones de lanzamiento,
 p. ej. `DOAX2_FPS=30 %command%`.
+
+**No hay menú de gráficos dentro del juego:** en Windows se eligen en el
+lanzador, y las teclas F5–F9 del port usan `GetAsyncKeyState` (solo
+Windows). En la Deck (2026-11-26) va a 60 FPS de motor pero pinta unos
+40 fotogramas/s (unos 25 ms por fotograma en la GPU). Para aligerarlo:
+`DOAX2_MSAA=off DOAX2_AA=1 %command%`, luego `DOAX2_SHADOWS=0` o
+`DOAX2_FPS=30`.
 
 - Partidas: `userdata/`; fotos: `photos/`; logs: `logs/`. `KEEP` conserva
   `userdata` y `photos`.
