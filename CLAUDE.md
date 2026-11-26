@@ -27,7 +27,7 @@ juegos de Xbox/Xbox 360:
 - Idioma: español en docs, mensajes de scripts y commits.
 - Ids de juego (carpeta `games/<id>`): `doaxtreme`, `doa3`, `doa2u`, `doa1u`,
   `castlevania-son`, `doa4`, `drakengard3`, `vf3tb`, `urban-reign`,
-  `vrdeluxe`, `soulcalibur`, `doa4-linux`.
+  `soulcalibur`, `doa4-linux` (`vrdeluxe` se quitó el 2026-11-26).
 - Nunca subir archivos de juego: `isos/`, `latest/`, `ports.db`,
   `games/*/latest/`, `games/*/build/` están en `.gitignore`.
 - Los assets de Castlevania SON los extrae el usuario a mano en
@@ -117,12 +117,9 @@ proyecto [`.claude/skills/add-game/SKILL.md`](.claude/skills/add-game/SKILL.md):
   `isos/UrbanReign.chd` es un CHD de DVD → `chdman extractdvd` (`mame-tools`).
   `steamdeck.sh` lanza `urban-reign --game`: el launcher (Python + GTK +
   WebKit) no hace falta y SteamOS no lo trae.
-- **Virtua Racing Deluxe** (32X, `vrdeluxe`): PicoDrive + gráficos HLE. Solo
-  publica binarios de Windows/macOS: se compila el **código fuente** de la
-  release (`@source` en `ports.tsv`, nuevo en `update.sh`) con su `Makefile`
-  (SDL2 + GL + zlib, añadidos a la imagen). `vrde` sin argumentos juega el
-  primer `.32x` de su carpeta; `vrde.ini`/`vrde.mds` en la carpeta actual.
-  `vrde -d N -p frame:teclas` sirve para probarlo sin ventana.
+- **Virtua Racing Deluxe** (`vrdeluxe`): **quitado** por el usuario el
+  2026-11-26 (`games/vrdeluxe`, su línea de `ports.tsv` y de `ports.md`).
+  Lo que añadió sigue: `@source` en `update.sh` y SDL2/GL/zlib en la imagen.
 - **SoulCalibur** (Dreamcast, `soulcalibur`, Voldorium): `voldorium` es el
   motor; el juego es `sc_game.so`, que se genera del disco (en el primer
   arranque o, aquí, en `build.sh` con `builder/tools/build.py --only module`,
@@ -453,6 +450,12 @@ gastar espacio.
     núcleos (ver arriba; pilas con `eu-stack`: el hilo principal del juego
     espera en un bucle de `KeDelayExecutionThread`). No se ha añadido al
     Steam del usuario (estaba abierto).
+
+### 2026-11-26
+
+1. **vrdeluxe quitado** (petición del usuario: commit de su borrado de
+   `games/vrdeluxe`, `ports.tsv` y `ports.md`). Fuera también de las tablas
+   del README.
 
 ### Pendiente
 

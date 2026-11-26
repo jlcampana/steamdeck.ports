@@ -6,7 +6,7 @@
 # en games/<id>/ que haga FROM de esta imagen.
 # libarchive-tools (bsdtar): doa3 >= 0.8.1 descarga trajes de mods y algunos
 # vienen en RAR; sin bsdtar se salta ese paquete de trajes.
-# libsdl2-dev, libgl-dev, zlib1g-dev: vrdeluxe (Makefile con SDL2 + OpenGL).
+# libsdl2-dev, libgl-dev, zlib1g-dev: vrdeluxe (quitado; se dejan, no estorban).
 FROM docker.io/library/ubuntu:24.04
 
 ENV DEBIAN_FRONTEND=noninteractive

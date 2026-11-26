@@ -54,12 +54,6 @@
 - Releases: https://github.com/thiagordsfx/urban-reign-recomp/releases
 - SteamGridDB: https://www.steamgriddb.com/game/4612
 
-## Virtua Racing Deluxe
-
-- Nombre: VirtuaRacingDeluxe
-- Releases: https://github.com/PokaMilkTea/VirtuaRacingDeluxeEnhanced/releases
-- SteamGridDB: https://www.steamgriddb.com/game/38865
-
 ## Soulcalibur
 
 - Nombre: SoulCalibur
