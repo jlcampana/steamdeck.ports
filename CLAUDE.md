@@ -724,6 +724,24 @@ gastar espacio.
     Wayland (EGL). `write_steamdeck_launcher` ya no cuenta libGL, libEGL,
     libGLX, libGLES, libOpenGL ni libvulkan (ningún otro juego trae una).
     Probado en la Deck por SSH (X11): OpenGL 4.6 radeonsi.
+21. **JSRF: el mando no hacía nada en el juego** (sí en su menú F1/Back).
+    Dos causas. (1) En el modo Juego, SDL cree que la ventana no tiene el
+    foco y no da los botones a `SDL_GameControllerGetButton`, que es lo
+    que lee el juego: `steamdeck.sh` exporta
+    `SDL_JOYSTICK_ALLOW_BACKGROUND_EVENTS=1` (`build.sh`). (2) El juego
+    solo lee un mando y con un HORIPAD for Steam por Bluetooth cogía el de
+    la Deck; el usuario lo resolvió con el orden de Steam (⋯ → Reordenar
+    controladores): **con la Deck la primera, el juego toma el HORI**
+    (al revés de lo esperado). En `games/jsrf/deck-notes.md`.
+    Cómo se investigó: `RECOMP_INPUT_LATENCY=1` escribe en
+    `portable/logs/last-run.log` cada pulsación del jugador 1; un script de
+    Python con ctypes sobre el `libSDL2` del juego y el entorno de
+    `/proc/<pid>/environ` (lanzado por SSH) lista mandos y botones; en la
+    Deck, cualquier SDL ve los mandos físicos (`28de:1205`, HORI
+    `0f0d:01ab`), no los virtuales de Steam (`28de:11ff`).
+    `SDL_JOYSTICK_HIDAPI=0` no cambia nada. `gamescopectl screenshot
+    /tmp/x.png` (con `DISPLAY=:0 XDG_RUNTIME_DIR=/run/user/1000`) captura
+    la pantalla de la Deck.
 
 ### Pendiente
 

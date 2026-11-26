@@ -81,6 +81,18 @@ también la carga, así que en X11 (el modo Juego de la Deck) la ventana
 falla con «Could not retrieve OpenGL functions». `write_steamdeck_launcher`
 se salta las librerías de driver; `steamdeck.sh` solo pone `lib/` (SDL2).
 
+## Mandos en la Deck
+
+- `steamdeck.sh` exporta `SDL_JOYSTICK_ALLOW_BACKGROUND_EVENTS=1`: en el modo
+  Juego, sin eso el juego no recibe los botones (el menú F1 sí, porque los
+  lee de los eventos de SDL).
+- Solo lee un mando (el primero de su lista). Con un mando externo, si no
+  responde, cambiar el orden en Steam (⋯ → Reordenar controladores): con un
+  HORIPAD for Steam, **la Deck la primera** hace que el juego coja el HORI.
+  Está en `deck-notes.md` (sale en el README del paquete).
+- Para ver qué le llega: `RECOMP_INPUT_LATENCY=1` escribe cada pulsación del
+  jugador 1 en `portable/logs/last-run.log`.
+
 ## Imagen Ubuntu 24.04 (contenedor de build)
 
 No la usa: el motor se compila con las herramientas de la propia release

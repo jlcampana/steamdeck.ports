@@ -97,6 +97,11 @@ mkdir -p "$BUILD/portable"
 
 check_absolute_paths
 write_steamdeck_launcher jsrf-pc
+# En el modo Juego de la Deck (gamescope), SDL cree que la ventana no tiene
+# el foco y no da al juego los botones del mando (el menú F1 sí los ve: los
+# lee de los eventos). Comprobado en la Deck el 2026-11-26.
+sed -i 's|^cd "\$HERE"$|export SDL_JOYSTICK_ALLOW_BACKGROUND_EVENTS=1\ncd "$HERE"|' "$BUILD/steamdeck.sh"
+grep -q SDL_JOYSTICK_ALLOW_BACKGROUND_EVENTS "$BUILD/steamdeck.sh" || die "No se pudo poner SDL_JOYSTICK_ALLOW_BACKGROUND_EVENTS en steamdeck.sh"
 
 finish_build
 log "En la Deck: añade 'steamdeck.sh' a Steam como juego no de Steam (sin Proton)."
