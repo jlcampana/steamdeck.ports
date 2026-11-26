@@ -40,12 +40,13 @@ DOAX2_JOBS=3 games/doax2-linux/build.sh
 Hace lo mismo que los scripts del port (`setup-sdk.ps1`, `build-sdk.ps1`,
 `generate-code.ps1`, `configure-game.ps1`), en el contenedor
 `steamdeck-ports/doax2-linux:24.04` (`Dockerfile` = enlace a
-`tools/docker/rexglue-build.Dockerfile`, clang 23, compartido con
-doa4-linux), con `-march=x86-64-v2`:
+`tools/docker/rexglue-build.Dockerfile`, clang 20 como pide el preset
+del port, compartido con doa4-linux), con `-march=x86-64-v2`:
 
 1. `latest/` → `work/src` (`rsync`, sin `sdk/`, `out/`, `generated/`, `game/`).
-2. SDK clonado en `work/rexglue-sdk`, commit + parche (se rehace si cambia
-   alguno de los dos); `cmake --preset linux-amd64` y `--target install`
+2. SDK clonado en `work/rexglue-sdk`, commit + parche del port + los
+   nuestros de `patches/rexglue-sdk/` (se rehace si cambia alguno);
+   `cmake --preset linux-amd64` y `--target install`
    (`out/install/linux-amd64`).
 3. `work/src/game` = el disco extraído; se comprueba el SHA-256 del xex.
 4. `rexglue codegen doax2_manifest.toml --ignore-stamp` → `generated/`
@@ -85,28 +86,24 @@ p. ej. `DOAX2_FPS=30 %command%`.
   estables cada vez. A diferencia de doa4-linux, no se ha congelado en este
   PC de 4 núcleos. Solo se ha probado hasta el título (sin jugar).
 - Instalador probado con HOME falso.
-- **Se cuelga al pulsar Start en el título** (2026-11-26, el usuario desde
-  Steam y fuera de Steam, 5 de 5). Llega al título a 60 FPS, pero al pulsar
-  Start lee la partida (`upsdrive0:`, `ups.dat`), la cierra y deja de
-  sacar fotogramas («tick timeouts 100» en el log). Ya no hace ninguna
-  llamada al kernel. El hilo principal del juego se queda al 100 % cambiando
-  de fibra (`SwitchToFiber`, `swapcontext`) y dos hilos del juego siguen
-  ocupados. Descartado: la afinidad de los hilos (repartir los 6 núcleos de
-  la 360 entre las 4 CPU no lo cambia) y el parche del port (no toca las
-  fibras de Linux), el compilador (igual con clang 20 que con clang 23)
-  y el modo de 60 FPS (igual con `DOAX2_FPS=30`). Tampoco son las opciones
-  (las del lanzador de Windows salvo las de D3D12, teclas incluidas) ni el
-  mando: igual con Start del mando que con Enter. **A `doax2` (Proton)
-  no le pasa** en el mismo PC, así que es algo del build de Linux (SDK o
-  código del port fuera de `#if defined(_WIN32)`, que solo está en
-  `src/doax2_60fps.cpp` y no toca esto). Sin arreglo: usar `doax2`.
-  Incidencia #23 del port; detalles e ideas en
-  [`debug-cuelgue-start.md`](debug-cuelgue-start.md).
+- **Se colgaba al pulsar Start en el título** (2026-11-26, 5 de 5; a
+  `doax2` con Proton no le pasaba). **Resuelto** con un parche nuestro del
+  SDK (`patches/rexglue-sdk/0001-linux-fibras-y-shm.patch`): al terminar el
+  hilo que lee la partida, el SDK dejaba a nulo la fibra actual del hilo
+  principal (`Fiber::Destroy` de POSIX) y este se quedaba en un bucle de
+  `SIGSEGV` dentro de `swapcontext`. Ahora pasa del título, carga y guarda
+  la partida y entra en el juego (probado con un mando virtual). Detalles
+  en [`debug-cuelgue-start.md`](debug-cuelgue-start.md); incidencia #23 del
+  port.
+- El mismo parche evita que cada partida deje 4,8 GB en `/dev/shm`
+  (`xenia_memory_*`, en RAM hasta reiniciar): el SDK solo los borraba al
+  salir de forma ordenada, y el juego nunca sale así.
 
 ## Imagen Ubuntu 24.04 (contenedor de build)
 
 `games/doax2-linux/Dockerfile` es un enlace a
 `tools/docker/rexglue-build.Dockerfile` (`FROM
-steamdeck-ports/ubuntu-build:24.04` + clang 23 de apt.llvm.org y
-bibliotecas de desarrollo), la misma de doa4-linux. El preset del SDK pide
-`clang-20`; se le pasa `clang-23` y compila sin problemas.
+steamdeck-ports/ubuntu-build:24.04` + clang 20 y clang 23 de apt.llvm.org y
+bibliotecas de desarrollo), la misma de doa4-linux. doax2-linux usa
+clang 20, el que pide el preset del SDK (`DOAX2_CLANG=23` para probar el
+otro; al cambiar de compilador se borran las carpetas de CMake).

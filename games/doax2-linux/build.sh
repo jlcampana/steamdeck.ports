@@ -7,7 +7,8 @@
 #
 #   1. latest/ (el -source.zip de la release) -> work/src
 #   2. SDK rexglue/rexglue-sdk en el commit del submódulo de esa versión
-#      (GitHub) + patches/rexglue-sdk/0001-doax2-runtime-changes.patch;
+#      (GitHub) + patches/rexglue-sdk/0001-doax2-runtime-changes.patch del port
+#      + los nuestros de games/doax2-linux/patches/rexglue-sdk (fibras, /dev/shm);
 #      se compila e instala en work/rexglue-sdk/out/install/linux-amd64
 #   3. work/src/game = el disco extraído (de games/doax2/build si está)
 #   4. rexglue codegen doax2_manifest.toml -> generated/ (no va en la release)
@@ -60,7 +61,9 @@ sdk_commit="$(curl -fsSL "${api_auth[@]}" -H "Accept: application/vnd.github+jso
     "https://api.github.com/repos/$REPO/contents/sdk/rexglue-sdk?ref=$TAG" | jq -r .sha)"
 [[ "$sdk_commit" =~ ^[0-9a-f]{40}$ ]] || die "No se pudo saber el commit del SDK de $TAG"
 patch_file="$SRC/patches/rexglue-sdk/0001-doax2-runtime-changes.patch"
-patch_sum="$(sha256sum "$patch_file" | cut -d' ' -f1)"
+# Parches nuestros (games/doax2-linux/patches/rexglue-sdk), después del del port
+our_patches=("$GAME_DIR"/patches/rexglue-sdk/*.patch)
+patch_sum="$(cat "$patch_file" "${our_patches[@]}" | sha256sum | cut -d' ' -f1)"
 sdk_stamp="$sdk_commit $patch_sum"
 if [[ "$(cat "$SDK/.steamdeck-ports-stamp" 2>/dev/null)" != "$sdk_stamp" ]]; then
     if [[ ! -d "$SDK/.git" ]]; then
@@ -74,6 +77,10 @@ if [[ "$(cat "$SDK/.steamdeck-ports-stamp" 2>/dev/null)" != "$sdk_stamp" ]]; the
     git -C "$SDK" checkout -q "$sdk_commit"
     git -C "$SDK" submodule update --init --recursive
     git -C "$SDK" apply "$patch_file"
+    for p in "${our_patches[@]}"; do
+        log "SDK: parche nuestro $(basename "$p")"
+        git -C "$SDK" apply "$p"
+    done
     echo "$sdk_stamp" > "$SDK/.steamdeck-ports-stamp"
 fi
 

@@ -118,6 +118,11 @@ proyecto [`.claude/skills/add-game/SKILL.md`](.claude/skills/add-game/SKILL.md):
   release). Sin lanzador: `steamdeck.sh` lleva sus opciones
   (`games/doax2-linux/launch-options.sh`, Vulkan, 60 FPS, variables
   `DOAX2_*`). El zip trae `game/README.md`: ojo al copiar el juego.
+  Parches nuestros del SDK en `games/doax2-linux/patches/rexglue-sdk/`
+  (fibras de POSIX y `/dev/shm`). Sin ellos, el juego se cuelga al pulsar
+  Start. Los juegos del ReXGlue SDK crean `/dev/shm/xenia_memory_*`; si
+  quedan archivos de procesos muertos, borrarlos (llenan la RAM y
+  provocan `SIGBUS`).
 - **Bañadores de DOAX2 en DOA4**: doa4-online los construye del disco USA de
   DOAX2 en `<partidas>/doax2_suits`. Se hacen en el PC con
   `games/doa4-linux/doax2-suits.sh` (caché en `games/doa4-linux/work/`,
@@ -577,6 +582,22 @@ gastar espacio.
      Steam abierto añade el acceso y las imágenes bien.
    - mDNS: la Deck ve el PC por las dos redes (`enp4s0f3u1u4c2`, cable, y
      `wlan0`); el cliente elige el cable.
+9. **Arreglado el cuelgue de doax2-linux al pulsar Start** (el usuario lo
+   dejó investigando). Se reprodujo sin nadie delante con un mando virtual
+   (`uinput`). Se lanzó `doax2.exe` con Proton sin el lanzador para comparar
+   logs. Con eu-stack y gdb se encontró la causa. Cuando termina un hilo
+   del juego, `~XThread` se ejecuta en otro hilo, y `Fiber::Destroy` de
+   POSIX dejaba a nulo la fibra actual de ese otro hilo (el principal). Su
+   siguiente `swapcontext` fallaba en un bucle de `SIGSEGV` que el
+   manejador del SDK se tragaba. El arreglo va en
+   `games/doax2-linux/patches/rexglue-sdk/`, que `build.sh` aplica tras el
+   parche del port: es el mismo que ya tenía el SDK de doa4-online
+   (`5f4a591`). El mismo parche hace `shm_unlink` al crear la memoria
+   del guest: cada partida dejaba 4,8 GB en `/dev/shm` (también
+   doa4-linux), y con `/dev/shm` lleno el juego moría con `SIGBUS`.
+   Las teclas del lanzador de Windows quedan en `launch-options.sh`
+   (no eran la causa).
+
 
 ### Pendiente
 
@@ -607,9 +628,12 @@ gastar espacio.
 - [x] Imágenes de vrdeluxe y soulcalibur elegidas por el usuario.
 - [ ] doa4-linux: probarlo en la Deck (¿se congela al arrancar con 8
       hilos?) y, si va bien, decidir si sustituye a la de Proton.
-- [ ] doax2-linux: se cuelga al pulsar Start (ver 2026-11-26, punto 6);
-      `doax2` (Proton) va bien. Sin arreglo. Incidencia #23 del port;
-      notas para retomarlo: `games/doax2-linux/debug-cuelgue-start.md`.
+- [x] doax2-linux: se colgaba al pulsar Start. Arreglado con un parche del
+      SDK (2026-11-26, punto 9). Falta jugar más allá de la primera
+      pantalla, reempaquetar e instalar.
+- [ ] doa4-linux: cada partida deja `xenia_memory_*` (4,8 GB) en
+      `/dev/shm` hasta reiniciar. Su SDK no tiene el `shm_unlink` del parche
+      de doax2-linux: aplicarlo también allí (recompilar, ~40 min).
 - [ ] doax2: elegir imágenes (`tools/fetch-art.sh` bajó candidatas) y
       probar las dos versiones jugando (en el PC y en la Deck).
 - [ ] DOA4: quitar el arreglo del puerto 1000 cuando salga la 0.3.8 (ya se

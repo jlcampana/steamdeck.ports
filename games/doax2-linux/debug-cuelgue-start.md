@@ -1,79 +1,102 @@
-# doax2-linux: cuelgue al pulsar Start (notas para retomar la depuración)
+# doax2-linux: cuelgue al pulsar Start (resuelto)
 
-Estado el 2026-11-26 (v1.2.2, SDK `c94f5eb` + parche del port). Incidencia
-abierta en el port:
+**Resuelto el 2026-11-26** con un parche nuestro del SDK,
+[`patches/rexglue-sdk/0001-linux-fibras-y-shm.patch`](patches/rexglue-sdk/0001-linux-fibras-y-shm.patch),
+que `build.sh` aplica después del parche del port. Incidencia del port:
 https://github.com/hibikifukui22/Dead-or-Alive-Xtreme-2-Recompilation/issues/23
-(mirar si hay respuesta antes de seguir).
 
 ## Síntoma
 
-- Llega al título a 60 FPS (Vulkan). Al pulsar Start se congela siempre
-  (5 de 5, desde Steam y fuera). La ventana sigue viva y la interfaz pinta;
-  el juego deja de entregar fotogramas: en el log, `DOAX2 UI paints: 20/s
-  ... tick timeouts 100` desde ese momento.
-- `doax2` (la release de Windows con Proton) **no** se cuelga en el mismo PC.
+- El juego llegaba al título a 60 FPS (Vulkan). Al pulsar Start se congelaba
+  siempre: la ventana seguía viva, pero el juego dejaba de entregar
+  fotogramas («tick timeouts 100» en el log).
+- `doax2` (la release de Windows con Proton) **no** se colgaba en el mismo PC.
 
-## Qué dice el log (`--log_level=trace --log_max_file_size_mb=2000`)
+## Causa
 
-Justo tras Start: `XamNotifyCreateListener`, `XamContentCreateEnumerator:
-added 1 items`, dos `CompleteOverlappedDeferredEx` que acaban en
-`00000000`, `NtResumeThread` de un hilo nuevo, ese hilo resuelve
-`upsdrive0:\` (la partida, `userdata/.../544307D2/00000001/ups.dat`) y
-`Unregistered symbolic link: upsdrive0:`. Después **ninguna llamada al
-kernel más**. Los fallos de `cache:\` y `D:\DOAX2\` salen igual en Proton.
+Al pulsar Start, el juego lee la partida (`ups.dat`) desde un hilo que
+luego termina. El hilo principal del juego cierra su handle, así que
+`~XThread` de ese hilo se ejecuta **en el hilo principal** y destruye la
+fibra principal del hilo que ha terminado. En `src/core/fiber_posix.cpp`,
+`Fiber::Destroy` de una fibra de hilo hacía `tls_current_ = nullptr`
+pensando que se ejecutaba en su propio hilo. En realidad dejaba a nulo la
+fibra actual **del hilo principal**.
 
-## Pilas (eu-stack; con el juego lanzado fuera de Steam: dentro del Flatpak no deja)
+Su siguiente `SwitchToFiber` llamaba a `swapcontext(nullptr, …)`. Eso da
+un `SIGSEGV` al escribir en la dirección `0x80`, y el manejador de
+excepciones del SDK lo daba por resuelto y volvía a la misma instrucción.
+El resultado era un bucle infinito al 100 % de CPU: en las pilas parecía
+que el hilo principal no paraba de cambiar de fibra.
 
-- Hilo principal del juego (`Main XThread`, 100 % CPU): `swapcontext` <-
-  `SwitchToFiber_entry` <- `sub_82783210` <- `sub_8250A0B8` <-
-  `sub_8258CD28` (`FiberEntryPoint`). Bucle de fibras del motor.
-- Dos hilos del juego al ~15 %: `sub_82717B38/82717A00/82717200` y
-  `sub_8271B818/8271AD58/8271B6A0/82724300/…/82718020/827172C8`.
-- El resto en espera; CPU ~40 % libre (no es falta de CPU).
+En Windows las fibras son las del sistema y `SwitchTo` no usa ese puntero,
+así que allí no pasa.
 
-## Descartado
+**Arreglo:** borrar `tls_current_` solo si la fibra destruida es la actual de
+ese hilo. Es el mismo arreglo que tiene el SDK de doa4-online
+(Dwreckgg/rexglue-sdk, commit `5f4a591`, «POSIX Fiber::Destroy: a thread
+fiber destroyed from another thread leaves that thread's current fiber
+alone»). En rexglue/rexglue-sdk (main) sigue sin arreglar el 2026-11-26.
 
-- Afinidad de hilos: con < 6 CPU el SDK no fija afinidad
-  (`XThread::SetActiveCpu`, `src/system/xthread.cpp`); fijar núcleo i →
-  CPU i % 4 no cambia nada (cambio revertido).
-- Compilador: igual con clang 20.1.8 (el del preset; se queda) y clang 23.
-- Modo 60 FPS: igual con `DOAX2_FPS=30`.
-- Partida: pasa con y sin partida previa.
-- Código del port solo de Windows: `#if defined(_WIN32)` solo en
-  `src/doax2_60fps.cpp` (diagnósticos, `VirtualProtect`/`mprotect` del paso
-  de física, timer de 1 ms, XInput para saltar vídeos). Nada de esto.
-- Fibras POSIX: el parche del port solo añade la variante de Android;
-  Linux usa el `swapcontext` del SDK original.
-- Teclas y mando: igual pulsando Start en el mando que Enter en el teclado,
-  y también con las mismas `--keybind_*` que pasa el lanzador de Windows
-  (las del SDK por defecto son otras; ahora `launch-options.sh` las pasa).
+## Segundo arreglo del mismo parche: memoria en /dev/shm
 
-## Sin probar todavía (ideas)
+El SDK crea la memoria del guest con `shm_open("/xenia_memory_<n>")`
+(4,8 GB, dispersa) y solo la borra en `~Memory`. El juego sale con un
+«hard exit», tanto con SIGTERM (lo que hace Steam) como con SIGKILL, así
+que **cada partida dejaba un archivo en `/dev/shm`**. Esos archivos
+ocupaban RAM hasta reiniciar: el 2026-11-26 había 14, unos 6 GB, de
+doa4-linux y de las pruebas. Con `/dev/shm` lleno, el juego moría con
+`SIGBUS` al arrancar.
 
-1. Comparar con un log trace de la versión de Proton tras Start
-   (`--log_level=trace` añadido a mano) para ver qué llamada viene después
-   de `Unregistered symbolic link: upsdrive0:` en Windows.
-2. Mirar en `generated/default/` qué hacen `sub_82783210` (planificador
-   de fibras) y los dos hilos: ¿esperan una variable que en Linux no
-   cambia (p. ej. un evento/overlapped del SDK que en POSIX no se marca)?
-   `log_high_frequency_kernel_calls=true` saca también las llamadas
-   frecuentes (KeWait…, KeDelay…), ocultas en el trace normal.
-3. Rutas: en Linux `game_data_root` distingue mayúsculas; buscar en el
-   trace opens fallidos de `game:\` tras Start.
+**Arreglo:** `shm_unlink` justo después de crearlo. Las vistas se mapean desde
+el descriptor y nadie vuelve a abrir la memoria por el nombre. Arriba, en
+main, lo han resuelto de otra manera: al arrancar borran los archivos de
+procesos muertos (`RemoveStaleFileMappings`). **doa4-linux también tiene
+esta fuga** (su SDK `ca6b928` no lo arregla).
 
-## Cómo reproducir rápido
+## Cómo se encontró (para otra vez)
 
+- **Mando virtual:** `uinput` (python-evdev, con `/dev/uinput` accesible por
+  ACL) crea un mando «Xbox 360» y pulsa Start cada pocos segundos. Así el
+  cuelgue se reproduce sin nadie delante. El script está más abajo.
+- **Proton sin lanzador:** `proton run doax2.exe <opciones del lanzador>
+  --log_level=trace`, con `STEAM_COMPAT_DATA_PATH` del prefijo de Steam y
+  `STEAM_COMPAT_CLIENT_INSTALL_PATH`. También admite variables `REX_<CVAR>`
+  y un `doax2.toml` junto al exe.
+- **Comparar los logs** de Linux y Proton tras Start: en Proton, después de
+  `ups.dat` vienen otra enumeración y `rdsdrive0:`; en Linux no venía nada.
+  Descartado: la partida (con la de Proton se colgaba igual), las teclas,
+  el mando, la afinidad, el compilador y los 60 FPS.
+- **eu-stack varias veces:** el hilo principal estaba el 65 % de las veces
+  en `ExceptionHandlerCallback`, llamado desde una señal dentro de
+  `swapcontext`.
+- **gdb** con `handle SIGSEGV stop`, conectado al proceso colgado:
+  `swapcontext+4: mov %rbx,0x80(%rdi)` con `si_addr=0x80`, siempre en la
+  misma instrucción.
+
+Mando virtual (`pad.py <cada_s> <total_s>`):
+
+```python
+import sys, time
+from evdev import UInput, AbsInfo, ecodes as e
+every, total = float(sys.argv[1]), float(sys.argv[2])
+ax = lambda: AbsInfo(0, -32768, 32767, 16, 128, 0)
+caps = {e.EV_KEY: [e.BTN_SOUTH, e.BTN_EAST, e.BTN_NORTH, e.BTN_WEST, e.BTN_TL, e.BTN_TR,
+                   e.BTN_SELECT, e.BTN_START, e.BTN_MODE, e.BTN_THUMBL, e.BTN_THUMBR],
+        e.EV_ABS: [(e.ABS_X, ax()), (e.ABS_Y, ax()), (e.ABS_RX, ax()), (e.ABS_RY, ax()),
+                   (e.ABS_Z, AbsInfo(0, 0, 255, 0, 0, 0)), (e.ABS_RZ, AbsInfo(0, 0, 255, 0, 0, 0)),
+                   (e.ABS_HAT0X, AbsInfo(0, -1, 1, 0, 0, 0)), (e.ABS_HAT0Y, AbsInfo(0, -1, 1, 0, 0, 0))]}
+ui = UInput(caps, name="Microsoft X-Box 360 pad", vendor=0x045e, product=0x028e,
+            version=0x110, bustype=e.BUS_USB)
+t0 = time.time(); time.sleep(3)
+while time.time() - t0 < total:
+    time.sleep(every)
+    ui.write(e.EV_KEY, e.BTN_START, 1); ui.syn(); time.sleep(0.15)
+    ui.write(e.EV_KEY, e.BTN_START, 0); ui.syn()
+ui.close()
 ```
-cd games/doax2-linux/build     # o la instalación
-DOAX2_FULLSCREEN=0 ./steamdeck.sh --log_level=trace --log_max_file_size_mb=2000
-# título → Start; congelado cuando el log da «tick timeouts 100»
-eu-stack -p $(pgrep -x doax2) > pilas.txt
-```
 
-Recompilar solo el SDK tras tocarlo (~segundos por archivo):
-`podman run … -w games/doax2-linux/work/rexglue-sdk steamdeck-ports/doax2-linux:24.04
-cmake --build out/build/linux-amd64 --target install` y copiar
-`out/install/linux-amd64/lib/librexruntime.so` junto a `doax2` (misma ABI).
-Ojo: `build.sh` no rehace el SDK si su sello (commit + parche) no cambia,
-así que un cambio a mano en `work/rexglue-sdk` se queda: revertirlo con
-`git checkout` + `git apply` del parche.
+Recompilar solo el SDK tras tocarlo:
+`podman run --rm --userns=keep-id --security-opt label=disable -v <repo>:<repo>
+-w games/doax2-linux/work/rexglue-sdk steamdeck-ports/doax2-linux:24.04 cmake
+--build out/build/linux-amd64 --config Release --target install` y copiar
+`out/install/linux-amd64/lib/librexruntime.so` junto a `doax2`.
