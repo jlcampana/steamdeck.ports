@@ -1,0 +1,40 @@
+# Arreglos nuestros del SDK para Linux (steamdeck-ports), sobre el commit fijado
+# por el port (BASE_REVISION) + su parche. Los mismos que games/doax2-linux y
+# games/rumble-roses-xx.
+
+diff -ru a/src/core/fiber_posix.cpp b/src/core/fiber_posix.cpp
+--- a/src/core/fiber_posix.cpp	2026-11-27 18:51:27.302781071 +0100
++++ b/src/core/fiber_posix.cpp	2026-11-27 18:51:27.321769200 +0100
+@@ -69,9 +69,15 @@
+ }
+ 
+ void Fiber::Destroy() {
+-  // Thread fibers are destroyed from the owning thread itself.
++  // A thread fiber is destroyed by ~XThread, which runs on whichever thread
++  // drops the last reference (e.g. another guest thread closing the handle
++  // of one that has exited). Only clear the current fiber of this thread if
++  // it is this one: clearing another fiber thread's tls_current_ made its
++  // next SwitchTo call swapcontext(nullptr, ...).
+   if (is_thread_fiber_) {
+-    tls_current_ = nullptr;
++    if (tls_current_ == this) {
++      tls_current_ = nullptr;
++    }
+   } else {
+     assert(this != tls_current_ && "Destroy called on the currently running fiber");
+   }
+diff -ru a/src/core/memory_posix.cpp b/src/core/memory_posix.cpp
+--- a/src/core/memory_posix.cpp	2026-11-27 18:51:27.306235350 +0100
++++ b/src/core/memory_posix.cpp	2026-11-27 18:51:27.321962190 +0100
+@@ -483,6 +483,11 @@
+     shm_unlink(full_path.c_str());
+     return kFileMappingHandleInvalid;
+   }
++  // Nothing opens the mapping by name again (views map the descriptor), so
++  // unlink it now: the memory lives while the descriptor and the views do,
++  // and the name does not stay in /dev/shm when the process ends without
++  // running ~Memory (the title hard-exits; SIGKILL; crashes).
++  shm_unlink(full_path.c_str());
+   return static_cast<FileMappingHandle>(ret);
+ #endif
+ }

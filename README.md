@@ -32,6 +32,8 @@ aportan desde copias propias y quedan fuera de git (`isos/`).
 | `bayonetta3` | Bayonetta 3 (Switch) | [LuvAbyss/B3-Express](https://github.com/LuvAbyss/B3-Express/releases) | código fuente de la última release (`@source`) | Linux nativo **compilado aquí** con ScarletNX (el recompilador del port; su lanzador es solo de Windows) | `isos/Bayonetta 3/` (`.xci` + update 1.2.0) y `prod.keys` |
 | `bomberman64` | Bomberman 64 (N64) | [RevoSucks/BM64Recomp](https://github.com/RevoSucks/BM64Recomp/releases) | `BM64Recompiled-Linux-X64-Release.zip` | Linux nativo (binario; N64Recomp + RT64) | `isos/Bomberman64.z64` (USA 1.0 sin modificar) |
 | `bomberman-hero` | Bomberman Hero (N64) | [RevoSucks/BMHeroRecomp](https://github.com/RevoSucks/BMHeroRecomp/releases) | `BMHeroRecompiled-Linux-X64-Release.zip` (solo prereleases) | Linux nativo (binario; N64Recomp + RT64) | `isos/BombermanHero.z64` (USA) |
+| `tekken6` | Tekken 6 (Xbox 360) | [mahmoud-mess/tekken6-recomp](https://github.com/mahmoud-mess/tekken6-recomp) | último commit de `main` (`@branch:main`: la versión Linux aún no está en ninguna release) | Linux nativo **compilado aquí** con sus scripts de Linux (SDK + codegen + juego, clang 19, ~20 min) | `isos/Tekken6.iso` (Europa/USA Rev 1) |
+| `rumble-roses-xx` | Rumble Roses XX (Xbox 360) | [360recomper/RumbleRosesReX](https://github.com/360recomper/RumbleRosesReX/releases) | código fuente de la última release (`@source`) | Linux nativo **compilado aquí** (SDK v0.10.0 + codegen + juego, clang 20, ~15 min; renderizador emulado Vulkan) | `isos/RumbleRosesXX.iso` |
 
 (*) DOA1U no tiene ISO propia: el disco de DOA2U trae los dos juegos
 (`Doa1.xbe` y `DOA2.xbe` en la raíz, comprobado con `extract-xiso -l`).
@@ -168,6 +170,9 @@ termina con error.
   release «latest» o no trae ese archivo (doa4 solo publica prereleases), usa
   la release más reciente, sin contar borradores, que lo tenga. Con
   `@source` (código fuente, para compilarlo aquí), lo mismo sin mirar archivos.
+  Con `@branch:<rama>`, el último commit de esa rama (versión
+  `<rama>-<sha7>`), para ports cuya versión Linux aún no está en una release
+  (tekken6).
 - Lo descarga en `latest/<id>/` (borra las descargas anteriores de ese juego) y
   comprueba el SHA-256 con el `digest` que publica GitHub cuando existe.
 - Lo descomprime en `games/<id>/latest/` (zip, tar.gz, tar.xz, tar.zst y 7z).
@@ -250,13 +255,15 @@ games/doa3/build.sh -f         # build limpio
 | bayonetta2 | extrae el juego de los `.nsp` (hactool) y lo traduce y compila con `scripts/setup.py` del port (Zig propio, sin contenedor) | ~30 min (1.ª vez) | 14 GB |
 | bayonetta3 | extrae el juego (`tools/switch-dump.sh`), compila ScarletNX (podman, clang/LLVM 23) y traduce el código del juego | ~45 min (1.ª vez) | 15 GB |
 | bomberman64, bomberman-hero | comprueban la ROM (XXH3), descomprimen la release y copian la ROM como `<game_id>.z64` con `portable.txt` (`tools/n64recomp.sh`) | segundos | 34-49 MB |
+| tekken6 | lo mismo que `tools/build_linux.sh` del port: SDK en su commit con su parche y los nuestros, codegen y juego (podman, clang 19) | ~20 min (1.ª vez) | 6,7 GB |
+| rumble-roses-xx | compila el SDK v0.10.0 parcheado, genera el código del xex y compila el juego sin el renderizador nativo, solo D3D12 (podman, clang 20) | ~15 min (1.ª vez) | 3,7 GB |
 
 Casi todo el tamaño de los DOA es el disco extraído (`private/`).
 
 ### `build/steamdeck.sh`: punto de entrada común en la Deck
 
 Todos los juegos Linux (doa3, doa2u, doaxtreme, castlevania-son,
-drakengard3, vf3tb, urban-reign, soulcalibur, soulcalibur2, jsrf, hyrule-warriors, lollipop-chainsaw, bayonetta2, bayonetta3, doa4-linux, doax2-linux) tienen `build/steamdeck.sh`, así que en la
+drakengard3, vf3tb, urban-reign, soulcalibur, soulcalibur2, jsrf, hyrule-warriors, lollipop-chainsaw, bayonetta2, bayonetta3, doa4-linux, doax2-linux, bomberman64, bomberman-hero, tekken6, rumble-roses-xx) tienen `build/steamdeck.sh`, así que en la
 Deck se añaden a Steam igual. En los binarios listos solo lanza el ejecutable
 desde su carpeta (`write_steamdeck_launcher <ejecutable> [args…]`; p. ej.
 `urban-reign --game`). En los DOA hace además esto:

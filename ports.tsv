@@ -20,3 +20,5 @@ bayonetta2	K0NL/B2recomp	^B2recomp-linux-builder-.*\.zip$
 bayonetta3	LuvAbyss/B3-Express	@source
 bomberman64	RevoSucks/BM64Recomp	^BM64Recompiled-Linux-X64-Release\.zip$
 bomberman-hero	RevoSucks/BMHeroRecomp	^BMHeroRecompiled-Linux-X64-Release\.zip$
+tekken6	mahmoud-mess/tekken6-recomp	@branch:main
+rumble-roses-xx	360recomper/RumbleRosesReX	@source

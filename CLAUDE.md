@@ -33,8 +33,8 @@ juegos de Xbox/Xbox 360:
   `castlevania-son`, `doa4`, `drakengard3`, `vf3tb`, `urban-reign`,
   `soulcalibur`, `doa4-linux`, `doax2`, `doax2-linux`, `soulcalibur2`,
   `jsrf`, `hyrule-warriors`, `lollipop-chainsaw`, `bayonetta2`,
-  `bayonetta3`, `bomberman64`, `bomberman-hero` (`vrdeluxe` se quitó el
-  2026-11-26).
+  `bayonetta3`, `bomberman64`, `bomberman-hero`, `tekken6`,
+  `rumble-roses-xx` (`vrdeluxe` se quitó el 2026-11-26).
 - Nunca subir archivos de juego: `isos/`, `latest/`, `ports.db`,
   `games/*/latest/`, `games/*/build/` están en `.gitignore`.
 - Los assets de Castlevania SON los extrae el usuario a mano en
@@ -256,6 +256,28 @@ proyecto [`.claude/skills/add-game/SKILL.md`](.claude/skills/add-game/SKILL.md):
   (10 MB, «Zoinkity» en la cabecera) y el port la rechaza; la buena mide
   8 MB.
   Bomberman Hero solo publica prereleases.
+
+- **Tekken 6** (Xbox 360, `tekken6`): la versión Linux (Vulkan, con sus
+  `tools/build_linux.sh` y `run_linux.sh`) solo está en la rama `main`;
+  la última release («Iterate», 0.9.4) es anterior. `ports.tsv` usa
+  `@branch:main` (nuevo en `update.sh`: versión `main-<sha7>`). SDK en
+  `BASE_REVISION` de `tools/apply_rexglue_patches.py` (el tarball no trae
+  el submódulo), clang 19 (`games/tekken6/Dockerfile`), FMA3 forzado (la
+  Deck lo tiene). Su SDK también dejaba 4,8 GB en `/dev/shm` por partida:
+  lleva nuestros parches del SDK. Sin forma de ver la ventana aquí:
+  `TEKKEN6_GPU_PROFILE=<csv>` da los fotogramas.
+- **Rumble Roses XX** (Xbox 360, `rumble-roses-xx`): versión Linux
+  compilada aquí del código de la release (`@source`); SDK v0.10.0
+  (`c94f5eb`, el de doax2-linux) + `sdk-patch/` del port + los nuestros
+  (el de fibras rehecho: el contexto cambia). El renderizador «nativo» del
+  port es solo D3D12: en Linux va el emulado (Vulkan). Menú de ajustes del
+  juego: F4 o Back+Start. `--input_script=<archivo>` simula el mando.
+- **Tekken Tag Tournament 2** (`shihabal3amri/tekken-tag-tournament-2-pc`,
+  en `ports.md`): **no añadido** (decisión del usuario, 2026-11-27: lo
+  quería Linux y no es viable; Proton queda para más tarde). Usa
+  XenonRecomp con un runtime propio solo de Windows (~3 MB: D3D11 a mano,
+  Win32, Steamworks). Su instalador pide la ISO (`isos/TTT2.iso`) y la
+  Title Update 3 (`isos/TU_174Q22P_0000008000000.00000000000O2`).
 
 ## Entorno del PC de build
 
@@ -913,6 +935,18 @@ gastar espacio.
    USA 1.0 buena: build 49 MB, paquete 19 MB, probado igual. Imágenes:
    candidatas bajadas (a elegir por el usuario).
 
+9. `/add-game` con los tres juegos nuevos de `ports.md`: **Tekken 6**,
+   **Rumble Roses XX** (los dos Linux nativo, compilados aquí, a la vez) y
+   Tekken Tag Tournament 2 (no añadido, ver arriba). Sin espacio para los
+   dos: se borraron `games/bayonetta{2,3}/work/dump` (28 GB, se rehacen
+   del disco; petición del usuario). tekken6: ~20 min, `work/` 9,5 GB,
+   `build/` 6,7 GB, paquete 6,6 GB; 60 FPS en el PC (intro y demo).
+   rumble-roses-xx: ~15 min, `work/` 6,3 GB, `build/` 3,7 GB, paquete
+   2,8 GB; arranca y responde al mando simulado. Los dos probados desde
+   otra ruta e instalador con HOME falso en `/run/media/pandi/Stuff`
+   (borrado). El disco de `DEST` no estaba montado: sin paquetes en `DEST`.
+   Imágenes: candidatas bajadas (a elegir por el usuario).
+
 ### Pendiente
 
 - [x] `tools/install.sh`.
@@ -961,5 +995,9 @@ gastar espacio.
       ~3,5 FPS), asignar F2 (menú) a un botón y elegir imágenes.
 - [ ] bomberman64 y bomberman-hero: probar en la Deck (jugar, mando) y
       elegir imágenes.
+- [ ] tekken6 y rumble-roses-xx: empaquetar en `DEST`, probar en la
+      Deck (imagen, mando, rendimiento) y elegir imágenes.
+- [ ] Tekken Tag Tournament 2: con Proton (su instalador con `/silent`)
+      cuando lo diga el usuario.
 - [ ] DOA4: quitar el arreglo del puerto 1000 cuando salga la 0.3.8 (ya se
       salta solo por versión; probar en la Deck).

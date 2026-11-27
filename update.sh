@@ -27,6 +27,9 @@
 #
 # En ports.tsv, la regex «@source» descarga el código fuente de la última
 # release (para ports sin binario de Linux que se compilan en build.sh).
+# «@branch:<rama>» descarga el último commit de esa rama, cuando lo que hace
+# falta aún no está en ninguna release (tekken6: la versión Linux solo está en
+# main); la versión es «<rama>-<sha de 7 cifras>».
 #
 # GITHUB_TOKEN (opcional) evita el límite de 60 peticiones/hora de la API sin
 # autenticar; si no está y gh tiene sesión, se usa el token de gh. Antes de
@@ -121,6 +124,12 @@ release_json() {
     local repo="$1" regex="$2" json
     # @source: el código fuente de la última release (sin mirar sus archivos);
     # si no hay «latest» (solo prereleases, doa4-linux), la más reciente.
+    if [[ "$regex" == @branch:* ]]; then
+        api "repos/$repo/commits/${regex#@branch:}" | jq -e --arg b "${regex#@branch:}" --arg r "$repo" '
+            {tag_name: ($b + "-" + .sha[0:7]), published_at: .commit.committer.date,
+             tarball_url: ("https://api.github.com/repos/" + $r + "/tarball/" + .sha), assets: []}'
+        return
+    fi
     if [[ "$regex" == "@source" ]]; then
         api "repos/$repo/releases/latest" 2>/dev/null && return
         api "repos/$repo/releases?per_page=30" | jq -e '
@@ -188,7 +197,7 @@ while IFS=$'\t' read -r id repo regex; do
     json="$(release_json "$repo" "$regex")" || { echo "  No hay ninguna release con un archivo que cumpla /$regex/" >&2; continue; }
     tag="$(jq -r .tag_name <<<"$json")"
     published="$(jq -r .published_at <<<"$json")"
-    if [[ "$regex" == "@source" ]]; then
+    if [[ "$regex" == "@source" || "$regex" == @branch:* ]]; then
         # Tarball del código de la etiqueta: GitHub no da tamaño ni SHA-256.
         asset_json="$(jq -c --arg n "${repo#*/}" '{name: ($n + "-" + .tag_name + ".tar.gz"),
             browser_download_url: .tarball_url, size: 0, digest: ""}' <<<"$json")"

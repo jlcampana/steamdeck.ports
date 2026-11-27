@@ -113,3 +113,21 @@
 - Nombre: BombermanHero
 - Release: https://github.com/RevoSucks/BMHeroRecomp/releases
 - SteamGridDB: https://www.steamgriddb.com/game/38377
+
+## Tekken 6
+
+- Nombre: Tekken6
+- Release: https://github.com/mahmoud-mess/tekken6-recomp/releases
+- SteamGridDB: https://www.steamgriddb.com/game/29851
+
+## Tekken Tag Tournament 2
+
+- Nombre: TekkenTag2
+- Release: https://github.com/shihabal3amri/tekken-tag-tournament-2-pc/releases
+- SteamGridDB: https://www.steamgriddb.com/game/5209426
+
+## Rumble Roses XX
+
+- Nombre: RumbleRosesXX
+- Release: https://github.com/360recomper/RumbleRosesReX/releases
+- SteamGridDB: https://www.steamgriddb.com/game/5281201
