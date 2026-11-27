@@ -60,12 +60,22 @@ archivos). RenderDoc solo se engancha si ya está cargado (SteamOS trae
 ## Jugar
 
 - **Instalar en la Deck:** `tools/package.sh tekken6` y «Ports por red».
-- **`steamdeck.sh`** lanza `tools/run_linux.sh --build-dir bin
-  --fullscreen` (el `cd` y las opciones del runtime son las del port:
-  reloj de 60 Hz, FIFO, `--execute_unclipped_draw_vs_on_cpu`…). Más
-  opciones, en Steam (Opciones de lanzamiento: `%command% --res 768x432`):
-  `--res WxH` (resolución interna; por defecto la original, 1024×576),
-  `--offscreen 512`, `--log` (log en `logs/`), `--fsi`.
+- **`steamdeck.sh`** → `deck-launch.sh`: primero el **menú de opciones**
+  (`tools/deck/opciones.py` + `opciones.json`; mando, teclado o pantalla
+  táctil), que guarda en `opciones.conf` (el instalador lo conserva):
+  - `ESCALA` 1/2/3 → `--resolution_scale` del SDK (×2 = 2048×1152, que se
+    muestra a 720p: más nítido). La resolución de la consola es 1024×576
+    y la opción `--res` del port solo **baja** (768×432, 640×360).
+  - `RES` → `--res` del port; `OFFSCREEN` 512 → `--offscreen 512`.
+  - `ANISO` → `--anisotropic_override` (0 = no, como el port; 3 = 4x).
+  - `MENU=0` lo quita (para volver, `MENU=1` en `opciones.conf`).
+
+  Luego `tools/run_linux.sh --build-dir bin --fullscreen` (el `cd` y las
+  opciones del runtime son las del port: reloj de 60 Hz, FIFO,
+  `--execute_unclipped_draw_vs_on_cpu`…). Lo que se ponga en Steam
+  (Opciones de lanzamiento) va detrás y manda: `%command% --log`, y las
+  del juego tras `--` (`%command% -- --resolution_scale=2`). Con opciones
+  repetidas, el SDK (CLI11) se queda con la última (comprobado).
 - **F3** muestra los FPS. Mando por SDL3; teclas en el README del port.
 - Partidas y ajustes en `user/`, shaders en `cache/linux-fbo/`. El
   instalador conserva las dos al reinstalar (`KEEP`).

@@ -110,7 +110,7 @@ done
 prepare_build "$FORCE"
 log "Dejando en build/ el ejecutable, sus .so, run_linux.sh y el juego"
 find "$BUILD" -mindepth 1 -maxdepth 1 ! -name game ! -name user ! -name cache ! -name logs \
-    ! -name .building-tag -exec rm -rf {} +
+    ! -name opciones.conf ! -name .building-tag -exec rm -rf {} +
 mkdir -p "$BUILD/bin" "$BUILD/tools"
 cp "$OUT/tekken6" "$OUT/librexruntime.so" "$OUT/librexgpu-xenos.so" "$BUILD/bin/"
 install -m 755 "$SRC/tools/run_linux.sh" "$BUILD/tools/run_linux.sh"
@@ -123,7 +123,11 @@ if [[ ! -f "$BUILD/game/Default.xex" && ! -f "$BUILD/game/default.xex" ]]; then
 fi
 
 check_absolute_paths
-# run_linux.sh hace cd a su carpeta padre (build/): --build-dir relativo.
-# Pantalla completa (en el modo Juego la pone gamescope igualmente).
-write_steamdeck_launcher tools/run_linux.sh --build-dir bin --fullscreen
+# Menú de opciones con mando (común: tools/deck/opciones.py) y deck-launch.sh,
+# que pasa las opciones de opciones.conf a run_linux.sh (--build-dir bin
+# --fullscreen; run_linux.sh hace cd a su carpeta padre, build/).
+install -m 755 "$GAME_DIR/deck-launch.sh" "$BUILD/deck-launch.sh"
+install -m 755 "$ROOT/tools/deck/opciones.py" "$BUILD/opciones.py"
+install -m 644 "$GAME_DIR/opciones.json" "$BUILD/opciones.json"
+write_steamdeck_launcher deck-launch.sh
 finish_build

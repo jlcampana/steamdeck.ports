@@ -1,0 +1,22 @@
+{
+  "titulo": "Tekken 6",
+  "nota": "La consola dibuja a 1024 × 576; «Escala» la multiplica (más nítido, más trabajo para la GPU). F3 en el juego muestra los FPS.",
+  "opciones": [
+    {"archivo": "opciones.conf", "clave": "ESCALA", "titulo": "Escala de resolución",
+     "valores": [["1", "×1 (la de la consola)"], ["2", "×2 (2048 × 1152, más nítida)"],
+                 ["3", "×3 (3072 × 1728, muy pesada)"]],
+     "defecto": "1"},
+    {"archivo": "opciones.conf", "clave": "RES", "titulo": "Resolución interna",
+     "valores": [["1024x576", "1024 × 576 (la del juego)"], ["768x432", "768 × 432 (más ligera)"],
+                 ["640x360", "640 × 360 (la más ligera)"]],
+     "defecto": "1024x576"},
+    {"archivo": "opciones.conf", "clave": "ANISO", "titulo": "Filtro anisótropo",
+     "valores": [["0", "No (como el port)"], ["2", "2x"], ["3", "4x"], ["4", "8x"], ["5", "16x"]],
+     "defecto": "0"},
+    {"archivo": "opciones.conf", "clave": "OFFSCREEN", "titulo": "Texturas de efectos",
+     "valores": [["1024", "1024 × 1024 (la del juego)"], ["512", "512 × 512 (más ligera)"]],
+     "defecto": "1024"},
+    {"archivo": "opciones.conf", "clave": "MENU", "titulo": "Mostrar este menú al arrancar",
+     "valores": [["1", "Sí"], ["0", "No (para volver: MENU=1 en opciones.conf)"]], "defecto": "1"}
+  ]
+}

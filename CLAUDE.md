@@ -960,6 +960,14 @@ gastar espacio.
     `eu-stack`/`gdb` (`ptrace_scope=1`, sin `sudo`): la pila se sacó en el
     PC. La IP de la Deck cambia; mejor `deck@steamdeck-familycat.local`.
 
+11. **Tekken 6 con resolución baja en la Deck** (aviso del usuario): es la
+    de la consola (1024×576) y `--res` del port solo baja. Menú de
+    opciones (petición del usuario) con `tools/deck/opciones.py`, todo en
+    `opciones.conf` (`ESCALA` → `--resolution_scale`, `RES`, `ANISO`,
+    `OFFSCREEN`, `MENU`) y `games/tekken6/deck-launch.sh`, que lo pasa a
+    `run_linux.sh`. Copiado a la Deck sin reinstalar. Falta saber a
+    cuántos FPS va con ×2 en la Deck.
+
 ### Pendiente
 
 - [x] `tools/install.sh`.
@@ -1009,7 +1017,7 @@ gastar espacio.
 - [ ] bomberman64 y bomberman-hero: probar en la Deck (jugar, mando) y
       elegir imágenes.
 - [ ] tekken6 y rumble-roses-xx: probar en la Deck (imagen, mando,
-      rendimiento; rumble-roses-xx con el arreglo de la espera activa) y
+      rendimiento; tekken6 con escala ×2; rumble-roses-xx con el arreglo de la espera activa) y
       elegir imágenes.
 - [ ] Tekken Tag Tournament 2: con Proton (su instalador con `/silent`)
       cuando lo diga el usuario.
