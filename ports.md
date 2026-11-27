@@ -64,40 +64,52 @@
 
 - Nombre: DOAX2
 - Releases: https://github.com/hibikifukui22/Dead-or-Alive-Xtreme-2-Recompilation/releases
-- StreamGridDB: https://www.steamgriddb.com/game/5274802
+- SteamGridDB: https://www.steamgriddb.com/game/5274802
 
 ## Soulcalibur 2
 
 - Nombre: Soulcalibur2
 - Releases: https://github.com/tmcleroy/soulcalibur2-recomp/releases
-- StreamGridDB: https://www.steamgriddb.com/game/34146
+- SteamGridDB: https://www.steamgriddb.com/game/34146
 
 ## Jet Set Radio Future
 
 - Nombre: JetSetRadioFuture
 - Release: https://github.com/spriteice/JSRF-PC/releases
-- StreamGridDB: https://www.steamgriddb.com/game/5248415
+- SteamGridDB: https://www.steamgriddb.com/game/5248415
 
 ## Lollipop Chainsaw
 
 - Nombre LollipopChainsaw
 - Release: https://github.com/kxrxh/lollipop-chainsaw-recomp/releases
-- StreamGridDB: https://www.steamgriddb.com/game/34733
+- SteamGridDB: https://www.steamgriddb.com/game/34733
 
 ## Hyrule Warriors Definitive Edition
 
 - Nombre: HyruleWarriors
 - Release: https://github.com/blocker-3/HWDER/releases
-- StreamGridDB: https://www.steamgriddb.com/game/5293704
+- SteamGridDB: https://www.steamgriddb.com/game/5293704
 
 ## Bayonetta 2
 
 - Nombre: Bayonetta2
 - Release: https://github.com/K0NL/B2recomp/releases
-- StreamGridDB: https://www.steamgriddb.com/game/34643
+- SteamGridDB: https://www.steamgriddb.com/game/34643
 
 ## Bayonetta 3
 
 - Nombre: Bayonetta3
 - Release: https://github.com/LuvAbyss/B3-Express/releases/tag/0.4.0
-- StreamGridDB: https://www.steamgriddb.com/game/5297427
+- SteamGridDB: https://www.steamgriddb.com/game/5297427
+
+## Bomberman64
+
+- Nombre: Bomberman64
+- Release: https://github.com/RevoSucks/BM64Recomp/releases
+- SteamGridDB: https://www.steamgriddb.com/game/1680
+
+## BomberMan Hero
+
+- Nombre: BombermanHero
+- Release: https://github.com/RevoSucks/BMHeroRecomp/releases
+- SteamGridDB: https://www.steamgriddb.com/game/38377

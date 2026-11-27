@@ -33,7 +33,7 @@ juegos de Xbox/Xbox 360:
   `castlevania-son`, `doa4`, `drakengard3`, `vf3tb`, `urban-reign`,
   `soulcalibur`, `doa4-linux`, `doax2`, `doax2-linux`, `soulcalibur2`,
   `jsrf`, `hyrule-warriors`, `lollipop-chainsaw`, `bayonetta2`,
-  `bayonetta3` (`vrdeluxe` se quitó el
+  `bayonetta3`, `bomberman64`, `bomberman-hero` (`vrdeluxe` se quitó el
   2026-11-26).
 - Nunca subir archivos de juego: `isos/`, `latest/`, `ports.db`,
   `games/*/latest/`, `games/*/build/` están en `.gitignore`.
@@ -243,6 +243,18 @@ proyecto [`.claude/skills/add-game/SKILL.md`](.claude/skills/add-game/SKILL.md):
   README). El `.xci` es convertido: hactool lo rechaza y
   `tools/switch-dump.sh` lee la partición `secure` él mismo. Arranque:
   `SNX_NVN_FRONTEND=2 SNX_NVN_RELEASE_ONLY=1` (renderizador rápido).
+
+- **Bomberman 64 y Bomberman Hero** (N64, `bomberman64`,
+  `bomberman-hero`, RevoSucks): N64: Recompiled + RT64, binario Linux
+  listo (zip con un `.tar.gz` dentro). Común: `tools/n64recomp.sh`. El
+  juego busca `portable.txt` en la **carpeta actual** (`steamdeck.sh` hace
+  `cd`) y la ROM como `<game_id>.z64` (`bm64_us`, `bmhero`) en su carpeta de
+  datos; si su XXH3-64 no es el de `rom_hash` (`src/main/main.cpp`), la
+  borra y la pide. En este PC no hay `xxhsum` (paquete `xxhash`, sin
+  `sudo`): `n64_check_rom` usa entonces el SHA-1 de una ROM ya comprobada.
+  **`isos/Bomberman64.z64` no vale** (modificada: 10 MB, «Zoinkity» en la
+  cabecera; XXH3 `1731df1483cffcbe`, se pide `c4c0b74bbb696426`).
+  Bomberman Hero solo publica prereleases.
 
 ## Entorno del PC de build
 
@@ -889,6 +901,16 @@ gastar espacio.
    «Ports por red»): `DEPRECATED=1`; lo sustituye `doax2-linux`. Para que
    desaparezca de la lista hay que reiniciar `serve.sh`.
 
+8. `/add-game` con dos juegos nuevos de `ports.md`: **Bomberman 64**
+   (`bomberman64`) y **Bomberman Hero** (`bomberman-hero`), de N64
+   (N64Recomp, binario Linux listo). `tools/n64recomp.sh` común: comprueba
+   la ROM, la deja como `<game_id>.z64` con `portable.txt` y el juego no la
+   pide. Hero: build en segundos (34 MB, paquete 16 MB en `DEST`); probado
+   desde otra ruta (Vulkan, ajustes en su carpeta, ROM aceptada) e
+   instalador con HOME falso (reinstalar conserva `saves/` y `*.json`).
+   Bomberman 64: sin build, la ROM de `isos/` es una modificada. Imágenes:
+   candidatas bajadas (a elegir por el usuario).
+
 ### Pendiente
 
 - [x] `tools/install.sh`.
@@ -935,5 +957,8 @@ gastar espacio.
       *Probar en la Deck*: monitor externo.
 - [ ] bayonetta3: probar en la Deck (sobre todo el rendimiento: en el PC
       ~3,5 FPS), asignar F2 (menú) a un botón y elegir imágenes.
+- [ ] bomberman64: conseguir la ROM USA 1.0 sin modificar, añadir su
+      SHA-1 a `games/bomberman64/build.sh`, build y paquete.
+- [ ] bomberman-hero: probar en la Deck (jugar, mando) y elegir imágenes.
 - [ ] DOA4: quitar el arreglo del puerto 1000 cuando salga la 0.3.8 (ya se
       salta solo por versión; probar en la Deck).
