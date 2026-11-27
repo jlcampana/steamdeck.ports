@@ -967,7 +967,7 @@ gastar espacio.
     `OFFSCREEN`, `MENU`) y `games/tekken6/deck-launch.sh`, que lo pasa a
     `run_linux.sh`. Copiado a la Deck sin reinstalar. Con ×2 va a
     30 FPS (GPU al 100 % a 1600 MHz): en la Deck, ×1 con filtro 4x (el
-    nuevo valor por defecto).
+    nuevo valor por defecto): 60 FPS (prueba del usuario).
 
 ### Pendiente
 
