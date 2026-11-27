@@ -24,7 +24,16 @@ comprueba con XXH3-64 (`rom_hash` en `src/main/main.cpp`:
 `0xc4c0b74bbb696426`). Normalmente se elige en su menú de inicio y la guarda como
 `bm64_us.z64` en su carpeta de datos (`~/.config/BM64Recompiled`, o la carpeta
 actual si hay `portable.txt`).
-bomberman640
+
+`isos/Bomberman64.z64` es la buena (XXH3 correcto; SHA-1
+`8a7648d8105ac4fc1ad942291b2ef89aeca921c9`; 8 MB, código `NBME`). La
+primera que hubo no valía: una modificada de 10 MB con «Zoinkity» en la
+cabecera (XXH3 `1731df1483cffcbe`), que `build.sh` rechaza.
+
+Probado desde otra ruta: arranca con Vulkan, crea sus `.json`, `mods/` y
+`mod_config/` en la carpeta del juego y no borra `bm64_us.z64` (el runtime
+la borra si el hash no coincide).
+
 ## Build
 
 ```
@@ -36,7 +45,7 @@ N64Recomp): comprueba la ROM (XXH3 con `xxhsum -H3` o el módulo
 `xxhash` de Python; si no hay ninguno, SHA-1 de una ROM ya comprobada),
 descomprime el `.tar.gz`, copia la ROM como `bm64_us.z64` y crea
 `portable.txt` y `steamdeck.sh`. Así el juego **no pide la ROM**.
-Segundos. Aún sin build (falta la ROM buena).
+Segundos; ~49 MB (paquete 19 MB).
 
 ## Jugar
 

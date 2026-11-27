@@ -24,7 +24,15 @@ comprueba con XXH3-64 (`rom_hash` en `src/main/main.cpp`:
 `0x89134c0e1f16e0f8`). Normalmente se elige en su menú de inicio y la guarda como
 `bmhero.z64` en su carpeta de datos (`~/.config/BMHeroRecompiled`, o la carpeta
 actual si hay `portable.txt`).
-bomberman-hero0
+
+`isos/BombermanHero.z64` es la buena (XXH3 correcto; SHA-1
+`a36364b7e59351f7551ab351cb3b41ebc4be285b`).
+
+Probado desde otra ruta: arranca con Vulkan, crea sus `.json`, `mods/` y
+`mod_config/` en la carpeta del juego y no borra `bmhero.z64` (el runtime
+la borra si el hash no coincide). Sin captura de la pantalla (en el
+escritorio GNOME no hay con qué hacerla sin interacción).
+
 ## Build
 
 ```

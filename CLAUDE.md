@@ -252,8 +252,9 @@ proyecto [`.claude/skills/add-game/SKILL.md`](.claude/skills/add-game/SKILL.md):
   datos; si su XXH3-64 no es el de `rom_hash` (`src/main/main.cpp`), la
   borra y la pide. En este PC no hay `xxhsum` (paquete `xxhash`, sin
   `sudo`): `n64_check_rom` usa entonces el SHA-1 de una ROM ya comprobada.
-  **`isos/Bomberman64.z64` no vale** (modificada: 10 MB, «Zoinkity» en la
-  cabecera; XXH3 `1731df1483cffcbe`, se pide `c4c0b74bbb696426`).
+  Ojo con las ROM modificadas: la primera `isos/Bomberman64.z64` era una
+  (10 MB, «Zoinkity» en la cabecera) y el port la rechaza; la buena mide
+  8 MB.
   Bomberman Hero solo publica prereleases.
 
 ## Entorno del PC de build
@@ -908,7 +909,8 @@ gastar espacio.
    pide. Hero: build en segundos (34 MB, paquete 16 MB en `DEST`); probado
    desde otra ruta (Vulkan, ajustes en su carpeta, ROM aceptada) e
    instalador con HOME falso (reinstalar conserva `saves/` y `*.json`).
-   Bomberman 64: sin build, la ROM de `isos/` es una modificada. Imágenes:
+   Bomberman 64: la ROM de `isos/` era una modificada; el usuario puso la
+   USA 1.0 buena: build 49 MB, paquete 19 MB, probado igual. Imágenes:
    candidatas bajadas (a elegir por el usuario).
 
 ### Pendiente
@@ -957,8 +959,7 @@ gastar espacio.
       *Probar en la Deck*: monitor externo.
 - [ ] bayonetta3: probar en la Deck (sobre todo el rendimiento: en el PC
       ~3,5 FPS), asignar F2 (menú) a un botón y elegir imágenes.
-- [ ] bomberman64: conseguir la ROM USA 1.0 sin modificar, añadir su
-      SHA-1 a `games/bomberman64/build.sh`, build y paquete.
-- [ ] bomberman-hero: probar en la Deck (jugar, mando) y elegir imágenes.
+- [ ] bomberman64 y bomberman-hero: probar en la Deck (jugar, mando) y
+      elegir imágenes.
 - [ ] DOA4: quitar el arreglo del puerto 1000 cuando salga la 0.3.8 (ya se
       salta solo por versión; probar en la Deck).

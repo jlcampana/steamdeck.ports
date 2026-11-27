@@ -30,7 +30,7 @@ aportan desde copias propias y quedan fuera de git (`isos/`).
 | `lollipop-chainsaw` | Lollipop Chainsaw (Xbox 360) | [kxrxh/lollipop-chainsaw-recomp](https://github.com/kxrxh/lollipop-chainsaw-recomp/releases) | código fuente de la última release (`@source`) | Linux nativo **compilado aquí** (SDK + codegen + juego con un parche nuestro para Linux, ~20 min) | `isos/LollipopChainsaw.iso` |
 | `bayonetta2` | Bayonetta 2 (Switch) | [K0NL/B2recomp](https://github.com/K0NL/B2recomp/releases) | `B2recomp-linux-builder-*.zip` (prerelease `linux-test-N`; la estable es de Windows) | Linux nativo **compilado aquí** con el builder del port (exefs/romfs sacados de los `.nsp` con hactool y tus claves, ~30 min) | `isos/Bayonetta 2/` (`.nsp` base + update 1.2) y `prod.keys` |
 | `bayonetta3` | Bayonetta 3 (Switch) | [LuvAbyss/B3-Express](https://github.com/LuvAbyss/B3-Express/releases) | código fuente de la última release (`@source`) | Linux nativo **compilado aquí** con ScarletNX (el recompilador del port; su lanzador es solo de Windows) | `isos/Bayonetta 3/` (`.xci` + update 1.2.0) y `prod.keys` |
-| `bomberman64` | Bomberman 64 (N64) | [RevoSucks/BM64Recomp](https://github.com/RevoSucks/BM64Recomp/releases) | `BM64Recompiled-Linux-X64-Release.zip` | Linux nativo (binario; N64Recomp + RT64) | `isos/Bomberman64.z64` (USA 1.0 sin modificar; **la que hay no vale**) |
+| `bomberman64` | Bomberman 64 (N64) | [RevoSucks/BM64Recomp](https://github.com/RevoSucks/BM64Recomp/releases) | `BM64Recompiled-Linux-X64-Release.zip` | Linux nativo (binario; N64Recomp + RT64) | `isos/Bomberman64.z64` (USA 1.0 sin modificar) |
 | `bomberman-hero` | Bomberman Hero (N64) | [RevoSucks/BMHeroRecomp](https://github.com/RevoSucks/BMHeroRecomp/releases) | `BMHeroRecompiled-Linux-X64-Release.zip` (solo prereleases) | Linux nativo (binario; N64Recomp + RT64) | `isos/BombermanHero.z64` (USA) |
 
 (*) DOA1U no tiene ISO propia: el disco de DOA2U trae los dos juegos
@@ -249,7 +249,7 @@ games/doa3/build.sh -f         # build limpio
 | lollipop-chainsaw | compila SDK parcheado, genera el código del xex y compila el juego con nuestro parche de Linux (podman, clang 20) | ~20 min (1.ª vez) | 5,2 GB |
 | bayonetta2 | extrae el juego de los `.nsp` (hactool) y lo traduce y compila con `scripts/setup.py` del port (Zig propio, sin contenedor) | ~30 min (1.ª vez) | 14 GB |
 | bayonetta3 | extrae el juego (`tools/switch-dump.sh`), compila ScarletNX (podman, clang/LLVM 23) y traduce el código del juego | ~45 min (1.ª vez) | 15 GB |
-| bomberman64, bomberman-hero | comprueban la ROM (XXH3), descomprimen la release y copian la ROM como `<game_id>.z64` con `portable.txt` (`tools/n64recomp.sh`) | segundos | ~35-45 MB |
+| bomberman64, bomberman-hero | comprueban la ROM (XXH3), descomprimen la release y copian la ROM como `<game_id>.z64` con `portable.txt` (`tools/n64recomp.sh`) | segundos | 34-49 MB |
 
 Casi todo el tamaño de los DOA es el disco extraído (`private/`).
 
