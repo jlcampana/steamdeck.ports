@@ -1,5 +1,10 @@
 # Dead or Alive Xtreme 2 Recomp — `doax2`
 
+> **Obsoleto** (2026-11-27): lo sustituye [`doax2-linux`](../doax2-linux/README.md),
+> nativo y con menú de opciones con mando. Se conserva (`DEPRECATED=1` en
+> `game.conf`): `update.sh`, `package.sh`, `fetch-art.sh` y `serve.sh` se lo
+> saltan salvo que se nombre.
+
 - Repo: https://github.com/hibikifukui22/Dead-or-Alive-Xtreme-2-Recompilation
   (recompilación estática con el ReXGlue SDK v0.10.0 más un parche propio:
   renderizadores nativos D3D12/Vulkan, 60 FPS)

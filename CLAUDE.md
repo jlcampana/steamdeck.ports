@@ -105,7 +105,7 @@ proyecto [`.claude/skills/add-game/SKILL.md`](.claude/skills/add-game/SKILL.md):
   (`tools/deprecated.sh`). Se conservan sus archivos; `update.sh`,
   `package.sh`, `fetch-art.sh` y `serve.sh` se los saltan al recorrer
   todos, pero funcionan si se nombran. Ahora: `doa4` (lo sustituye
-  `doa4-linux`).
+  `doa4-linux`) y `doax2` (lo sustituye `doax2-linux`).
 - **DOA4 solo publica prereleases** (`alpha-v…`): `update.sh` usa la release
   más reciente con el archivo si no hay «latest». Es solo Windows → Proton.
   Hasta alpha-v0.3.7 se congela al arrancar en Proton (puerto UDP 1000, issue
@@ -878,6 +878,9 @@ gastar espacio.
    `language = 5`). El de Bayonetta 2 se copió a la Deck sin reinstalar.
    `tools/switch-dump.sh` probado también con los `.nsp` de Bayonetta 2
    (mismo resultado que la extracción anterior): su `build.sh` lo usa ya.
+7. **`doax2` (Proton) obsoleto** (sugerencia del usuario: que no salga en
+   «Ports por red»): `DEPRECATED=1`; lo sustituye `doax2-linux`. Para que
+   desaparezca de la lista hay que reiniciar `serve.sh`.
 
 ### Pendiente
 
