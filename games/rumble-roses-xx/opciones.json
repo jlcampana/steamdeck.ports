@@ -1,0 +1,30 @@
+{
+  "titulo": "Rumble Roses XX",
+  "nota": "Los mismos ajustes que el menú del juego (F4 o Back+Start). En la Deck manda la GPU: si va lento, quita primero el brillo y el desenfoque.",
+  "opciones": [
+    {"archivo": "game/RumbleRosesReX.toml", "clave": "resolution_scale", "titulo": "Resolución",
+     "valores": [["1", "720p (la original)"], ["2", "1440p (demasiado para la Deck)"]],
+     "defecto": "1"},
+    {"archivo": "game/RumbleRosesReX.toml", "clave": "bloom", "titulo": "Brillo (bloom)",
+     "valores": [["0", "No (lo más ligero)"], ["1", "Reducido"], ["2", "El original"]],
+     "defecto": "2"},
+    {"archivo": "game/RumbleRosesReX.toml", "clave": "blur", "titulo": "Desenfoque del fondo",
+     "valores": [["true", "Sí (el original)"], ["false", "No (todo nítido, más ligero)"]],
+     "defecto": "true"},
+    {"archivo": "game/RumbleRosesReX.toml", "clave": "anisotropic_override", "titulo": "Filtro de texturas",
+     "valores": [["0", "No"], ["3", "4x"], ["4", "8x"], ["5", "16x"]],
+     "defecto": "3"},
+    {"archivo": "game/RumbleRosesReX.toml", "clave": "present_effect", "titulo": "Nitidez (CAS)",
+     "valores": [["\"bilinear\"", "No"], ["\"cas\"", "Sí"]],
+     "defecto": "\"bilinear\""},
+    {"archivo": "game/RumbleRosesReX.toml", "clave": "readback_resolve", "titulo": "Sesiones de fotos",
+     "valores": [["\"some\"", "Bien (algo más de trabajo)"], ["\"none\"", "Fotos estropeadas (más ligero)"]],
+     "defecto": "\"none\""},
+    {"archivo": "game/RumbleRosesReX.toml", "clave": "unlock_all", "titulo": "Desbloquear todo",
+     "valores": [["false", "No"], ["true", "Sí"]], "defecto": "false"},
+    {"archivo": "game/RumbleRosesReX.toml", "clave": "infinite_money", "titulo": "Dinero infinito",
+     "valores": [["false", "No"], ["true", "Sí"]], "defecto": "false"},
+    {"archivo": "opciones.conf", "clave": "MENU", "titulo": "Mostrar este menú al arrancar",
+     "valores": [["1", "Sí"], ["0", "No (para volver: MENU=1 en opciones.conf)"]], "defecto": "1"}
+  ]
+}

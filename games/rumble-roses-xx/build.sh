@@ -112,7 +112,7 @@ BIN="$(find "$OUT" -type f -name rumble_roses_xx -perm -u+x | head -1)"
 prepare_build "$FORCE"
 log "Dejando en build/ el ejecutable, sus .so y las licencias"
 find "$BUILD" -mindepth 1 -maxdepth 1 ! -name game ! -name saves ! -name mods ! -name logs \
-    ! -name .building-tag -exec rm -rf {} +
+    ! -name opciones.conf ! -name .building-tag -exec rm -rf {} +
 find "$BUILD/game" -mindepth 1 -maxdepth 1 ! -name assets ! -name RumbleRosesReX.toml \
     -exec rm -rf {} + 2>/dev/null || true
 mkdir -p "$BUILD/game" "$BUILD/saves" "$BUILD/mods/costumes"
@@ -137,5 +137,10 @@ EOF
 fi
 
 check_absolute_paths
-write_steamdeck_launcher game/rumble_roses_xx
+# Menú de opciones con mando (común: tools/deck/opciones.py) antes del
+# juego; cambia game/RumbleRosesReX.toml, como el menú F4 del juego.
+install -m 755 "$GAME_DIR/deck-launch.sh" "$BUILD/deck-launch.sh"
+install -m 755 "$ROOT/tools/deck/opciones.py" "$BUILD/opciones.py"
+install -m 644 "$GAME_DIR/opciones.json" "$BUILD/opciones.json"
+write_steamdeck_launcher deck-launch.sh
 finish_build

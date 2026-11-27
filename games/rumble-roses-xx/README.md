@@ -73,8 +73,13 @@ duerme el tiempo exacto (el mismo arreglo que trae el SDK de doax2-linux).
 
 - **Instalar en la Deck:** `tools/package.sh rumble-roses-xx` y «Ports
   por red».
-- **`steamdeck.sh`** lanza `game/rumble_roses_xx` desde la carpeta del
-  juego. Sin lanzador: lo que hace el de Windows al instalar (copiar el
+- **`steamdeck.sh`** → `deck-launch.sh`: primero el **menú de opciones**
+  con mando (`tools/deck/opciones.py` + `opciones.json`; `MENU=0` en
+  `opciones.conf` lo quita), que cambia `game/RumbleRosesReX.toml` como el
+  menú del juego: resolución, brillo (`bloom`), desenfoque (`blur`),
+  filtro (`anisotropic_override`), nitidez (`present_effect` CAS), fotos
+  (`readback_resolve`) y trucos. Luego `game/rumble_roses_xx` desde la
+  carpeta del juego. Sin lanzador: lo que hace el de Windows al instalar (copiar el
   disco a `game/assets`) ya lo hace `build.sh`.
 - **Menú de ajustes dentro del juego:** **F4**, o **Back+Start** en el
   mando (resolución interna, bloom, desenfoque del fondo, filtrado,

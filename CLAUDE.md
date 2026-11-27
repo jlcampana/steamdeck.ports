@@ -972,6 +972,13 @@ gastar espacio.
     30 FPS (GPU al 100 % a 1600 MHz): en la Deck, ×1 con filtro 4x (el
     nuevo valor por defecto): 60 FPS (prueba del usuario).
 
+12. **Menú de opciones de Rumble Roses XX** (petición del usuario, aunque
+    tiene F4): `opciones.json` sobre `game/RumbleRosesReX.toml` (valores
+    de texto con sus comillas: `"\"cas\""`) + `deck-launch.sh`. Probado en
+    el PC (el juego acepta el `.toml` escrito así). Paquete nuevo con el
+    menú y el arreglo de la espera activa. **Norma nueva:** menú de
+    opciones en todos los juegos nuevos (Convenciones).
+
 ### Pendiente
 
 - [x] `tools/install.sh`.
