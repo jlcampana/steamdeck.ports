@@ -149,7 +149,7 @@ done
 log "Montando build/"
 G="$BUILD/$NAME"
 # Lo del jugador se conserva (ajustes, partidas, caché de shaders, logs).
-find "$BUILD" -mindepth 1 -maxdepth 1 ! -name .building-tag ! -name "$NAME" -exec rm -rf {} +
+find "$BUILD" -mindepth 1 -maxdepth 1 ! -name .building-tag ! -name "$NAME" ! -name opciones.conf -exec rm -rf {} +
 mkdir -p "$G/${NAME}_data"
 find "$OUTG" -mindepth 1 -maxdepth 1 ! -name "${NAME}_data" ! -name "$NAME.ini" -exec cp -a {} "$G/" \;
 if [[ -d "$OUTG/${NAME}_data" ]]; then
@@ -163,12 +163,13 @@ cp -a --reflink=auto "$DUMP/romfs" "$G/${NAME}_data/romfs"
 [[ -f "$DUMP/control/control.nacp" ]] && cp "$DUMP/control/control.nacp" "$G/${NAME}_data/"
 # Ajustes: los de ScarletNX y, para la Deck, pantalla completa, la escena
 # a la resolución de la consola y el difuminado transparente (los que
-# recomienda el lanzador: «Smooth 60», «Transparent»).
+# recomienda el lanzador: «Smooth 60», «Transparent»), y el juego en
+# español (ScarletNX pone inglés).
 if [[ ! -f "$G/$NAME.ini" && -f "$OUTG/$NAME.ini" ]]; then
     python3 - "$OUTG/$NAME.ini" "$G/$NAME.ini" <<'EOF'
 import re, sys
 text = open(sys.argv[1], encoding='utf8').read()
-for key, value in (('fullscreen', '1'), ('resolution', '1'), ('fsr', '0'), ('dither', '3')):
+for key, value in (('fullscreen', '1'), ('resolution', '1'), ('fsr', '0'), ('dither', '3'), ('language', '5')):
     text, n = re.subn(r'(?m)^%s *=.*$' % key, '%s = %s' % (key, value), text)
     if not n:
         text += '\n%s = %s\n' % (key, value)
@@ -176,6 +177,9 @@ open(sys.argv[2], 'w', encoding='utf8').write(text)
 EOF
 fi
 install -m 755 "$GAME_DIR/deck-launch.sh" "$BUILD/deck-launch.sh"
+# Menú de opciones con mando (común: tools/deck/opciones.py).
+install -m 755 "$ROOT/tools/deck/opciones.py" "$BUILD/opciones.py"
+install -m 644 "$GAME_DIR/opciones.json" "$BUILD/opciones.json"
 cp "$LATEST/LICENSE" "$BUILD/LICENSE"
 
 check_absolute_paths

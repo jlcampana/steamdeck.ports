@@ -75,8 +75,12 @@ ocupa más) y el paquete 12 GB (3,5 min).
   targets/exefs/main.elf` desde `build-linux/`, con `SSBU_ROMFS`,
   `SSBU_USERDATA`, `SSBU_GRAPHICS_CONFIG` y `SSBU_CONFIG` de la
   instalación. Log: `build-linux/play/stdout.txt`.
-- **Opciones:** el lanzador del port (Tk; ratón o pantalla táctil, no el
-  mando): `./steamdeck.sh --opciones`. Escribe `config/graphics.ini` y
+- **Menú de opciones** (con mando, antes de jugar): `tools/deck/opciones.py`
+  con `opciones.json` (resolución interna, filtro, VSync, shaders, forma
+  de la imagen, retraso, botones, vibración). Escribe en `config/`; no
+  sale con `MENU=0` en `opciones.conf`.
+- **Lanzador del port** (más ajustes: mapear el mando, teclado, mods; Tk,
+  con ratón o pantalla táctil): `./steamdeck.sh --opciones`. Escribe `config/graphics.ini` y
   `config/controllers.ini` (comentados; se pueden editar a mano). La
   primera vez se añade al menú de aplicaciones
   (`./B2recomp --remove-from-menu` lo quita).
@@ -97,7 +101,11 @@ ruta, fuente Noto Sans del sistema, y con capturas del runtime
 (`SSBU_SHOT_EVERY=600 SSBU_SHOT_DIR=<dir>`, `.bmp`) y A pulsada cada 4 s
 (`SSBU_PRESS=Z,30,4`): llega a la primera escena del juego, en español y
 con subtítulos. Instalador probado con HOME falso (instalar y reinstalar
-conservando partidas y `config/`). Sin probar en la Deck.
+conservando partidas y `config/`). En la Deck (2026-11-27, prueba del usuario): arranca y el mando va; 47-57
+FPS (1 % bajo 22-25), **limitado por la CPU** (log, líneas `nvn_perf` y
+`nvn_vk_perf`: GPU 0,5-1 ms por fotograma, preparación del dibujo 11-15
+ms, de ellos 3-4 en `texhash`, la comprobación por sumas de las texturas
+que hace la versión Linux del port). La resolución no lo cambia.
 
 ## Imagen Ubuntu 24.04 (contenedor de build)
 

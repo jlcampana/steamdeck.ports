@@ -3,14 +3,23 @@
 # mismo que scripts/play.sh y el botón Play del lanzador del port: el juego
 # (build-linux/game_native) con la romfs, los ajustes de config/ y las
 # partidas en build-linux/play/userdata; log en build-linux/play/stdout.txt.
-#   --opciones   abre el lanzador del port (ajustes de gráficos y mandos,
-#                con ratón o pantalla táctil; Play arranca el juego)
+# Antes del juego, el menú de opciones (opciones.py, GTK con mando) salvo
+# MENU=0 en opciones.conf.
+#   --opciones   abre el lanzador del port (más ajustes: mapear el mando,
+#                teclado, mods; con ratón o pantalla táctil)
 HERE="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 OUT="$HERE/build-linux"
 
 if [[ "${1:-}" == "--opciones" ]]; then
     shift
     exec sh "$HERE/B2recomp" "$@"
+fi
+
+menu="$(sed -n 's/^[[:space:]]*MENU[[:space:]]*=[[:space:]]*\([01]\).*/\1/p' "$HERE/opciones.conf" 2>/dev/null | tail -1)"
+if [[ "${menu:-1}" != 0 && -f "$HERE/opciones.py" ]] && command -v python3 >/dev/null; then
+    rc=0
+    env -u LD_LIBRARY_PATH python3 "$HERE/opciones.py" "$HERE/opciones.json" "$HERE" || rc=$?
+    [[ $rc == 1 ]] && exit 0  # Salir: sin jugar (3 = no se pudo mostrar: se juega)
 fi
 
 for f in "$HERE"/config/defaults/*.ini; do  # ajustes del port si faltan los del jugador

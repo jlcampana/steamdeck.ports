@@ -80,13 +80,19 @@ paquete 15 GB (5,5 min; la romfs ya viene comprimida).
 - **Usar `steamdeck.sh`**, sin Proton → `deck-launch.sh`: lo que hace Play
   en el lanzador, `Bayo3_120/Bayo3_120 --game=Bayo3_120` con
   `SNX_NVN_FRONTEND=2 SNX_NVN_RELEASE_ONLY=1` (el renderizador rápido).
-- **Opciones:** el menú del propio ScarletNX, con el mando (F2, o Home; en
+- **Menú de opciones** (con mando, antes de jugar): `tools/deck/opciones.py`
+  con `opciones.json` (modo TV/portátil, resolución, FSR, sombras,
+  filtro, difuminado, forma de la imagen, cinemáticas a 60, grano,
+  VSync, idioma). Escribe en `Bayo3_120.ini`; no sale con `MENU=0` en
+  `opciones.conf`.
+- **Más opciones:** el menú del propio ScarletNX, con el mando (F2, o Home; en
   la Deck hay que asignar F2 a un botón). F1 ayuda, F3 captura, F4 límite
   de FPS, F11 pantalla completa. El `.ini` (`Bayo3_120/Bayo3_120.ini`)
   tiene el resto; el lanzador de Windows solo cambia valores de ese
   archivo. Para la Deck (`build.sh`, si no hay `.ini`): `fullscreen = 1`,
   `resolution = 1` y `fsr = 0` («Smooth 60», la escena al tamaño de la
-  consola) y `dither = 3` (difuminado transparente, el recomendado).
+  consola) y `dither = 3` (difuminado transparente, el recomendado), y `language = 5`
+  (español; ScarletNX pone inglés).
 - Todo queda en `Bayo3_120/`: partidas (`Bayo3_120_data/save/`), log,
   `shader_cache/`, `threads.txt`. El instalador conserva partidas, `.ini`,
   caché de shaders y `mods/` (`KEEP`).

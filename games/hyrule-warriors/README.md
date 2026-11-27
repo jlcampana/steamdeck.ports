@@ -74,3 +74,13 @@ luego deja en `build/` solo lo que hace falta para jugar: `hwder`,
 
 No se usa: el Setup del port trae sus propias herramientas (Zig/Clang
 enlazando contra glibc 2.35) y se ejecuta directamente en el PC.
+
+## En la Deck (2026-11-27, prueba del usuario)
+
+Su log (`hwder.log` junto al ejecutable; líneas `display: 300 frames`):
+60 FPS en menús, 39-67 en las primeras batallas (tirones de hasta 0,5 s
+mientras prepara shaders, que se guardan en `pipeline_cache.bin`) y 75-100
+FPS con `fps120=1`. La pantalla de la Deck es de 60 Hz: mejor sin los 120
+FPS y con VSync (menú F1 / mantener View); con `vsync=0` el ritmo es
+irregular (25-38 % de los fotogramas por encima de 20 ms aun con media 60).
+

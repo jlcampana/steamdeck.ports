@@ -55,7 +55,9 @@ juegos de Xbox/Xbox 360:
 - **Menú de opciones:** si un juego no tiene menú propio para sus ajustes
   (gráficos, FPS, resolución…) y solo se cambian con opciones de arranque
   o con un lanzador que en la Deck no hay (p. ej. el de Windows), crear
-  uno si se puede (petición del usuario, 2026-11-26). Modelo:
+  uno si se puede (petición del usuario, 2026-11-26). Si los ajustes están
+  en un `.ini`: `tools/deck/opciones.py` + `games/<id>/opciones.json`
+  (como Bayonetta 2 y 3). Si no, modelo:
   `games/doax2-linux/launcher.py` (Python + GTK3, que trae SteamOS; mando
   por `/dev/input/js*`, teclado y pantalla táctil; guarda en un
   `opciones.conf` junto a `steamdeck.sh`, que va en `KEEP`). Si no se
@@ -857,6 +859,25 @@ gastar espacio.
    6400); hay que medirlo en la Deck. **Ojo:** `pgrep -f <patrón>` en un
    bucle de espera encuentra al propio bucle (su línea de comandos lleva el
    patrón) y no acaba nunca: anclar el patrón (`'^bash games/…'`).
+
+5. **Prueba en la Deck** (usuario). **Bayonetta 2** arranca y el mando
+   va, pero no llega a 60 FPS: su log (`build-linux/play/stdout.txt`,
+   líneas `nvn_perf`) da 47-57 FPS (1 % bajo 22-25) y es la **CPU**: la
+   GPU trabaja 0,5-1 ms por fotograma y el hilo de dibujo 11-15 ms (3-4
+   de ellos, `texhash`: la versión Linux del port comprueba con sumas qué
+   texturas cambian). Bajar la resolución no lo arregla. **Hyrule
+   Warriors** (`hwder.log`, líneas `display: 300 frames`): 60 FPS en menús,
+   39-67 en las primeras batallas (shaders nuevos) y 75-100 con `fps120=1`
+   (la pantalla es de 60 Hz: mejor 60 con VSync).
+6. **Menú de opciones común** (petición del usuario: Bayonetta 2 no tenía
+   menú con mando): `tools/deck/opciones.py` (el de DOAX2, generalizado):
+   lee `opciones.json` del juego (archivo, clave, valores) y cambia solo
+   el valor de cada clave en su `.ini`; `MENU` en `opciones.conf` decide
+   si sale. Bayonetta 2 (`config/graphics.ini` y `controllers.ini`) y
+   Bayonetta 3 (`Bayo3_120.ini`, que además viene en español:
+   `language = 5`). El de Bayonetta 2 se copió a la Deck sin reinstalar.
+   `tools/switch-dump.sh` probado también con los `.nsp` de Bayonetta 2
+   (mismo resultado que la extracción anterior): su `build.sh` lo usa ya.
 
 ### Pendiente
 
