@@ -1,0 +1,12 @@
+diff --git a/src/nx/hle/nvn/shadow.c b/src/nx/hle/nvn/shadow.c
+index 5d10ca0..295aa3b 100644
+--- a/src/nx/hle/nvn/shadow.c
++++ b/src/nx/hle/nvn/shadow.c
+@@ -6,6 +6,7 @@
+    B2's translator reads, and the sizes and patterns of pools, buffers, command memory, windows and samplers. Nothing
+    the game sees changes. The tables print to the log every 30 seconds */
+ #include <stdio.h>
++#include <stdlib.h>
+ #include <string.h>
+ #include "nx/hle/nvn/shadow.h"
+ #include "nx/gpu/gpu.h"

@@ -29,6 +29,7 @@ aportan desde copias propias y quedan fuera de git (`isos/`).
 | `hyrule-warriors` | Hyrule Warriors: Definitive Edition (Switch) | [blocker-3/HWDER](https://github.com/blocker-3/HWDER/releases) | `HWDER-linux-x86_64-<v>.tar.gz` | Linux nativo (**compilado aquí** con el Setup del port, sin contenedor) | `isos/HyruleWarriors/` (`.nsp` base + update 1.0.1 + `prod.keys`) |
 | `lollipop-chainsaw` | Lollipop Chainsaw (Xbox 360) | [kxrxh/lollipop-chainsaw-recomp](https://github.com/kxrxh/lollipop-chainsaw-recomp/releases) | código fuente de la última release (`@source`) | Linux nativo **compilado aquí** (SDK + codegen + juego con un parche nuestro para Linux, ~20 min) | `isos/LollipopChainsaw.iso` |
 | `bayonetta2` | Bayonetta 2 (Switch) | [K0NL/B2recomp](https://github.com/K0NL/B2recomp/releases) | `B2recomp-linux-builder-*.zip` (prerelease `linux-test-N`; la estable es de Windows) | Linux nativo **compilado aquí** con el builder del port (exefs/romfs sacados de los `.nsp` con hactool y tus claves, ~30 min) | `isos/Bayonetta 2/` (`.nsp` base + update 1.2) y `prod.keys` |
+| `bayonetta3` | Bayonetta 3 (Switch) | [LuvAbyss/B3-Express](https://github.com/LuvAbyss/B3-Express/releases) | código fuente de la última release (`@source`) | Linux nativo **compilado aquí** con ScarletNX (el recompilador del port; su lanzador es solo de Windows) | `isos/Bayonetta 3/` (`.xci` + update 1.2.0) y `prod.keys` |
 
 (*) DOA1U no tiene ISO propia: el disco de DOA2U trae los dos juegos
 (`Doa1.xbe` y `DOA2.xbe` en la raíz, comprobado con `extract-xiso -l`).
@@ -245,13 +246,14 @@ games/doa3/build.sh -f         # build limpio
 | hyrule-warriors | compila el juego del `.nsp` con el Setup del port (`linux_setup.py prepare`; herramientas en `work/`) y copia `.nsp`, claves y update | ~30 min | 14 GB |
 | lollipop-chainsaw | compila SDK parcheado, genera el código del xex y compila el juego con nuestro parche de Linux (podman, clang 20) | ~20 min (1.ª vez) | 5,2 GB |
 | bayonetta2 | extrae el juego de los `.nsp` (hactool) y lo traduce y compila con `scripts/setup.py` del port (Zig propio, sin contenedor) | ~30 min (1.ª vez) | 14 GB |
+| bayonetta3 | extrae el juego (`tools/switch-dump.sh`), compila ScarletNX (podman, clang/LLVM 23) y traduce el código del juego | ~45 min (1.ª vez) | 15 GB |
 
 Casi todo el tamaño de los DOA es el disco extraído (`private/`).
 
 ### `build/steamdeck.sh`: punto de entrada común en la Deck
 
 Todos los juegos Linux (doa3, doa2u, doaxtreme, castlevania-son,
-drakengard3, vf3tb, urban-reign, soulcalibur, soulcalibur2, jsrf, hyrule-warriors, lollipop-chainsaw, bayonetta2, doa4-linux, doax2-linux) tienen `build/steamdeck.sh`, así que en la
+drakengard3, vf3tb, urban-reign, soulcalibur, soulcalibur2, jsrf, hyrule-warriors, lollipop-chainsaw, bayonetta2, bayonetta3, doa4-linux, doax2-linux) tienen `build/steamdeck.sh`, así que en la
 Deck se añaden a Steam igual. En los binarios listos solo lanza el ejecutable
 desde su carpeta (`write_steamdeck_launcher <ejecutable> [args…]`; p. ej.
 `urban-reign --game`). En los DOA hace además esto:

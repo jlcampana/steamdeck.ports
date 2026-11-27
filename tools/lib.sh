@@ -116,8 +116,9 @@ require_container_path() {
 # del host, para que los archivos generados sean tuyos y las rutas coincidan.
 # Si isos/ es un enlace a otro disco, su carpeta real se monta también, en solo
 # lectura y en la misma ruta.
-# Si el juego tiene su propio games/<id>/Dockerfile (FROM de la imagen común,
-# con lo que solo necesita él), se construye también y se usa esa:
+# Si el juego tiene su propio games/<id>/Dockerfile (FROM de la imagen común
+# o de otra de tools/docker/, con lo que solo necesita él), se construye
+# también y se usa esa:
 # steamdeck-ports/<id>:24.04. CONTAINER_WORKDIR cambia la carpeta de trabajo
 # (por defecto build/; tiene que estar dentro del proyecto).
 run_in_container() {
@@ -127,6 +128,15 @@ run_in_container() {
     # Contexto = tools/docker (solo contiene Dockerfiles)
     "$engine" build -t "$image" -f "$BUILD_DOCKERFILE" "$(dirname "$BUILD_DOCKERFILE")"
     if [[ -f "$GAME_DIR/Dockerfile" ]]; then
+        # FROM steamdeck-ports/<nombre>:24.04 con tools/docker/<nombre>.Dockerfile
+        # (p. ej. rexglue-build): se construye antes con ese nombre.
+        local base
+        base="$(sed -n 's|^FROM steamdeck-ports/\([a-z0-9-]*\):24\.04.*|\1|p' "$GAME_DIR/Dockerfile" | head -1)"
+        if [[ -n "$base" && "$base" != ubuntu-build && -f "$ROOT/tools/docker/$base.Dockerfile" ]]; then
+            log "Construyendo la imagen steamdeck-ports/$base:24.04 (tools/docker/$base.Dockerfile)"
+            "$engine" build -t "steamdeck-ports/$base:24.04" -f "$ROOT/tools/docker/$base.Dockerfile" \
+                "$(dirname "$BUILD_DOCKERFILE")"
+        fi
         image="steamdeck-ports/$GAME_ID:24.04"
         log "Construyendo la imagen $image (games/$GAME_ID/Dockerfile)"
         # Contexto vacío: el Dockerfile no copia nada (y así no se envía build/)

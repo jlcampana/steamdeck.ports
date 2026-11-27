@@ -17,3 +17,4 @@ jsrf	spriteice/JSRF-PC	^JSRF-PC-b.*-linux-x86_64\.tar\.gz$
 hyrule-warriors	blocker-3/HWDER	-linux-x86_64-.*\.tar\.gz$
 lollipop-chainsaw	kxrxh/lollipop-chainsaw-recomp	@source
 bayonetta2	K0NL/B2recomp	^B2recomp-linux-builder-.*\.zip$
+bayonetta3	LuvAbyss/B3-Express	@source

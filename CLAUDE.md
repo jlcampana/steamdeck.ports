@@ -32,7 +32,8 @@ juegos de Xbox/Xbox 360:
 - Ids de juego (carpeta `games/<id>`): `doaxtreme`, `doa3`, `doa2u`, `doa1u`,
   `castlevania-son`, `doa4`, `drakengard3`, `vf3tb`, `urban-reign`,
   `soulcalibur`, `doa4-linux`, `doax2`, `doax2-linux`, `soulcalibur2`,
-  `jsrf`, `hyrule-warriors`, `lollipop-chainsaw`, `bayonetta2` (`vrdeluxe` se quitó el
+  `jsrf`, `hyrule-warriors`, `lollipop-chainsaw`, `bayonetta2`,
+  `bayonetta3` (`vrdeluxe` se quitó el
   2026-11-26).
 - Nunca subir archivos de juego: `isos/`, `latest/`, `ports.db`,
   `games/*/latest/`, `games/*/build/` están en `.gitignore`.
@@ -228,6 +229,18 @@ proyecto [`.claude/skills/add-game/SKILL.md`](.claude/skills/add-game/SKILL.md):
   con su Zig (sin contenedor). El juego lee la romfs en cada arranque (va
   en el paquete; las claves no). `write_steamdeck_launcher` admite
   `LAUNCHER_SKIP_LIBS` (aquí `deps/python`, el Python del lanzador Tk).
+
+- **Bayonetta 3** (Switch, `bayonetta3`, B3-Express): el port solo
+  publica el lanzador de Windows; se compila aquí ScarletNX (`source/`,
+  contenedor con clang/LLVM 23) y con él el código del juego, como
+  `build_code()` del lanzador pero con `SNX_RECOMPILE_PORTABLE=1` (si no,
+  el código es para la CPU del PC y podría no ir en la Deck). LLVM va
+  **estático** (`games/bayonetta3/llvm-config-static` + `--as-needed`):
+  el runtime de cada juego de ScarletNX lo enlaza. **La update de
+  `isos/Bayonetta 3` es la 1.2.0** aunque un nombre diga 1.1.0 (ver su
+  README). El `.xci` es convertido: hactool lo rechaza y
+  `tools/switch-dump.sh` lee la partición `secure` él mismo. Arranque:
+  `SNX_NVN_FRONTEND=2 SNX_NVN_RELEASE_ONLY=1` (renderizador rápido).
 
 ## Entorno del PC de build
 
@@ -833,6 +846,18 @@ gastar espacio.
    `mouse_look.c`) comprueban las instrucciones antes de activarse; las
    listas `launcher/code-*.txt` del lanzador no se usan con la 1.1.0.
 
+4. **Bayonetta 3** (`bayonetta3`), versión Linux nativa con ScarletNX.
+   La update era ya la 1.2.0 (557 archivos idénticos a los de
+   `game-files.txt`): no hizo falta saltarse la comprobación de versión.
+   `tools/switch-dump.sh` (común; lee `.xci` convertidos) y
+   `run_in_container` construye la imagen base que pida el Dockerfile de un
+   juego (`FROM steamdeck-ports/rexglue-build`). ScarletNX ~25 min, código
+   del juego 12,5 min (repetir: segundos, con `--cache`), `build/` 15 GB,
+   paquete 15 GB. En el PC llega al título pero a ~3,5 FPS (la GPU: RX
+   6400); hay que medirlo en la Deck. **Ojo:** `pgrep -f <patrón>` en un
+   bucle de espera encuentra al propio bucle (su línea de comandos lleva el
+   patrón) y no acaba nunca: anclar el patrón (`'^bash games/…'`).
+
 ### Pendiente
 
 - [x] `tools/install.sh`.
@@ -874,5 +899,7 @@ gastar espacio.
       revisar las manchas de color del prólogo y elegir imágenes.
 - [ ] bayonetta2: probar en la Deck (rendimiento, mando, fuentes del
       sistema) y elegir imágenes.
+- [ ] bayonetta3: probar en la Deck (sobre todo el rendimiento: en el PC
+      ~3,5 FPS), asignar F2 (menú) a un botón y elegir imágenes.
 - [ ] DOA4: quitar el arreglo del puerto 1000 cuando salga la 0.3.8 (ya se
       salta solo por versión; probar en la Deck).

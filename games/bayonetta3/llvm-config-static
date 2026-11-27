@@ -1,0 +1,4 @@
+#!/bin/sh
+# llvm-config para ScarletNX: LLVM 23 enlazado estático, así el runtime del
+# juego no depende de la libLLVM del sistema (la de SteamOS es otra versión).
+exec llvm-config-23 --link-static "$@"
