@@ -110,6 +110,22 @@ la GPU de este PC (RX 6400, PCIe x4) con más de 2 GB de memoria del juego
 importada. Hay que medirlo en la Deck (memoria unificada). Instalador
 probado con HOME falso.
 
+## En la Deck (2026-11-27)
+
+Prueba del usuario, con la Deck en un monitor externo (1080p a 120 Hz) y
+`docked=1`, `fsr=2` en el `.ini`. Del log (`Bayo3_120/Bayo3_120.log`,
+líneas `nvn-live: frame times`, cada 600 fotogramas):
+
+- Jugando: **~20 FPS** (mediana 50 ms). Por fotograma, ~29 ms de GPU
+  (`GPU time of the host's windows`) y ~31 ms de CPU preparando los dibujos
+  (`recording … draw setup`): las dos cosas a la vez.
+- Vídeos: ~35 FPS (los descodifica el runtime: `host1x: VIC` ~26 ms cada uno).
+- El juego sale bien (`Exit.` en el log). Lo que se queda congelado es
+  la pantalla: justo después, gamescope falla al cambiar de modo en el
+  monitor externo (`xwm: Failed to prepare 1-layer flip`) y vuelve a
+  elegir el conector.
+- Por probar: modo portátil (`docked=0`, menos resolución) y sin el monitor.
+
 ## Imagen Ubuntu 24.04 (contenedor de build)
 
 `games/bayonetta3/Dockerfile` (`FROM steamdeck-ports/rexglue-build:24.04`).
