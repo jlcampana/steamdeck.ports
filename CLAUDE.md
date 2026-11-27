@@ -283,6 +283,13 @@ gastar espacio.
 - **Ojo con rsync a una carpeta de la Deck:** copia primero las carpetas
   ocultas del origen; no borres en el destino lo que no sabes de dónde viene
   mientras copia (el 2026-11-26 se perdieron así 3,7 GB copiados).
+- **Cuelgues al salir de un juego con monitor externo:** con la Deck en
+  un monitor (DP, 1080p a 120 Hz), al cerrar Bayonetta 2 y Bayonetta 3
+  la pantalla se quedó congelada aunque el juego había salido bien
+  (2026-11-27). En el journal, gamescope: `xwm: Failed to prepare 1-layer
+  flip (Invalid argument)` y vuelve a elegir conector. Antes de culpar al
+  juego, mirar su log y `journalctl -b` por SSH. Reiniciar Steam
+  (`pkill -TERM -x steam`) lo devuelve; `systemctl reboot` pide contraseña.
 - **Steam y `shortcuts.vdf`:** Steam lo reescribe al salir. Para editarlo a
   mano, antes `steam -shutdown` y esperar a que no quede proceso `steam`.
 
@@ -924,8 +931,8 @@ gastar espacio.
 - [ ] bayonetta2: probar en la Deck (rendimiento, mando, fuentes del
       sistema) y elegir imágenes. Al salir del juego, la Deck se quedó
       sin responder (2026-11-27; el juego ya había cerrado y Steam
-      tardaba en volver; se arregló reiniciando Steam por SSH). Si se
-      repite, mirar los procesos antes de tocar nada.
+      tardaba en volver; se arregló reiniciando Steam por SSH). Ver
+      *Probar en la Deck*: monitor externo.
 - [ ] bayonetta3: probar en la Deck (sobre todo el rendimiento: en el PC
       ~3,5 FPS), asignar F2 (menú) a un botón y elegir imágenes.
 - [ ] DOA4: quitar el arreglo del puerto 1000 cuando salga la 0.3.8 (ya se
