@@ -17,10 +17,8 @@ ROM="$(realpath "${1:-$ISOS/Bomberman64.z64}")"
 
 require_latest
 require_file "$ROM"
-# XXH3 de src/main/main.cpp del port. Sin SHA-1: aún no hay una ROM buena
-# comprobada (la de isos/ es una modificada, 10 MB con «Zoinkity» en la
-# cabecera); sin xxhsum ni python3-xxhash, el build se para.
-n64_check_rom "$ROM" c4c0b74bbb696426
+# XXH3 de src/main/main.cpp del port; SHA-1 de la ROM comprobada con él
+n64_check_rom "$ROM" c4c0b74bbb696426 8a7648d8105ac4fc1ad942291b2ef89aeca921c9
 
 prepare_build "$FORCE"
 n64recomp_build BM64Recompiled bm64_us "$ROM"
