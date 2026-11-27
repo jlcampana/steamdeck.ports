@@ -1,0 +1,19 @@
+diff --git a/src/core/threading_posix.cpp b/src/core/threading_posix.cpp
+index e10e30b..dd4eaca 100644
+--- a/src/core/threading_posix.cpp
++++ b/src/core/threading_posix.cpp
+@@ -360,8 +360,12 @@ class PosixConditionBase {
+       if (timeout == std::chrono::milliseconds::max()) {
+         std::this_thread::sleep_for(std::chrono::milliseconds(1));
+       } else {
+-        auto remaining = std::chrono::duration_cast<std::chrono::milliseconds>(end_time - now);
+-        auto sleep_time = std::min(remaining, std::chrono::milliseconds(1));
++        // Linux (steamdeck-ports): sleep for the exact remaining time. Truncating it to
++        // milliseconds gave 0 for waits under 1 ms (alertable waits use 1 ms slices),
++        // so sleep_for(0) busy-spun a whole core (e.g. the Audio Worker thread).
++        auto remaining = end_time - now;
++        auto sleep_time = std::min<std::chrono::steady_clock::duration>(
++            remaining, std::chrono::milliseconds(1));
+         std::this_thread::sleep_for(sleep_time);
+       }
+     }

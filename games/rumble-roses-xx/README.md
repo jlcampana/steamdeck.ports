@@ -62,6 +62,13 @@ Parches nuestros del SDK (`patches/rexglue-sdk/`): los de doax2-linux
 ya está cargado). El de fibras y `/dev/shm` se rehízo con el contexto de
 este SDK (el parche de DOAX2 cambia `fiber_posix.cpp`).
 
+`0003-linux-espera-activa.patch` (2026-11-27): `WaitMultiple` del SDK
+truncaba a milisegundos el tiempo restante y, en las esperas «alertables»
+(tramos de 1 ms), dormía 0: el hilo `Audio Worker` gastaba un núcleo entero
+desde el arranque, en el PC y en la Deck. En la Deck, con el límite de 15 W,
+eso quita potencia a la GPU (estaba al 100 % a 260-950 MHz de 1600). Ahora
+duerme el tiempo exacto (el mismo arreglo que trae el SDK de doax2-linux).
+
 ## Jugar
 
 - **Instalar en la Deck:** `tools/package.sh rumble-roses-xx` y «Ports

@@ -947,6 +947,19 @@ gastar espacio.
    (borrado). El disco de `DEST` no estaba montado: sin paquetes en `DEST`.
    Imágenes: candidatas bajadas (a elegir por el usuario).
 
+10. **Rumble Roses XX va lento en la Deck jugando** (aviso del usuario).
+    Por SSH, durante la partida: GPU al 100 % pero a 260-950 MHz, la Deck en su
+    límite de 15 W, y el hilo `Audio Worker` gastando un núcleo entero
+    (también en el PC, desde el arranque). Causa: `WaitMultiple` del SDK
+    v0.10.0 (`src/core/threading_posix.cpp`) truncaba a milisegundos el
+    tiempo restante y en las esperas «alertables» (tramos de 1 ms) hacía
+    `sleep_for(0)`: espera activa. Parche nuestro (duerme el tiempo exacto)
+    en rumble-roses-xx (`0003-…`) y doa4-linux (`0002-…`); doax2-linux y
+    tekken6 ya lo traían arreglado por su port, lollipop-chainsaw (v0.11)
+    espera con variables de condición. En la Deck no se puede usar
+    `eu-stack`/`gdb` (`ptrace_scope=1`, sin `sudo`): la pila se sacó en el
+    PC. La IP de la Deck cambia; mejor `deck@steamdeck-familycat.local`.
+
 ### Pendiente
 
 - [x] `tools/install.sh`.
@@ -995,8 +1008,9 @@ gastar espacio.
       ~3,5 FPS), asignar F2 (menú) a un botón y elegir imágenes.
 - [ ] bomberman64 y bomberman-hero: probar en la Deck (jugar, mando) y
       elegir imágenes.
-- [ ] tekken6 y rumble-roses-xx: empaquetar en `DEST`, probar en la
-      Deck (imagen, mando, rendimiento) y elegir imágenes.
+- [ ] tekken6 y rumble-roses-xx: probar en la Deck (imagen, mando,
+      rendimiento; rumble-roses-xx con el arreglo de la espera activa) y
+      elegir imágenes.
 - [ ] Tekken Tag Tournament 2: con Proton (su instalador con `/silent`)
       cuando lo diga el usuario.
 - [ ] DOA4: quitar el arreglo del puerto 1000 cuando salga la 0.3.8 (ya se

@@ -85,6 +85,14 @@ ver [doa4](../doa4/README.md#bañadores-de-doax2).
 - `/dev/shm`: cada partida dejaba `xenia_memory_*` (4,8 GB, en RAM hasta
   reiniciar). Arreglado con `patches/rexglue-sdk/0001-linux-shm.patch`
   (`shm_unlink` al crearla; `build.sh` lo aplica al SDK).
+- **Espera activa** (2026-11-27): `WaitMultiple` del SDK
+  (`src/core/threading_posix.cpp`) truncaba a milisegundos el tiempo que
+  quedaba; las esperas «alertables» van en tramos de 1 ms, así que dormía
+  0 y daba vueltas: un núcleo entero (el hilo `Audio Worker`), que en la
+  Deck (límite de 15 W) quita potencia a la GPU. Arreglado con
+  `patches/rexglue-sdk/0002-linux-espera-activa.patch` (duerme el tiempo
+  exacto). doax2-linux y tekken6 ya lo traen arreglado por su port;
+  lollipop-chainsaw (SDK v0.11) espera de otra forma.
 
 ## Imagen Ubuntu 24.04 (contenedor de build)
 
