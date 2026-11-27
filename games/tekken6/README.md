@@ -67,7 +67,10 @@ archivos). RenderDoc solo se engancha si ya está cargado (SteamOS trae
     muestra a 720p: más nítido). La resolución de la consola es 1024×576
     y la opción `--res` del port solo **baja** (768×432, 640×360).
   - `RES` → `--res` del port; `OFFSCREEN` 512 → `--offscreen 512`.
-  - `ANISO` → `--anisotropic_override` (0 = no, como el port; 3 = 4x).
+  - `ANISO` → `--anisotropic_override` (0 = no, como el port; 3 = 4x, el
+    nuestro por defecto).
+  - **En la Deck, ×1** (2026-11-27): con ×2 va a 30 FPS (la GPU al 100 %
+    a 1600 MHz, su máximo, y 15 W). ×1 con 4x de filtro va bien.
   - `MENU=0` lo quita (para volver, `MENU=1` en `opciones.conf`).
 
   Luego `tools/run_linux.sh --build-dir bin --fullscreen` (el `cd` y las

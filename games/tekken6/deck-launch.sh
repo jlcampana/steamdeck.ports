@@ -26,7 +26,7 @@ res="$(opt RES 1024x576)"
 [[ "$(opt OFFSCREEN 1024)" == 512 ]] && ARGS+=(--offscreen 512)
 
 escala="$(opt ESCALA 1)"; [[ "$escala" =~ ^[1-8]$ ]] || escala=1
-aniso="$(opt ANISO 0)"; [[ "$aniso" =~ ^[0-5]$ ]] || aniso=0
+aniso="$(opt ANISO 3)"; [[ "$aniso" =~ ^[0-5]$ ]] || aniso=3
 GAME=(--resolution_scale="$escala" --anisotropic_override="$aniso")
 
 # Lo que llegue de Steam: opciones de run_linux.sh y, tras «--», del juego.

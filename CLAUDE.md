@@ -965,8 +965,9 @@ gastar espacio.
     opciones (petición del usuario) con `tools/deck/opciones.py`, todo en
     `opciones.conf` (`ESCALA` → `--resolution_scale`, `RES`, `ANISO`,
     `OFFSCREEN`, `MENU`) y `games/tekken6/deck-launch.sh`, que lo pasa a
-    `run_linux.sh`. Copiado a la Deck sin reinstalar. Falta saber a
-    cuántos FPS va con ×2 en la Deck.
+    `run_linux.sh`. Copiado a la Deck sin reinstalar. Con ×2 va a
+    30 FPS (GPU al 100 % a 1600 MHz): en la Deck, ×1 con filtro 4x (el
+    nuevo valor por defecto).
 
 ### Pendiente
 
@@ -1017,7 +1018,7 @@ gastar espacio.
 - [ ] bomberman64 y bomberman-hero: probar en la Deck (jugar, mando) y
       elegir imágenes.
 - [ ] tekken6 y rumble-roses-xx: probar en la Deck (imagen, mando,
-      rendimiento; tekken6 con escala ×2; rumble-roses-xx con el arreglo de la espera activa) y
+      rendimiento; rumble-roses-xx con el arreglo de la espera activa) y
       elegir imágenes.
 - [ ] Tekken Tag Tournament 2: con Proton (su instalador con `/silent`)
       cuando lo diga el usuario.
