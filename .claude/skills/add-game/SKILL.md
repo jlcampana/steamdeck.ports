@@ -98,10 +98,13 @@ Todo en español: mensajes de los scripts, docs y commits.
    (recibe la carpeta del juego y `VERSION`). Lo que deba saber quien instala
    va en `games/<id>/deck-notes.md` (sale en el README del paquete).
 
-   **Menú de opciones:** si el juego no tiene menú propio para sus ajustes
-   y solo se cambian con opciones de arranque o con un lanzador que no
-   funciona en la Deck, crea uno si se puede (modelo:
-   `games/doax2-linux/launcher.py`, ver `CLAUDE.md`, Convenciones).
+   **Menú de opciones (siempre):** todo juego nuevo lleva un menú de
+   opciones antes de jugar, aunque tenga el suyo dentro del juego
+   (`tools/deck/opciones.py` + `opciones.json` + `deck-launch.sh`; modelos:
+   `games/tekken6` con opciones de arranque, `games/rumble-roses-xx` con
+   su `.toml`, `games/bayonetta2` con `.ini`; ver `CLAUDE.md`,
+   Convenciones). `opciones.conf` en `KEEP` y fuera del borrado de
+   `prepare_build`.
 
 8. **Documenta.**
    - `games/<id>/README.md` con las mismas secciones que los demás: datos del

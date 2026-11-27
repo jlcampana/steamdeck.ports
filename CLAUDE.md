@@ -52,16 +52,19 @@ juegos de Xbox/Xbox 360:
   archivo con «steamdeck», «steam_deck» o «steamos» en el nombre, pero hay que
   mirar también README y docs.
 
-- **Menú de opciones:** si un juego no tiene menú propio para sus ajustes
-  (gráficos, FPS, resolución…) y solo se cambian con opciones de arranque
-  o con un lanzador que en la Deck no hay (p. ej. el de Windows), crear
-  uno si se puede (petición del usuario, 2026-11-26). Si los ajustes están
-  en un `.ini`: `tools/deck/opciones.py` + `games/<id>/opciones.json`
-  (como Bayonetta 2 y 3). Si no, modelo:
-  `games/doax2-linux/launcher.py` (Python + GTK3, que trae SteamOS; mando
-  por `/dev/input/js*`, teclado y pantalla táctil; guarda en un
-  `opciones.conf` junto a `steamdeck.sh`, que va en `KEEP`). Si no se
-  puede, documentar las variables en el README del juego.
+- **Menú de opciones en todos los juegos nuevos** (petición del usuario,
+  2026-11-27; antes, 2026-11-26, solo en los que no tenían menú propio):
+  al añadir un juego, hacerle un menú de opciones antes de jugar (con
+  mando), **aunque el juego ya tenga su menú** (Rumble Roses XX tiene F4
+  y se le hizo igual). Lo normal: `tools/deck/opciones.py` +
+  `games/<id>/opciones.json` + `games/<id>/deck-launch.sh` (lo llama
+  `steamdeck.sh`; `opciones.conf` va en `KEEP`). Las opciones van al
+  archivo de ajustes del juego (`.ini`, `.toml`: Bayonetta 2 y 3, Rumble
+  Roses XX) o, si solo hay opciones de arranque, a `opciones.conf` y
+  `deck-launch.sh` las convierte en argumentos (Tekken 6). Modelo más
+  libre: `games/doax2-linux/launcher.py` (Python + GTK3, que trae
+  SteamOS). Valores pensados para la Deck: medir y anotar cuáles van a
+  60 FPS. Si no se puede, documentar las variables en el README del juego.
 
 ## Añadir un juego nuevo
 
