@@ -922,7 +922,10 @@ gastar espacio.
 - [ ] lollipop-chainsaw: probar en la Deck, jugar más allá del prólogo,
       revisar las manchas de color del prólogo y elegir imágenes.
 - [ ] bayonetta2: probar en la Deck (rendimiento, mando, fuentes del
-      sistema) y elegir imágenes.
+      sistema) y elegir imágenes. Al salir del juego, la Deck se quedó
+      sin responder (2026-11-27; el juego ya había cerrado y Steam
+      tardaba en volver; se arregló reiniciando Steam por SSH). Si se
+      repite, mirar los procesos antes de tocar nada.
 - [ ] bayonetta3: probar en la Deck (sobre todo el rendimiento: en el PC
       ~3,5 FPS), asignar F2 (menú) a un botón y elegir imágenes.
 - [ ] DOA4: quitar el arreglo del puerto 1000 cuando salga la 0.3.8 (ya se
