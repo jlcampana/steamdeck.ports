@@ -205,8 +205,12 @@ write_steamdeck_launcher() {
         fi
     fi
     if (( $# )); then args="$(printf ' %q' "$@")"; fi
+    # LAUNCHER_SKIP_LIBS: carpetas (relativas a build/) con .so que no son del
+    # juego y no van en LD_LIBRARY_PATH (p. ej. el Python de un lanzador).
+    local skip=(-path "$BUILD/private/venv" -prune -o) s
+    for s in ${LAUNCHER_SKIP_LIBS:-}; do skip+=(-path "$BUILD/$s" -prune -o); done
     while IFS= read -r d; do dirs+=("$d"); done < <(
-        find "$BUILD" -path "$BUILD/private/venv" -prune -o -type f -regextype posix-extended \
+        find "$BUILD" "${skip[@]}" -type f -regextype posix-extended \
                 -regex '.*/[^/]+\.so(\.[0-9]+)*' \
                 ! -regex '.*/lib(GL|EGL|GLX|GLESv[0-9]|OpenGL|vulkan)[^/]*' -print \
             | grep -v '/CMakeFiles/' | xargs -r -n1 dirname | sort -u \

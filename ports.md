@@ -89,3 +89,15 @@
 - Nombre: HyruleWarriors
 - Release: https://github.com/blocker-3/HWDER/releases
 - StreamGridDB: https://www.steamgriddb.com/game/5293704
+
+## Bayonetta 2
+
+- Nombre: Bayonetta2
+- Release: https://github.com/K0NL/B2recomp/releases
+- StreamGridDB: https://www.steamgriddb.com/game/34643
+
+## Bayonetta 3
+
+- Nombre: Bayonetta3
+- Release: https://github.com/LuvAbyss/B3-Express/releases/tag/0.4.0
+- StreamGridDB: https://www.steamgriddb.com/game/5297427

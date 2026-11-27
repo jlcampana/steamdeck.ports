@@ -27,11 +27,12 @@ juegos de Xbox/Xbox 360:
 
 ## Convenciones
 
-- Idioma: español en docs, mensajes de scripts y commits.
+- Idioma: español en docs, mensajes de scripts y commits, y **también al
+  hablar con el usuario** (petición suya, 2026-11-27).
 - Ids de juego (carpeta `games/<id>`): `doaxtreme`, `doa3`, `doa2u`, `doa1u`,
   `castlevania-son`, `doa4`, `drakengard3`, `vf3tb`, `urban-reign`,
   `soulcalibur`, `doa4-linux`, `doax2`, `doax2-linux`, `soulcalibur2`,
-  `jsrf`, `hyrule-warriors`, `lollipop-chainsaw` (`vrdeluxe` se quitó el
+  `jsrf`, `hyrule-warriors`, `lollipop-chainsaw`, `bayonetta2` (`vrdeluxe` se quitó el
   2026-11-26).
 - Nunca subir archivos de juego: `isos/`, `latest/`, `ports.db`,
   `games/*/latest/`, `games/*/build/` están en `.gitignore`.
@@ -212,6 +213,21 @@ proyecto [`.claude/skills/add-game/SKILL.md`](.claude/skills/add-game/SKILL.md):
   (`--lollipop_test_directory=<dir>`, `command.txt` con «id\ncomando»:
   `capture`, `input <botones> 0 0 0 0 <ms>`, `input_device gamepad`) sirve
   para probarlo sin nadie delante.
+
+- **Bayonetta 2** (Switch, `bayonetta2`, B2recomp): la versión Linux es
+  una **prerelease** (`linux-test-N`, `B2recomp-linux-builder-*.zip`); la
+  «latest» es la de Windows y `update.sh` coge la más reciente con el
+  archivo. El port no descifra: pide `exefs/` y `romfs/` con la update 1.2
+  aplicada. `build.sh` los saca con **hactool** (`tools/install.sh` lo
+  compila de SciresM 1.4.0) con un HOME temporal: `prod.keys` filtrado
+  (hactool se para en claves de longitud rara, como el
+  `mariko_master_kek_source_05` de 34 cifras de las del usuario) y
+  `title.keys` de los tickets (clave en 0x180, tipo en 0x281, rights ID
+  en 0x2a0). **hactool escribe valores de claves en sus avisos**: filtrar
+  su salida. `.nca` intermedios en `BAYONETTA2_TMP`. `setup.py` compila
+  con su Zig (sin contenedor). El juego lee la romfs en cada arranque (va
+  en el paquete; las claves no). `write_steamdeck_launcher` admite
+  `LAUNCHER_SKIP_LIBS` (aquí `deps/python`, el Python del lanzador Tk).
 
 ## Entorno del PC de build
 
@@ -793,6 +809,30 @@ gastar espacio.
     probado con HOME falso. **Error mío:** reescribí `build.sh` mientras se
     ejecutaba (iba a fallar igualmente; no hizo daño).
 
+### 2026-11-27
+
+1. `/add-game` con dos juegos nuevos de `ports.md`: **Bayonetta 2**
+   (`bayonetta2`) y Bayonetta 3 (después). Bayonetta 2 con la versión
+   Linux en pruebas del port (`linux-test-9`): hactool nuevo en
+   `tools/install.sh`, extracción ~6,5 min (`work/dump` 13 GB), `setup.py`
+   22 min con 4 núcleos, `build/` 14 GB (romfs con reflink), paquete
+   12 GB. Probado desde otra ruta (llega a la primera escena, Vulkan,
+   español) e instalador con HOME falso. Ajustes para la Deck en
+   `config/graphics.ini` (pantalla completa, `resolution_scale = 1.0`; el
+   port trae 2.0). Opciones: el lanzador Tk del port con
+   `./steamdeck.sh --opciones` (sin mando).
+2. **Sin espacio en `/home`** (8,9 GB libres): `clean-builds.sh -y`
+   (petición del usuario) borró los `build/` ya empaquetados; quedaron
+   41 GB libres. Con reflinks, `du` engaña: `btrfs filesystem du -s`
+   da lo que ocupa cada carpeta de verdad («Exclusive»).
+3. Bayonetta 3: el usuario solo tiene la update **1.1.0** y B3-Express pide
+   la 1.2.0 (petición del usuario: que no la rechace). El rechazo está solo
+   en el lanzador de Windows; ScarletNX (`scarletnx -x/-r`) no mira la
+   versión. Los extras con direcciones fijas de la 1.2.0
+   (`source/src/nx/hle/aspect.c`, `scene60.c`, `model_lod.c`,
+   `mouse_look.c`) comprueban las instrucciones antes de activarse; las
+   listas `launcher/code-*.txt` del lanzador no se usan con la 1.1.0.
+
 ### Pendiente
 
 - [x] `tools/install.sh`.
@@ -832,5 +872,7 @@ gastar espacio.
       rendimiento) y elegir imágenes.
 - [ ] lollipop-chainsaw: probar en la Deck, jugar más allá del prólogo,
       revisar las manchas de color del prólogo y elegir imágenes.
+- [ ] bayonetta2: probar en la Deck (rendimiento, mando, fuentes del
+      sistema) y elegir imágenes.
 - [ ] DOA4: quitar el arreglo del puerto 1000 cuando salga la 0.3.8 (ya se
       salta solo por versión; probar en la Deck).

@@ -2,6 +2,8 @@
 # Instala lo que necesitan update.sh y los games/<id>/build.sh en el PC:
 #   - paquetes del sistema (con dnf, apt o pacman, usando sudo)
 #   - extract-xiso en tools/bin (release de XboxDev/extract-xiso)
+#   - hactool en tools/bin (SciresM/hactool 1.4.0, compilado aquí con gcc):
+#     extrae juegos de Switch (.nsp/.xci) con las claves del usuario (Bayonetta)
 #
 # Uso: tools/install.sh [--print]
 #   --print     solo muestra lo que haría con el gestor de paquetes
@@ -72,3 +74,23 @@ else
     echo "extract-xiso $(jq -r .tag_name <<<"$json") instalado en tools/bin"
 fi
 "$BIN/extract-xiso" 2>&1 | head -1 || true
+
+# hactool: solo publica binario de Windows; se compila del commit de la 1.4.0
+HACTOOL_COMMIT=3121a5bf08cd81d3a99719feb2cab3b60767afd5
+if [[ -x "$BIN/hactool" ]]; then
+    echo "hactool: ya instalado en tools/bin"
+elif (( PRINT )); then
+    echo "Compilaría hactool 1.4.0 (SciresM/hactool) en tools/bin (necesita git, gcc y make)"
+else
+    echo "Compilando hactool 1.4.0..."
+    htmp="$(mktemp -d)"
+    git -c advice.detachedHead=false clone -q https://github.com/SciresM/hactool.git "$htmp/hactool"
+    git -C "$htmp/hactool" checkout -q "$HACTOOL_COMMIT"
+    cp "$htmp/hactool/config.mk.template" "$htmp/hactool/config.mk"
+    make -s -C "$htmp/hactool" -j"$(nproc)" >"$htmp/make.log" 2>&1 \
+        || { cat "$htmp/make.log" >&2; exit 1; }
+    mkdir -p "$BIN"
+    install -m 755 "$htmp/hactool/hactool" "$BIN/hactool"
+    rm -rf "$htmp"
+    echo "hactool 1.4.0 instalado en tools/bin"
+fi
