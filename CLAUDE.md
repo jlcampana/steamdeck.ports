@@ -108,7 +108,9 @@ proyecto [`.claude/skills/add-game/SKILL.md`](.claude/skills/add-game/SKILL.md):
   (`tools/deprecated.sh`). Se conservan sus archivos; `update.sh`,
   `package.sh`, `fetch-art.sh` y `serve.sh` se los saltan al recorrer
   todos, pero funcionan si se nombran. Ahora: `doa4` (lo sustituye
-  `doa4-linux`) y `doax2` (lo sustituye `doax2-linux`).
+  `doa4-linux`), `doax2` (lo sustituye `doax2-linux`) y, por decisión
+  del usuario (2026-11-28), `bayonetta2`, `bayonetta3`,
+  `lollipop-chainsaw` y `urban-reign`.
 - **DOA4 solo publica prereleases** (`alpha-v…`): `update.sh` usa la release
   más reciente con el archivo si no hay «latest». Es solo Windows → Proton.
   Hasta alpha-v0.3.7 se congela al arrancar en Proton (puerto UDP 1000, issue
@@ -979,6 +981,13 @@ gastar espacio.
     menú y el arreglo de la espera activa. **Norma nueva:** menú de
     opciones en todos los juegos nuevos (Convenciones).
 
+### 2026-11-28
+
+1. **Obsoletos** (decisión del usuario): `bayonetta2`, `bayonetta3`,
+   `lollipop-chainsaw` y `urban-reign` (`DEPRECATED=1` en su
+   `game.conf`). Sus archivos se conservan. Para que desaparezcan de
+   «Ports por red» hay que reiniciar `serve.sh`.
+
 ### Pendiente
 
 - [x] `tools/install.sh`.
@@ -1016,14 +1025,14 @@ gastar espacio.
       probar las dos versiones jugando (en el PC y en la Deck).
 - [ ] hyrule-warriors: probar en la Deck (instalar por red, mando,
       rendimiento) y elegir imágenes.
-- [ ] lollipop-chainsaw: probar en la Deck, jugar más allá del prólogo,
+- [ ] (obsoleto) lollipop-chainsaw: probar en la Deck, jugar más allá del prólogo,
       revisar las manchas de color del prólogo y elegir imágenes.
-- [ ] bayonetta2: probar en la Deck (rendimiento, mando, fuentes del
+- [ ] (obsoleto) bayonetta2: probar en la Deck (rendimiento, mando, fuentes del
       sistema) y elegir imágenes. Al salir del juego, la Deck se quedó
       sin responder (2026-11-27; el juego ya había cerrado y Steam
       tardaba en volver; se arregló reiniciando Steam por SSH). Ver
       *Probar en la Deck*: monitor externo.
-- [ ] bayonetta3: probar en la Deck (sobre todo el rendimiento: en el PC
+- [ ] (obsoleto) bayonetta3: probar en la Deck (sobre todo el rendimiento: en el PC
       ~3,5 FPS), asignar F2 (menú) a un botón y elegir imágenes.
 - [ ] bomberman64 y bomberman-hero: probar en la Deck (jugar, mando) y
       elegir imágenes.
